@@ -31,4 +31,9 @@ assert 9 "(20 - 1) / 2"
 assert 10 "-10 + 20"
 assert 10 "- -10"
 
+assert 0 "2 == 3"
+assert 1 "2 != 3"
+assert 1 "2 <= 2"
+assert 0 "2 < 1"
+
 echo OK
