@@ -43,4 +43,8 @@ assert 30 "a = 10; b = 20; a + b;"
 assert 12 "abc = 12; abc;"
 assert 34 "_ = 3; _ = _ * 10; _ + 4;"
 
+assert 10 "return 10;"
+assert 10 "return 10; 20;"
+assert 10 "return 10; return 20;"
+
 echo OK

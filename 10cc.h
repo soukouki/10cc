@@ -36,6 +36,7 @@ typedef enum {
   ND_REF,  // 変数の評価
   ND_ASSIGN,
   ND_LVAR, // 左辺値(代入される側の値) (今は変数のみ)
+  ND_RETURN,
 } NodeKind;
 
 typedef struct Var Var;
@@ -51,8 +52,8 @@ typedef struct Node Node;
 
 struct Node {
   NodeKind kind;
-  Node* lhs;  // ND_ADD, ND_SUB, ND_MUL, ND_DIV, ND_EQ, ND_NE, ND_LT, ND_LEの場合に使う
-  Node* rhs;  // 同上
+  Node* lhs;  // 2項演算子と、1つNodeが必要な構文で使う
+  Node* rhs;  // 2項演算子で使う
   int val;    // ND_NUMの場合に使う
   Var* var;   // ND_LVARの場合に使う
 };

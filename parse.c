@@ -110,6 +110,10 @@ Token* tokenize(char *p) {
       while('a' <= *p && *p <= 'z' || 'A' <= *p && *p <= 'Z' || *p == '_' || '0' <= *p && *p <= '9') {
         p++;
       }
+      if(p - start == 6 && !memcmp(start, "return", 6)) {
+        cur = new_token(TK_SYMBOL, cur, start, 6);
+        continue;
+      }
       Var* var = find_var(start, p - start);
       if(!var) {
         var = calloc(1, sizeof(Var));
@@ -156,6 +160,7 @@ Node* new_node_ident(NodeKind kind, char* name) {
 /*
 program    = stmt*
 stmt       = assign ";"
+           | "return" expr ";"
 assign     = (ident "=")? expr
 expr       = equality
 equality   = relational ("==" relational | "!=" relational)*
@@ -186,6 +191,11 @@ Node* program() {
 }
 
 Node* stmt() {
+  if(consume("return")) {
+    Node* e = expr();
+    expect(";");
+    return new_node(ND_RETURN, e, NULL);
+  }
   Node* e = assign();
   expect(";");
   return e;
