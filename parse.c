@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "10cc.h"
 
@@ -16,6 +17,16 @@ bool consume(char* op) {
 
   token = token->next;
   return true;
+}
+
+// 次のトークンが識別子のときには、識別子の名前を返し、トークンを1つ読み進める
+// それ以外の場合にはNULLを返す
+char* consume_ident() {
+  if(token->kind != TK_IDENT) return NULL;
+  char* name = calloc(token->len + 1, sizeof(char));
+  strncpy(name, token->str, token->len);
+  token = token->next;
+  return name;
 }
 
 // 次のトークンが期待している記号のときには。トークンを1つ読み進める
@@ -74,7 +85,7 @@ Token* tokenize(char *p) {
       continue;
     }
 
-    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '>' || *p == '<') {
+    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '>' || *p == '<' || *p == '=' || *p == ';') {
       cur = new_token(TK_SYMBOL, cur, p++, 1);
       continue;
     }
@@ -82,6 +93,11 @@ Token* tokenize(char *p) {
     if(isdigit(*p)) {
       cur = new_token(TK_NUM, cur, p, 0);
       cur->val = strtol(p, &p, 10);
+      continue;
+    }
+
+    if('a' <= *p && *p <= 'z') {
+      cur = new_token(TK_IDENT, cur, p++, 1);
       continue;
     }
 
@@ -107,6 +123,31 @@ Node* new_node_num(int val) {
   return node;
 }
 
+// 今の所、変数名は1文字のみ
+Node* new_node_ident(NodeKind kind, char* name) {
+  Node* node = calloc(1, sizeof(Node));
+  node->kind = kind;
+  node->offset = (name[0] - 'a' + 1) * 8;
+  return node;
+}
+
+
+/*
+program    = stmt*
+stmt       = assign ";"
+assign     = (ident "=")? expr
+expr       = equality
+equality   = relational ("==" relational | "!=" relational)*
+relational = add ("<" add | "<=" add | ">" add | ">=" add)*
+add        = mul ("+" mul | "-" mul)*
+mul        = unary ("*" unary | "/" unary)*
+unary      = ("+" | "-")? primary
+primary    = num | ident | "(" expr ")"
+*/
+
+Node* program();
+Node* stmt();
+Node* assign();
 Node* expr();
 Node* equality();
 Node* relational();
@@ -114,6 +155,31 @@ Node* add();
 Node* mul();
 Node* unary();
 Node* primary();
+
+Node* program() {
+  int i = 0;
+  while(!at_eof()) {
+    code[i++] = stmt();
+  }
+  code[i] = NULL;
+}
+
+Node* stmt() {
+  Node* e = assign();
+  expect(";");
+  return e;
+}
+
+Node* assign() {
+  if(token->next->kind == TK_SYMBOL && token->next->len == 1 && token->next->str[0] == '=') {
+    char* lvals = consume_ident();
+    expect("=");
+    Node* lval = new_node_ident(ND_LVAR, lvals);
+    Node* node = new_node(ND_ASSIGN, lval, expr());
+    return node;
+  }
+  return expr();
+}
 
 Node* expr() {
   return equality();
@@ -195,6 +261,9 @@ Node* primary() {
     expect(")");
     return node;
   }
-
+  char* ident = consume_ident();
+  if(ident != NULL) {
+    return new_node_ident(ND_REF, ident);
+  }
   return new_node_num(expect_number());
 }

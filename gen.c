@@ -2,9 +2,55 @@
 
 #include "10cc.h"
 
+char* kinds [] = {
+  "ND_ADD",
+  "ND_SUB",
+  "ND_MUL",
+  "ND_DIV",
+  "ND_EQ",
+  "ND_NE",
+  "ND_LT",
+  "ND_LE",
+  "ND_NUM",
+  "ND_REF",
+  "ND_ASSIGN",
+  "ND_LVAR",
+};
+
+void gen_ref(Node* node) {
+  if(node->kind != ND_LVAR && node->kind != ND_REF) error("変数の参照ではありません");
+
+  printf("  mov rax, rbp\n");
+  printf("  sub rax, %d\n", node->offset);
+  printf("  push rax\n");
+}
+
 void gen(Node* node) {
+  printf("# gen %s\n", kinds[node->kind]);
   if(node->kind == ND_NUM) {
     printf("  push %d\n", node->val);
+    printf("# end gen ND_NUM\n");
+    return;
+  }
+  if(node->kind == ND_ASSIGN) {
+    Node* lval = node->lhs;
+    Node* rval = node->rhs;
+    if(lval->kind != ND_LVAR) error("代入の左辺値が変数ではありません");
+    gen_ref(lval);
+    gen(rval);
+    printf("  pop rdi\n");
+    printf("  pop rax\n");
+    printf("  mov [rax], rdi\n");
+    printf("  push rdi\n");
+    printf("# end gen ND_ASSIGN\n");
+    return;
+  }
+  if(node->kind == ND_REF) {
+    gen_ref(node);
+    printf("  pop rax\n");
+    printf("  mov rax, [rax]\n");
+    printf("  push rax\n");
+    printf("# end gen ND_REF\n");
     return;
   }
 
@@ -53,5 +99,5 @@ void gen(Node* node) {
   }
 
   printf("  push rax\n");
-
+  printf("# end gen %s\n", kinds[node->kind]);
 }
