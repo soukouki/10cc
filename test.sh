@@ -36,7 +36,11 @@ assert 1 "2 != 3;"
 assert 1 "2 <= 2;"
 assert 0 "2 < 1;"
 
+assert 1 "a = 1; 1;"
 assert 10 "a = 10; a;"
 assert 30 "a = 10; b = 20; a + b;"
+
+assert 12 "abc = 12; abc;"
+assert 34 "_ = 3; _ = _ * 10; _ + 4;"
 
 echo OK

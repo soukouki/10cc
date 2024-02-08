@@ -67,6 +67,15 @@ Token* new_token(TokenKind kind, Token *cur, char *str, int len) {
   return tok;
 }
 
+Var* find_var(char* name, int len) {
+  for(Var* var = locals; var; var = var->next) {
+    if(var->len == len && !memcmp(name, var->name, var->len)) {
+      return var;
+    }
+  }
+  return NULL;
+}
+
 Token* tokenize(char *p) {
   Token head;
   head.next = NULL;
@@ -96,8 +105,21 @@ Token* tokenize(char *p) {
       continue;
     }
 
-    if('a' <= *p && *p <= 'z') {
-      cur = new_token(TK_IDENT, cur, p++, 1);
+    if('a' <= *p && *p <= 'z' || 'A' <= *p && *p <= 'Z' || *p == '_') {
+      char* start = p;
+      while('a' <= *p && *p <= 'z' || 'A' <= *p && *p <= 'Z' || *p == '_' || '0' <= *p && *p <= '9') {
+        p++;
+      }
+      Var* var = find_var(start, p - start);
+      if(!var) {
+        var = calloc(1, sizeof(Var));
+        var->name = start;
+        var->len = p - start;
+        var->offset = locals ? locals->offset + 8 : 8;
+        var->next = locals;
+        locals = var;
+      }
+      cur = new_token(TK_IDENT, cur, start, p - start);
       continue;
     }
 
@@ -123,11 +145,10 @@ Node* new_node_num(int val) {
   return node;
 }
 
-// 今の所、変数名は1文字のみ
 Node* new_node_ident(NodeKind kind, char* name) {
   Node* node = calloc(1, sizeof(Node));
   node->kind = kind;
-  node->offset = (name[0] - 'a' + 1) * 8;
+  node->var = find_var(name, strlen(name));
   return node;
 }
 

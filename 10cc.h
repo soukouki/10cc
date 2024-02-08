@@ -38,6 +38,15 @@ typedef enum {
   ND_LVAR, // 左辺値(代入される側の値) (今は変数のみ)
 } NodeKind;
 
+typedef struct Var Var;
+
+struct Var {
+  Var* next;
+  char* name;
+  int len;
+  int offset;
+};
+
 typedef struct Node Node;
 
 struct Node {
@@ -45,7 +54,7 @@ struct Node {
   Node* lhs;  // ND_ADD, ND_SUB, ND_MUL, ND_DIV, ND_EQ, ND_NE, ND_LT, ND_LEの場合に使う
   Node* rhs;  // 同上
   int val;    // ND_NUMの場合に使う
-  int offset; // ND_LVARの場合に使う
+  Var* var;   // ND_LVARの場合に使う
 };
 
 void error(char *fmt, ...);
@@ -54,7 +63,9 @@ void error_at(char *loc, char *fmt, ...);
 Token* tokenize(char *p);
 Node* expr();
 void gen(Node* node);
+Var* find_var(char* name, int len);
 
 extern Token *token;
 extern char* user_input;
 extern Node* code[100];
+extern Var* locals;

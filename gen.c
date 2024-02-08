@@ -21,7 +21,7 @@ void gen_ref(Node* node) {
   if(node->kind != ND_LVAR && node->kind != ND_REF) error("変数の参照ではありません");
 
   printf("  mov rax, rbp\n");
-  printf("  sub rax, %d\n", node->offset);
+  printf("  sub rax, %d\n", node->var->offset);
   printf("  push rax\n");
 }
 

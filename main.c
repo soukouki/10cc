@@ -12,6 +12,8 @@ char* user_input;
 
 Node* code[100];
 
+Var* locals;
+
 // エラーを報告するための関数
 // printfと同じ引数を取る
 void error(char *fmt, ...) {
@@ -44,7 +46,9 @@ int main(int argc, char **argv) {
 
   user_input = argv[1];
   token = tokenize(user_input);
+  printf("# tokenized\n");
   program();
+  printf("# parsed\n");
 
   printf(".intel_syntax noprefix\n");
   printf(".globl main\n");
@@ -54,7 +58,7 @@ int main(int argc, char **argv) {
   // 変数26個分の領域を確保する
   printf("  push rbp\n");
   printf("  mov rbp, rsp\n");
-  printf("  sub rsp, 208\n");
+  printf("  sub rsp, %d\n", locals ? locals->offset : 0);
 
   for(int i = 0; code[i]; i++) {
     gen(code[i]);
