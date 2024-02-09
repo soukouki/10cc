@@ -2,6 +2,8 @@
 
 #include "10cc.h"
 
+int local_label = 0;
+
 char* kinds [] = {
   "ND_ADD",
   "ND_SUB",
@@ -16,6 +18,9 @@ char* kinds [] = {
   "ND_ASSIGN",
   "ND_LVAR",
   "ND_RETURN",
+  "ND_IF",
+  "ND_WHILE",
+  "ND_FOR",
 };
 
 void gen_ref(Node* node) {
@@ -27,6 +32,9 @@ void gen_ref(Node* node) {
 }
 
 void gen(Node* node) {
+  if(node == NULL) {
+    error("ノードがありません");
+  }
   printf("# gen %s\n", kinds[node->kind]);
   switch (node->kind)
   {
@@ -56,6 +64,55 @@ void gen(Node* node) {
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
     printf("  ret\n");
+    break;
+  case ND_IF:
+    gen(node->cond);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    int if_label = local_label;
+    local_label++;
+    if(node->els) {
+      printf("  je  .Lelse%d\n", if_label);
+      gen(node->then);
+      printf("  jmp .Lend%d\n", if_label);
+      printf(".Lelse%d:\n", if_label);
+      gen(node->els);
+    } else {
+      printf("  je  .Lend%d\n", if_label);
+      gen(node->then);
+    }
+    printf(".Lend%d:\n", if_label);
+    break;
+  case ND_WHILE:
+    int while_label = local_label;
+    local_label++;
+    printf(".Lbegin%d:\n", while_label);
+    gen(node->cond);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je  .Lend%d\n", while_label);
+    gen(node->body);
+    printf("  jmp .Lbegin%d\n", while_label);
+    printf(".Lend%d:\n", while_label);
+    printf("  push 0\n"); // なんか必要
+    break;
+  case ND_FOR:
+    int for_label = local_label;
+    local_label++;
+    if(node->init) gen(node->init);
+    printf(".Lbegin%d:\n", for_label);
+    if(node->cond) {
+      gen(node->cond);
+      printf("  pop rax\n");
+      printf("  cmp rax, 0\n");
+      printf("  je  .Lend%d\n", for_label);
+    }
+    gen(node->body);
+    if(node->inc) gen(node->inc);
+    printf("  jmp .Lbegin%d\n", for_label);
+    printf(".Lend%d:\n", for_label);
+    printf("  push 0\n"); // なんか必要
+    local_label++;
     break;
   default:
     gen(node->lhs);
@@ -105,5 +162,5 @@ void gen(Node* node) {
     printf("  push rax\n");
   }
 
-  printf("# end gen %s\n", kinds[node->kind]);
+  printf("# endgen %s\n", kinds[node->kind]);
 }

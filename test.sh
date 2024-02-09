@@ -47,4 +47,22 @@ assert 10 "return 10;"
 assert 10 "return 10; 20;"
 assert 10 "return 10; return 20;"
 
+assert 10 "if(1) return 10;"
+assert 10 "if(1) return 10; return 20;"
+assert 20 "if(0) return 10; return 20;"
+assert 20 "if(0) return 10; else if(1) return 20; else return 30; return 40;"
+assert 30 "if(0) return 10; else if(0) return 20; else return 30; return 40;"
+
+assert 34 "while(0) 12; 34;"
+assert 56 "while(1) return 56; 78;"
+assert 5 "a = 0; while (a < 5) a = a + 1; return a;"
+assert 5 "a = 0; while (1) if(a == 5) return a; else a = a + 1;"
+
+assert 3 "for(;;) return 3;"
+assert 5 "a = 0; for(;;) if(a == 5) return a; else a = a + 1;"
+assert 4 "for(a = 0; a < 9; a = a + 1) return 4;"
+assert 9 "for(a = 0; a < 9; a = a + 1) 1; a;"
+assert 9 "for(a = 9;;) if(a == 9) return a;"
+assert 5 "for(a = 0; a < 9; a = a + 1) if(a == 5) return a;"
+
 echo OK

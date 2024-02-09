@@ -114,6 +114,22 @@ Token* tokenize(char *p) {
         cur = new_token(TK_SYMBOL, cur, start, 6);
         continue;
       }
+      if(p - start == 2 && !memcmp(start, "if", 2)) {
+        cur = new_token(TK_SYMBOL, cur, start, 2);
+        continue;
+      }
+      if(p - start == 4 && !memcmp(start, "else", 4)) {
+        cur = new_token(TK_SYMBOL, cur, start, 4);
+        continue;
+      }
+      if(p - start == 5 && !memcmp(start, "while", 5)) {
+        cur = new_token(TK_SYMBOL, cur, start, 5);
+        continue;
+      }
+      if(p - start == 3 && !memcmp(start, "for", 3)) {
+        cur = new_token(TK_SYMBOL, cur, start, 3);
+        continue;
+      }
       Var* var = find_var(start, p - start);
       if(!var) {
         var = calloc(1, sizeof(Var));
@@ -161,6 +177,9 @@ Node* new_node_ident(NodeKind kind, char* name) {
 program    = stmt*
 stmt       = assign ";"
            | "return" expr ";"
+           | "if" "(" expr ")" stmt ("else" stmt)?
+           | "while" "(" expr ")" stmt
+           | "for" "(" expr? ";" expr? ";" expr? ")" stmt
 assign     = (ident "=")? expr
 expr       = equality
 equality   = relational ("==" relational | "!=" relational)*
@@ -195,6 +214,56 @@ Node* stmt() {
     Node* e = expr();
     expect(";");
     return new_node(ND_RETURN, e, NULL);
+  }
+  if(consume("if")) {
+    expect("(");
+    Node* cond = expr();
+    expect(")");
+    Node* then = stmt();
+    Node* els = NULL;
+    if(consume("else")) {
+      els = stmt();
+    }
+    Node* i = new_node(ND_IF, NULL, NULL);
+    i->cond = cond;
+    i->then = then;
+    i->els = els;
+    return i;
+  }
+  if(consume("while")) {
+    expect("(");
+    Node* cond = expr();
+    expect(")");
+    Node* body = stmt();
+    Node* w = new_node(ND_WHILE, NULL, NULL);
+    w->cond = cond;
+    w->body = body;
+    return w;
+  }
+  if(consume("for")) {
+    expect("(");
+    Node* init = NULL;
+    Node* cond = NULL;
+    Node* inc = NULL;
+    if(!consume(";")) {
+      init = assign();
+      expect(";");
+    }
+    if(!consume(";")) {
+      cond = expr();
+      expect(";");
+    }
+    if(!consume(")")) {
+      inc = assign();
+      expect(")");
+    }
+    Node* body = stmt();
+    Node* f = new_node(ND_FOR, NULL, NULL);
+    f->init = init;
+    f->cond = cond;
+    f->inc = inc;
+    f->body = body;
+    return f;
   }
   Node* e = assign();
   expect(";");

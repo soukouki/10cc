@@ -58,14 +58,14 @@ int main(int argc, char **argv) {
   // 変数26個分の領域を確保する
   printf("  push rbp\n");
   printf("  mov rbp, rsp\n");
-  printf("  sub rsp, %d\n", locals ? locals->offset : 0);
+  printf("  sub rsp, %d\n\n", locals ? locals->offset : 0);
 
   for(int i = 0; code[i]; i++) {
     gen(code[i]);
 
     // 式の評価結果としてスタックに一つの値が残っている
     // はずなので、スタックが溢れないようにポップしておく
-    printf("  pop rax\n");
+    printf("  pop rax\n\n");
   }
 
   // エピローグ
