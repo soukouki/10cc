@@ -97,7 +97,8 @@ Token* tokenize(char *p) {
     if(
       *p == '+' || *p == '-' || *p == '*' || *p == '/' ||
       *p == '(' || *p == ')' || *p == '>' || *p == '<' ||
-      *p == '=' || *p == ';' || *p == '{' || *p == '}'
+      *p == '=' || *p == ';' || *p == '{' || *p == '}' ||
+      *p == ','
     ) {
       cur = new_token(TK_SYMBOL, cur, p++, 1);
       continue;
@@ -194,7 +195,7 @@ add        = mul ("+" mul | "-" mul)*
 mul        = unary ("*" unary | "/" unary)*
 unary      = ("+" | "-")? primary
 primary    = num
-           | ident ("(" ")")? // ひとまず0引数の関数のみ対応
+           | ident ("(" (expr ("," expr)*)? ")")? // ひとまず0引数の関数のみ対応
            | "(" expr ")"
 */
 
@@ -385,8 +386,22 @@ Node* primary() {
   }
   char* ident = consume_ident();
   if(consume("(")) {
-    expect(")");
-    return new_node_ident(ND_CALL, ident);
+    // 6変数以上はスタック経由で渡したりして大変なので、サポートしない
+    Node* args[6];
+    int i = 0;
+    if(!consume(")")) {
+      args[i++] = expr();
+      while(consume(",")) {
+        args[i++] = expr();
+      }
+      expect(")");
+    }
+    Node* node = new_node_ident(ND_CALL, ident);
+    node->args = calloc(6, sizeof(Node*));
+    for(int j = 0; j < i; j++) {
+      node->args[j] = args[j];
+    }
+    return node;
   }
   if(ident != NULL) {
     return new_node_ident(ND_REF, ident);

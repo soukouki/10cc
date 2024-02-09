@@ -64,6 +64,7 @@ struct Node {
   Node*  els;   // ifで使う
   Node*  body;  // while, forで使う
   Node** stmts; // ブロックで使う
+  Node** args;  // 関数呼び出しで使う
   Node*  lhs;   // 2項演算子, 代入, 変数の参照, returnで使う
   Node*  rhs;   // 2項演算子, 代入で使う
   int val;      // ND_NUMの場合に使う

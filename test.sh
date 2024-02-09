@@ -79,6 +79,19 @@ assert 40 "for(a = 0; a < 100; a = a + 10) { if(a == 40) { return a; } }"
 assert 100 "call0();"
 assert 110 "call0()+10;"
 assert 120 "a = call0(); a + 20;"
+assert 100 "return call0();"
 assert 100 "{ call0(); call0(); }"
+
+assert 110 "call1(10);"
+assert 220 "call1(10)*2;"
+assert 110 "a = call1(10); a;"
+assert 110 "return call1(10);"
+assert 110 "if(1) return call1(10); else return call1(20); return 110;"
+
+assert 30 "call2(10, 20);"
+assert 60 "call3(10, 20, 30);"
+assert 99 "call4(10, 20, 30, 39);"
+assert 15 "call5(1, 2, 3, 4, 5);"
+assert 21 "call6(1, 2, 3, 4, 5, 6);"
 
 echo OK

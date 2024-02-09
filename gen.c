@@ -129,7 +129,30 @@ void gen(Node* node) {
     break;
   }
   case ND_CALL: {
-    printf("# ND_CALL %d %s\n", node->var->len, node->var->name);
+    if(node->args[0]) {
+      gen(node->args[0]);
+      printf("  pop rdi\n");
+    }
+    if(node->args[1]) {
+      gen(node->args[1]);
+      printf("  pop rsi\n");
+    }
+    if(node->args[2]) {
+      gen(node->args[2]);
+      printf("  pop rdx\n");
+    }
+    if(node->args[3]) {
+      gen(node->args[3]);
+      printf("  pop rcx\n");
+    }
+    if(node->args[4]) {
+      gen(node->args[4]);
+      printf("  pop r8\n");
+    }
+    if(node->args[5]) {
+      gen(node->args[5]);
+      printf("  pop r9\n");
+    }
     printf("  call %s\n", node->var->name);
     printf("  push rax\n");
     break;
