@@ -6,6 +6,8 @@
 
 #include "10cc.h"
 
+Var* locals;
+
 // 次のトークンが期待している記号のときには、トークンを1つ読み進めて真を返す
 // それ以外の場合には偽を返す
 bool consume(char* op) {
@@ -76,6 +78,20 @@ Var* find_var(char* name, int len) {
   return NULL;
 }
 
+Var* new_var(char* name, int len) {
+  Var* var = calloc(1, sizeof(Var));
+  var->name = name;
+  var->len = len;
+  var->next = locals;
+  if(locals) {
+    var->offset = locals->offset + 8;
+  } else {
+    var->offset = 8;
+  }
+  locals = var;
+  return var;
+}
+
 Token* tokenize(char *p) {
   Token head;
   head.next = NULL;
@@ -135,16 +151,6 @@ Token* tokenize(char *p) {
         cur = new_token(TK_SYMBOL, cur, start, 3);
         continue;
       }
-      Var* var = find_var(start, p - start);
-      if(!var) {
-        var = calloc(1, sizeof(Var));
-        var->name = calloc(p - start + 1, sizeof(char));
-        memcpy(var->name, start, p - start);
-        var->len = p - start;
-        var->offset = locals ? locals->offset + 8 : 8;
-        var->next = locals;
-        locals = var;
-      }
       cur = new_token(TK_IDENT, cur, start, p - start);
       continue;
     }
@@ -174,19 +180,20 @@ Node* new_node_num(int val) {
 Node* new_node_ident(NodeKind kind, char* name) {
   Node* node = calloc(1, sizeof(Node));
   node->kind = kind;
-  node->var = find_var(name, strlen(name));
+  node->name = name;
   return node;
 }
 
 
 /*
-program    = stmt*
+program    = ident "(" ")" block // ひとまず0引数の関数のみ
+block      = "{" stmt* "}"
 stmt       = assign ";"
            | "return" expr ";"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
-           | "{" stmt* "}"
+           | block
 assign     = (ident "=")? expr
 expr       = equality
 equality   = relational ("==" relational | "!=" relational)*
@@ -195,11 +202,13 @@ add        = mul ("+" mul | "-" mul)*
 mul        = unary ("*" unary | "/" unary)*
 unary      = ("+" | "-")? primary
 primary    = num
-           | ident ("(" (expr ("," expr)*)? ")")? // ひとまず0引数の関数のみ対応
+           | ident
+           | ident "(" (expr ("," expr)*)? ")"
            | "(" expr ")"
 */
 
 Node* program();
+Node* block();
 Node* stmt();
 Node* assign();
 Node* expr();
@@ -211,11 +220,36 @@ Node* unary();
 Node* primary();
 
 Node* program() {
-  int i = 0;
-  while(!at_eof()) {
-    code[i++] = stmt();
+  char* name = consume_ident();
+  if(name == NULL) {
+    error_at(token->str, "関数名がありません");
   }
-  code[i] = NULL;
+  expect("(");
+  expect(")");
+  expect("{");
+  printf("#   function %s\n", name);
+  locals = NULL;
+  Node* bloc = block();
+  Node* func = new_node_ident(ND_FUNC, name);
+  func->body = bloc;
+  func->var = locals;
+  code[0] = func;
+  return func;
+}
+
+Node* block() {
+  int i = 0;
+  Node* b[100];
+  while(!consume("}")) {
+    b[i++] = stmt();
+  }
+  b[i] = NULL;
+  Node* block = new_node(ND_BLOCK, NULL, NULL);
+  block->stmts = calloc(i + 1, sizeof(Node*));
+  for(int j = 0; j < i; j++) {
+    block->stmts[j] = b[j];
+  }
+  return block;
 }
 
 Node* stmt() {
@@ -275,18 +309,7 @@ Node* stmt() {
     return f;
   }
   if(consume("{")) {
-    int i = 0;
-    Node* b[100];
-    while(!consume("}")) {
-      b[i++] = stmt();
-    }
-    b[i] = NULL;
-    Node* block = new_node(ND_BLOCK, NULL, NULL);
-    block->stmts = calloc(i + 1, sizeof(Node*));
-    for(int j = 0; j < i; j++) {
-      block->stmts[j] = b[j];
-    }
-    return block;
+    return block();
   }
   Node* e = assign();
   expect(";");
@@ -294,10 +317,15 @@ Node* stmt() {
 }
 
 Node* assign() {
-  if(token->next->kind == TK_SYMBOL && token->next->len == 1 && token->next->str[0] == '=') {
+  if(token->next != NULL && token->next->kind == TK_SYMBOL && token->next->len == 1 && token->next->str[0] == '=') {
     char* lvals = consume_ident();
     expect("=");
     Node* lval = new_node_ident(ND_LVAR, lvals);
+    Var* var = find_var(lvals, strlen(lvals));
+    if(var == NULL) {
+      var = new_var(lvals, strlen(lvals));
+    }
+    lval->var = var;
     Node* node = new_node(ND_ASSIGN, lval, expr());
     return node;
   }
@@ -397,6 +425,7 @@ Node* primary() {
       expect(")");
     }
     Node* node = new_node_ident(ND_CALL, ident);
+    node->name = ident;
     node->args = calloc(6, sizeof(Node*));
     for(int j = 0; j < i; j++) {
       node->args[j] = args[j];
@@ -404,7 +433,11 @@ Node* primary() {
     return node;
   }
   if(ident != NULL) {
-    return new_node_ident(ND_REF, ident);
+    Node* ref = new_node_ident(ND_REF, ident);
+    Var* var = find_var(ident, strlen(ident));
+    if(var == NULL) error_at(token->str, "変数%sがありません", ident);
+    ref->var = var;
+    return ref;
   }
   return new_node_num(expect_number());
 }

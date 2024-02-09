@@ -33,15 +33,16 @@ typedef enum {
   ND_NUM,
 
   // 構文
-  ND_REF,  // 変数の評価
-  ND_CALL, // 関数呼び出し
+  ND_REF,    // 変数の評価
+  ND_CALL,   // 関数呼び出し
   ND_ASSIGN,
-  ND_LVAR, // 左辺値(代入される側の値) (今は変数のみ)
+  ND_LVAR,   // 左辺値(代入される側の値) (今は変数のみ)
   ND_RETURN,
   ND_IF,
   ND_WHILE,
   ND_FOR,
   ND_BLOCK,
+  ND_FUNC,   // 関数定義
 } NodeKind;
 
 typedef struct Var Var;
@@ -65,9 +66,10 @@ struct Node {
   Node*  body;  // while, forで使う
   Node** stmts; // ブロックで使う
   Node** args;  // 関数呼び出しで使う
-  Node*  lhs;   // 2項演算子, 代入, 変数の参照, returnで使う
+  Node*  lhs;   // 2項演算子, 代入, returnで使う
   Node*  rhs;   // 2項演算子, 代入で使う
-  int val;      // ND_NUMの場合に使う
+  int val;      // 数値リテラルの場合に使う
+  char* name;   // 関数の定義, 関数呼び出し, 変数の参照で使う
   Var* var;     // ND_LVARの場合に使う
 };
 
@@ -82,4 +84,3 @@ Var* find_var(char* name, int len);
 extern Token *token;
 extern char* user_input;
 extern Node* code[100];
-extern Var* locals;

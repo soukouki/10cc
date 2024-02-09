@@ -23,6 +23,7 @@ char* kinds [] = {
   "ND_WHILE",
   "ND_FOR",
   "ND_BLOCK",
+  "ND_FUNC",
 };
 
 void gen_ref(Node* node) {
@@ -153,8 +154,20 @@ void gen(Node* node) {
       gen(node->args[5]);
       printf("  pop r9\n");
     }
-    printf("  call %s\n", node->var->name);
+    printf("  call %s\n", node->name);
     printf("  push rax\n");
+    break;
+  }
+  case ND_FUNC: {
+    printf("%s:\n", node->name);
+    printf("  push rbp\n");
+    printf("  mov rbp, rsp\n");
+    Var* var = node->var;
+    printf("  sub rsp, %d\n", var == NULL ? 0 : var->offset);
+    gen(node->body);
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n");
+    printf("  ret\n");
     break;
   }
   default: {
