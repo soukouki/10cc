@@ -94,7 +94,11 @@ Token* tokenize(char *p) {
       continue;
     }
 
-    if(*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '>' || *p == '<' || *p == '=' || *p == ';') {
+    if(
+      *p == '+' || *p == '-' || *p == '*' || *p == '/' ||
+      *p == '(' || *p == ')' || *p == '>' || *p == '<' ||
+      *p == '=' || *p == ';' || *p == '{' || *p == '}'
+    ) {
       cur = new_token(TK_SYMBOL, cur, p++, 1);
       continue;
     }
@@ -180,6 +184,7 @@ stmt       = assign ";"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+           | "{" stmt* "}"
 assign     = (ident "=")? expr
 expr       = equality
 equality   = relational ("==" relational | "!=" relational)*
@@ -264,6 +269,20 @@ Node* stmt() {
     f->inc = inc;
     f->body = body;
     return f;
+  }
+  if(consume("{")) {
+    int i = 0;
+    Node* b[100];
+    while(!consume("}")) {
+      b[i++] = stmt();
+    }
+    b[i] = NULL;
+    Node* block = new_node(ND_BLOCK, NULL, NULL);
+    block->stmts = calloc(i + 1, sizeof(Node*));
+    for(int j = 0; j < i; j++) {
+      block->stmts[j] = b[j];
+    }
+    return block;
   }
   Node* e = assign();
   expect(";");

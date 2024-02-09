@@ -50,6 +50,7 @@ assert 10 "return 10; return 20;"
 assert 10 "if(1) return 10;"
 assert 10 "if(1) return 10; return 20;"
 assert 20 "if(0) return 10; return 20;"
+assert 20 "if(0) return 10; else return 20;"
 assert 20 "if(0) return 10; else if(1) return 20; else return 30; return 40;"
 assert 30 "if(0) return 10; else if(0) return 20; else return 30; return 40;"
 
@@ -64,5 +65,15 @@ assert 4 "for(a = 0; a < 9; a = a + 1) return 4;"
 assert 9 "for(a = 0; a < 9; a = a + 1) 1; a;"
 assert 9 "for(a = 9;;) if(a == 9) return a;"
 assert 5 "for(a = 0; a < 9; a = a + 1) if(a == 5) return a;"
+
+assert 10 "{ 10; }"
+assert 10 "{ return 10; 20; }"
+assert 20 "{ 10; 20; }"
+assert 10 "{ a = 10; return a; }"
+assert 20 "if(1) { return 20; }"
+assert 10 "if(1) { a = 10; return a; }"
+assert 20 "if(0) { a = 10; return a; } else { b = 20; return b; }"
+assert 30 "a = 0; while(1) { a = a + 10; if(a == 30) { return a; } }"
+assert 40 "for(a = 0; a < 100; a = a + 10) { if(a == 40) { return a; } }"
 
 echo OK

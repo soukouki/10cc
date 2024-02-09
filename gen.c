@@ -21,6 +21,7 @@ char* kinds [] = {
   "ND_IF",
   "ND_WHILE",
   "ND_FOR",
+  "ND_BLOCK",
 };
 
 void gen_ref(Node* node) {
@@ -36,12 +37,12 @@ void gen(Node* node) {
     error("ノードがありません");
   }
   printf("# gen %s\n", kinds[node->kind]);
-  switch (node->kind)
-  {
-  case ND_NUM:
+  switch (node->kind) {
+  case ND_NUM: {
     printf("  push %d\n", node->val);
     break;
-  case ND_ASSIGN:
+  }
+  case ND_ASSIGN: {
     Node* lval = node->lhs;
     Node* rval = node->rhs;
     if(lval->kind != ND_LVAR) error("代入の左辺値が変数ではありません");
@@ -52,20 +53,23 @@ void gen(Node* node) {
     printf("  mov [rax], rdi\n");
     printf("  push rdi\n");
     break;
-  case ND_REF:
+  }
+  case ND_REF: {
     gen_ref(node);
     printf("  pop rax\n");
     printf("  mov rax, [rax]\n");
     printf("  push rax\n");
     break;
-  case ND_RETURN:
+  }
+  case ND_RETURN: {
     gen(node->lhs);
     printf("  pop rax\n");
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
     printf("  ret\n");
     break;
-  case ND_IF:
+  }
+  case ND_IF: {
     gen(node->cond);
     printf("  pop rax\n");
     printf("  cmp rax, 0\n");
@@ -83,7 +87,8 @@ void gen(Node* node) {
     }
     printf(".Lend%d:\n", if_label);
     break;
-  case ND_WHILE:
+  }
+  case ND_WHILE: {
     int while_label = local_label;
     local_label++;
     printf(".Lbegin%d:\n", while_label);
@@ -96,7 +101,8 @@ void gen(Node* node) {
     printf(".Lend%d:\n", while_label);
     printf("  push 0\n"); // なんか必要
     break;
-  case ND_FOR:
+  }
+  case ND_FOR: {
     int for_label = local_label;
     local_label++;
     if(node->init) gen(node->init);
@@ -114,7 +120,14 @@ void gen(Node* node) {
     printf("  push 0\n"); // なんか必要
     local_label++;
     break;
-  default:
+  }
+  case ND_BLOCK: {
+    for(int i = 0; node->stmts[i]; i++) {
+      gen(node->stmts[i]);
+    }
+    break;
+  }
+  default: {
     gen(node->lhs);
     gen(node->rhs);
 
@@ -160,6 +173,8 @@ void gen(Node* node) {
         break;
     }
     printf("  push rax\n");
+    break;
+  }
   }
 
   printf("# endgen %s\n", kinds[node->kind]);
