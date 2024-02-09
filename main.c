@@ -10,8 +10,6 @@ Token* token;
 // 入力プログラム
 char* user_input;
 
-Node* code[100];
-
 // エラーを報告するための関数
 // printfと同じ引数を取る
 void error(char *fmt, ...) {
@@ -46,14 +44,12 @@ int main(int argc, char **argv) {
   printf("# tokenize\n");
   token = tokenize(user_input);
   printf("# parse\n");
-  program();
+  Node* code = program();
 
   printf(".intel_syntax noprefix\n");
   printf(".globl main\n");
   
-  for(int i = 0; code[i]; i++) {
-    gen(code[i]);
-  }
+  gen(code);
 
   return 0;
 }

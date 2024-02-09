@@ -91,4 +91,8 @@ assert 99 "main() { return call4(10, 20, 30, 39); }"
 assert 15 "main() { return call5(1, 2, 3, 4, 5); }"
 assert 21 "main() { return call6(1, 2, 3, 4, 5, 6); }"
 
+assert 42 "func() {} main() { return 42; }"
+assert 42 "func() { return 42; } main() { return func(); }"
+assert 42 "a() { return 42; } b() { return a(); } main() { return b(); }"
+
 echo OK

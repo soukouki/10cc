@@ -43,6 +43,9 @@ typedef enum {
   ND_FOR,
   ND_BLOCK,
   ND_FUNC,   // 関数定義
+
+  // その他
+  ND_PROGRAM, // プログラム全体
 } NodeKind;
 
 typedef struct Var Var;
@@ -66,6 +69,7 @@ struct Node {
   Node*  body;  // while, forで使う
   Node** stmts; // ブロックで使う
   Node** args;  // 関数呼び出しで使う
+  Node** funcs; // プログラムで使う
   Node*  lhs;   // 2項演算子, 代入, returnで使う
   Node*  rhs;   // 2項演算子, 代入で使う
   int val;      // 数値リテラルの場合に使う
@@ -83,4 +87,3 @@ Var* find_var(char* name, int len);
 
 extern Token *token;
 extern char* user_input;
-extern Node* code[100];

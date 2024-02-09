@@ -24,6 +24,7 @@ char* kinds [] = {
   "ND_FOR",
   "ND_BLOCK",
   "ND_FUNC",
+  "ND_PROGRAM",
 };
 
 void gen_ref(Node* node) {
@@ -168,6 +169,12 @@ void gen(Node* node) {
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
     printf("  ret\n");
+    break;
+  }
+  case ND_PROGRAM: {
+    for(int i = 0; node->funcs[i]; i++) {
+      gen(node->funcs[i]);
+    }
     break;
   }
   default: {

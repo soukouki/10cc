@@ -105,7 +105,8 @@ Node* new_node_ident(NodeKind kind, char* name) {
 }
 
 /*
-program    = ident "(" ")" block // ひとまず0引数の関数のみ
+program    = func*
+func       = ident "(" ")" block // ひとまず0引数の関数のみ
 block      = "{" stmt* "}"
 stmt       = assign ";"
            | "return" expr ";"
@@ -127,6 +128,7 @@ primary    = num
 */
 
 Node* program();
+Node* func();
 Node* block();
 Node* stmt();
 Node* assign();
@@ -139,6 +141,21 @@ Node* unary();
 Node* primary();
 
 Node* program() {
+  int i = 0;
+  Node* p[100];
+  while(!at_eof()) {
+    p[i++] = func();
+  }
+  p[i] = NULL;
+  Node* program = new_node(ND_PROGRAM, NULL, NULL);
+  program->funcs = calloc(i + 1, sizeof(Node*));
+  for(int j = 0; j < i; j++) {
+    program->funcs[j] = p[j];
+  }
+  return program;
+}
+
+Node* func() {
   char* name = consume_ident();
   if(name == NULL) {
     error_at(token->str, "関数名がありません");
@@ -152,7 +169,6 @@ Node* program() {
   Node* func = new_node_ident(ND_FUNC, name);
   func->body = bloc;
   func->var = locals;
-  code[0] = func;
   return func;
 }
 
