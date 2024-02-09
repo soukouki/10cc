@@ -15,6 +15,7 @@ char* kinds [] = {
   "ND_LE",
   "ND_NUM",
   "ND_REF",
+  "ND_CALL",
   "ND_ASSIGN",
   "ND_LVAR",
   "ND_RETURN",
@@ -125,6 +126,12 @@ void gen(Node* node) {
     for(int i = 0; node->stmts[i]; i++) {
       gen(node->stmts[i]);
     }
+    break;
+  }
+  case ND_CALL: {
+    printf("# ND_CALL %d %s\n", node->var->len, node->var->name);
+    printf("  call %s\n", node->var->name);
+    printf("  push rax\n");
     break;
   }
   default: {

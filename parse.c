@@ -137,7 +137,8 @@ Token* tokenize(char *p) {
       Var* var = find_var(start, p - start);
       if(!var) {
         var = calloc(1, sizeof(Var));
-        var->name = start;
+        var->name = calloc(p - start + 1, sizeof(char));
+        memcpy(var->name, start, p - start);
         var->len = p - start;
         var->offset = locals ? locals->offset + 8 : 8;
         var->next = locals;
@@ -192,7 +193,9 @@ relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 add        = mul ("+" mul | "-" mul)*
 mul        = unary ("*" unary | "/" unary)*
 unary      = ("+" | "-")? primary
-primary    = num | ident | "(" expr ")"
+primary    = num
+           | ident ("(" ")")? // ひとまず0引数の関数のみ対応
+           | "(" expr ")"
 */
 
 Node* program();
@@ -381,6 +384,10 @@ Node* primary() {
     return node;
   }
   char* ident = consume_ident();
+  if(consume("(")) {
+    expect(")");
+    return new_node_ident(ND_CALL, ident);
+  }
   if(ident != NULL) {
     return new_node_ident(ND_REF, ident);
   }

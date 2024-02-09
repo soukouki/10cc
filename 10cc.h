@@ -34,6 +34,7 @@ typedef enum {
 
   // 構文
   ND_REF,  // 変数の評価
+  ND_CALL, // 関数呼び出し
   ND_ASSIGN,
   ND_LVAR, // 左辺値(代入される側の値) (今は変数のみ)
   ND_RETURN,

@@ -4,7 +4,7 @@ assert() {
   input="$2"
 
   ./10cc "$input" > tmp.s
-  cc -o tmp.o tmp.s
+  cc -o tmp.o tmp.s test.s
   ./tmp.o
   actual="$?"
 
@@ -75,5 +75,10 @@ assert 10 "if(1) { a = 10; return a; }"
 assert 20 "if(0) { a = 10; return a; } else { b = 20; return b; }"
 assert 30 "a = 0; while(1) { a = a + 10; if(a == 30) { return a; } }"
 assert 40 "for(a = 0; a < 100; a = a + 10) { if(a == 40) { return a; } }"
+
+assert 100 "call0();"
+assert 110 "call0()+10;"
+assert 120 "a = call0(); a + 20;"
+assert 100 "{ call0(); call0(); }"
 
 echo OK

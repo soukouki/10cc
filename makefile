@@ -7,10 +7,13 @@ OBJS=$(SRCS:.c=.o)
 
 $(OBJS): 10cc.h
 
-test: 10cc
+test: 10cc test.s
 	./test.sh
 
+test.s: test.c
+	gcc -S -o test.s test.c
+
 clean:
-	rm -f 10cc *.o *~ tmp*
+	rm -f 10cc *.o *~ tmp* test.s
 
 .PHONY: test clean
