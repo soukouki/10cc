@@ -37,16 +37,17 @@ typedef enum {
   ND_DEREF,
 
   // 構文
-  ND_REF,    // 変数の評価
-  ND_CALL,   // 関数呼び出し
+  ND_REF,     // 変数の評価
+  ND_CALL,    // 関数呼び出し
   ND_ASSIGN,
-  ND_LVAR,   // 左辺値(代入される側の値) (今は変数のみ)
+  ND_LVAR,    // 左辺値(代入される側の値) (今は変数のみ)
   ND_RETURN,
   ND_IF,
   ND_WHILE,
   ND_FOR,
   ND_BLOCK,
-  ND_FUNC,   // 関数定義
+  ND_VARDEF,  // 変数の定義
+  ND_FUNCDEF, // 関数定義
 
   // その他
   ND_PROGRAM, // プログラム全体

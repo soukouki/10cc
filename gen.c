@@ -25,7 +25,8 @@ char* kinds [] = {
   "ND_WHILE",
   "ND_FOR",
   "ND_BLOCK",
-  "ND_FUNC",
+  "ND_VARDEF",
+  "ND_FUNCDEF",
   "ND_PROGRAM",
 };
 
@@ -172,7 +173,7 @@ void gen(Node* node) {
     printf("  push rax\n");
     break;
   }
-  case ND_FUNC: {
+  case ND_FUNCDEF: {
     printf("%s:\n", node->name);
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
@@ -206,6 +207,9 @@ void gen(Node* node) {
     for(int i = 0; node->funcs[i]; i++) {
       gen(node->funcs[i]);
     }
+    break;
+  }
+  case ND_VARDEF: {
     break;
   }
   default: {

@@ -106,9 +106,10 @@ Node* new_node_ident(NodeKind kind, char* name) {
 
 /*
 program    = func*
-func       = ident "(" (ident ("," ident)*)? ")" block
+func       = "int" ident "(" ("int" ident ("," "int" ident)*)? ")" block
 block      = "{" stmt* "}"
 stmt       = assign ";"
+           | "int" ident ";"
            | "return" expr ";"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
@@ -157,6 +158,7 @@ Node* program() {
 
 Node* func() {
   locals = NULL;
+  expect("int");
   char* name = consume_ident();
   printf("#   function %s\n", name);
   if(name == NULL) {
@@ -165,10 +167,15 @@ Node* func() {
   expect("(");
   Var* args[6];
   char* arg;
-  if(arg = consume_ident()) {
+  if(consume("int")) {
+    arg = consume_ident();
+    if(arg == NULL) {
+      error_at(token->str, "引数名がありません");
+    }
     args[0] = new_var(arg, strlen(arg));
     int i = 1;
     while(consume(",")) {
+      expect("int");
       arg = consume_ident();
       if(arg == NULL) {
         error_at(token->str, "引数名がありません");
@@ -180,7 +187,7 @@ Node* func() {
   expect(")");
   expect("{");
   Node* bloc = block();
-  Node* func = new_node_ident(ND_FUNC, name);
+  Node* func = new_node_ident(ND_FUNCDEF, name);
   func->body = bloc;
   func->var = locals;
   func->args_def = calloc(6, sizeof(Var*));
@@ -264,6 +271,21 @@ Node* stmt() {
   if(consume("{")) {
     return block();
   }
+  if(consume("int")) {
+    char* var_name = consume_ident();
+    if(var_name == NULL) {
+      error_at(token->str, "変数名がありません");
+    }
+    Var* var = find_var(var_name, strlen(var_name));
+    if(var == NULL) {
+      var = new_var(var_name, strlen(var_name));
+    } else {
+      error_at(token->str, "変数%sはすでに定義されています", var_name);
+    }
+    Node* vardef = new_node_ident(ND_VARDEF, var_name);
+    expect(";");
+    return vardef;
+  }
   Node* e = assign();
   expect(";");
   return e;
@@ -276,7 +298,7 @@ Node* assign() {
     Node* lval = new_node_ident(ND_LVAR, lvals);
     Var* var = find_var(lvals, strlen(lvals));
     if(var == NULL) {
-      var = new_var(lvals, strlen(lvals));
+      error_at(token->str, "変数%sは定義されていません", lvals);
     }
     lval->var = var;
     Node* node = new_node(ND_ASSIGN, lval, expr());
@@ -394,7 +416,7 @@ Node* primary() {
   if(ident != NULL) {
     Node* ref = new_node_ident(ND_REF, ident);
     Var* var = find_var(ident, strlen(ident));
-    if(var == NULL) error_at(token->str, "変数%sがありません", ident);
+    if(var == NULL) error_at(token->str, "変数%sは定義されていません", ident);
     ref->var = var;
     return ref;
   }
