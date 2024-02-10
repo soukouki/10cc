@@ -6,11 +6,9 @@
 
 #include "10cc.h"
 
-Var* locals;
-
 // 次のトークンが期待している記号のときには、トークンを1つ読み進めて真を返す
 // それ以外の場合には偽を返す
-bool consume(char* op) {
+static bool consume(char* op) {
   if(
     token->kind != TK_SYMBOL ||
     strlen(op) != token->len ||
@@ -23,7 +21,7 @@ bool consume(char* op) {
 
 // 次のトークンが識別子のときには、識別子の名前を返し、トークンを1つ読み進める
 // それ以外の場合にはNULLを返す
-char* consume_ident() {
+static char* consume_ident() {
   if(token->kind != TK_IDENT) return NULL;
   char* name = calloc(token->len + 1, sizeof(char));
   strncpy(name, token->str, token->len);
@@ -33,7 +31,7 @@ char* consume_ident() {
 
 // 次のトークンが期待している記号のときには。トークンを1つ読み進める
 // それ以外の場合にはエラーを報告する
-void expect(char* op) {
+static void expect(char* op) {
   if(
     token->kind != TK_SYMBOL ||
     strlen(op) != token->len ||
@@ -46,7 +44,7 @@ void expect(char* op) {
 
 // 次のトークンが数値の場合、トークンを1つ読み進めてその数値を返す
 // それ以外の場合にはエラーを報告する
-int expect_number() {
+static int expect_number() {
   if(token->kind != TK_NUM) {
     error_at(token->str, "数ではありません");
   }
@@ -55,31 +53,8 @@ int expect_number() {
   return val;
 }
 
-bool at_eof() {
+static bool at_eof() {
   return token->kind == TK_EOF;
-}
-
-Var* find_var(char* name, int len) {
-  for(Var* var = locals; var; var = var->next) {
-    if(var->len == len && !memcmp(name, var->name, var->len)) {
-      return var;
-    }
-  }
-  return NULL;
-}
-
-Var* new_var(char* name, int len) {
-  Var* var = calloc(1, sizeof(Var));
-  var->name = name;
-  var->len = len;
-  var->next = locals;
-  if(locals) {
-    var->offset = locals->offset + 8;
-  } else {
-    var->offset = 8;
-  }
-  locals = var;
-  return var;
 }
 
 Node* new_node(NodeKind kind, Node* lhs, Node* rhs) {
@@ -113,7 +88,7 @@ stmt       = assign ";"
            | "return" expr ";"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
-           | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+           | "for" "(" assign? ";" expr? ";" assign? ")" stmt
            | block
 assign     = (ident "=")? expr
 expr       = equality
@@ -128,20 +103,25 @@ primary    = num
            | "(" expr ")"
 */
 
-Node* program();
-Node* func();
-Node* block();
-Node* stmt();
-Node* assign();
-Node* expr();
-Node* equality();
-Node* relational();
-Node* add();
-Node* mul();
-Node* unary();
-Node* primary();
+Node* parse();
+static Node* program();
+static Node* func();
+static Node* block();
+static Node* stmt();
+static Node* assign();
+static Node* expr();
+static Node* equality();
+static Node* relational();
+static Node* add();
+static Node* mul();
+static Node* unary();
+static Node* primary();
 
-Node* program() {
+Node* parse() {
+  return program();
+}
+
+static Node* program() {
   int i = 0;
   Node* p[100];
   while(!at_eof()) {
@@ -156,8 +136,7 @@ Node* program() {
   return program;
 }
 
-Node* func() {
-  locals = NULL;
+static Node* func() {
   expect("int");
   char* name = consume_ident();
   printf("#   function %s\n", name);
@@ -165,14 +144,14 @@ Node* func() {
     error_at(token->str, "関数名がありません");
   }
   expect("(");
-  Var* args[6];
+  Node* args[6];
   char* arg;
   if(consume("int")) {
     arg = consume_ident();
     if(arg == NULL) {
       error_at(token->str, "引数名がありません");
     }
-    args[0] = new_var(arg, strlen(arg));
+    args[0] = new_node_ident(ND_IDENT, arg);
     int i = 1;
     while(consume(",")) {
       expect("int");
@@ -180,7 +159,7 @@ Node* func() {
       if(arg == NULL) {
         error_at(token->str, "引数名がありません");
       }
-      args[i++] = new_var(arg, strlen(arg));
+      args[i++] = new_node_ident(ND_IDENT, arg);
     }
     args[i] = NULL;
   }
@@ -189,15 +168,14 @@ Node* func() {
   Node* bloc = block();
   Node* func = new_node_ident(ND_FUNCDEF, name);
   func->body = bloc;
-  func->var = locals;
-  func->args_def = calloc(6, sizeof(Var*));
-  for(int i = 0; args[i]; i++) {
-    func->args_def[i] = args[i];
+  func->args_name = calloc(6, sizeof(Node*));
+  for(int j = 0; args[j]; j++) {
+    func->args_name[j] = args[j];
   }
   return func;
 }
 
-Node* block() {
+static Node* block() {
   int i = 0;
   Node* b[100];
   while(!consume("}")) {
@@ -212,7 +190,7 @@ Node* block() {
   return block;
 }
 
-Node* stmt() {
+static Node* stmt() {
   if(consume("return")) {
     Node* e = expr();
     expect(";");
@@ -276,42 +254,32 @@ Node* stmt() {
     if(var_name == NULL) {
       error_at(token->str, "変数名がありません");
     }
-    Var* var = find_var(var_name, strlen(var_name));
-    if(var == NULL) {
-      var = new_var(var_name, strlen(var_name));
-    } else {
-      error_at(token->str, "変数%sはすでに定義されています", var_name);
-    }
-    Node* vardef = new_node_ident(ND_VARDEF, var_name);
+    Node* ident = new_node_ident(ND_IDENT, var_name);
     expect(";");
-    return vardef;
+    Node* assign = new_node(ND_VARDEF, ident, NULL);
+    return assign;
   }
   Node* e = assign();
   expect(";");
   return e;
 }
 
-Node* assign() {
+static Node* assign() {
   if(token->next != NULL && token->next->kind == TK_SYMBOL && token->next->len == 1 && token->next->str[0] == '=') {
-    char* lvals = consume_ident();
+    char* lvals_name = consume_ident();
     expect("=");
-    Node* lval = new_node_ident(ND_LVAR, lvals);
-    Var* var = find_var(lvals, strlen(lvals));
-    if(var == NULL) {
-      error_at(token->str, "変数%sは定義されていません", lvals);
-    }
-    lval->var = var;
+    Node* lval = new_node_ident(ND_LVAR, lvals_name);
     Node* node = new_node(ND_ASSIGN, lval, expr());
     return node;
   }
   return expr();
 }
 
-Node* expr() {
+static Node* expr() {
   return equality();
 }
 
-Node* equality() {
+static Node* equality() {
   Node* node = relational();
 
   for(;;) {
@@ -325,7 +293,7 @@ Node* equality() {
   }
 }
 
-Node* relational() {
+static Node* relational() {
   Node* node = add();
 
   for(;;) {
@@ -343,7 +311,7 @@ Node* relational() {
   }
 }
 
-Node* add() {
+static Node* add() {
   Node* node = mul();
 
   for(;;) {
@@ -357,7 +325,7 @@ Node* add() {
   }
 }
 
-Node* mul() {
+static Node* mul() {
   Node* node = unary();
 
   for(;;) {
@@ -371,7 +339,7 @@ Node* mul() {
   }
 }
 
-Node* unary() {
+static Node* unary() {
   if(consume("+")) {
     return unary();
   }
@@ -387,7 +355,7 @@ Node* unary() {
   return primary();
 }
 
-Node* primary() {
+static Node* primary() {
   if(consume("(")) {
     Node* node = expr();
     expect(")");
@@ -414,10 +382,7 @@ Node* primary() {
     return node;
   }
   if(ident != NULL) {
-    Node* ref = new_node_ident(ND_REF, ident);
-    Var* var = find_var(ident, strlen(ident));
-    if(var == NULL) error_at(token->str, "変数%sは定義されていません", ident);
-    ref->var = var;
+    Node* ref = new_node_ident(ND_IDENT, ident);
     return ref;
   }
   return new_node_num(expect_number());

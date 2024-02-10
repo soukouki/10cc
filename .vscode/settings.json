@@ -3,6 +3,8 @@
     "stdlib.h": "c",
     "stdbool.h": "c",
     "chrono": "c",
-    "string.h": "c"
+    "string.h": "c",
+    "10cc.h": "c",
+    "numbers": "c"
   }
 }

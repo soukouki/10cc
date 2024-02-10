@@ -35,6 +35,33 @@ void error_at(char *loc, char *fmt, ...) {
 }
 
 int main(int argc, char **argv) {
+  node_kinds = (char*[]){
+    "ND_ADD",
+    "ND_SUB",
+    "ND_MUL",
+    "ND_DIV",
+    "ND_EQ",
+    "ND_NE",
+    "ND_LT",
+    "ND_LE",
+    "ND_NUM",
+    "ND_ADDR",
+    "ND_DEREF",
+    "ND_VARREF",
+    "ND_CALL",
+    "ND_ASSIGN",
+    "ND_LVAR",
+    "ND_RETURN",
+    "ND_IF",
+    "ND_WHILE",
+    "ND_FOR",
+    "ND_BLOCK",
+    "ND_VARDEF",
+    "ND_FUNCDEF",
+    "ND_PROGRAM",
+    "ND_IDENT",
+  };
+
   if (argc != 2) {
     fprintf(stderr, "引数の個数が正しくありません\n");
     return 1;
@@ -44,12 +71,13 @@ int main(int argc, char **argv) {
   printf("# tokenize\n");
   token = tokenize(user_input);
   printf("# parse\n");
-  Node* code = program();
+  Node* code = parse();
+  printf("# analyse semantics\n");
+  Node* analysed_code = analyse_semantics(code);
 
   printf(".intel_syntax noprefix\n");
   printf(".globl main\n");
-  
-  gen(code);
+  gen(analysed_code);
 
   return 0;
 }

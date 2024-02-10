@@ -4,35 +4,10 @@
 
 int local_label = 0;
 
-char* kinds [] = {
-  "ND_ADD",
-  "ND_SUB",
-  "ND_MUL",
-  "ND_DIV",
-  "ND_EQ",
-  "ND_NE",
-  "ND_LT",
-  "ND_LE",
-  "ND_NUM",
-  "ND_ADDR",
-  "ND_DEREF",
-  "ND_REF",
-  "ND_CALL",
-  "ND_ASSIGN",
-  "ND_LVAR",
-  "ND_RETURN",
-  "ND_IF",
-  "ND_WHILE",
-  "ND_FOR",
-  "ND_BLOCK",
-  "ND_VARDEF",
-  "ND_FUNCDEF",
-  "ND_PROGRAM",
-};
+char** node_kinds;
 
 void gen_ref(Node* node) {
-  if(node->kind != ND_LVAR && node->kind != ND_REF) error("変数の参照ではありません");
-
+  if(node->kind != ND_LVAR && node->kind != ND_VARREF) error("変数の参照ではありません");
   printf("  mov rax, rbp\n");
   printf("  sub rax, %d\n", node->var->offset);
   printf("  push rax\n");
@@ -42,7 +17,7 @@ void gen(Node* node) {
   if(node == NULL) {
     error("ノードがありません");
   }
-  printf("# gen %s\n", kinds[node->kind]);
+  printf("# gen %s\n", node_kinds[node->kind]);
   switch (node->kind) {
   case ND_NUM: {
     printf("  push %d\n", node->val);
@@ -71,7 +46,7 @@ void gen(Node* node) {
     printf("  push rax\n");
     break;
   }
-  case ND_REF: {
+  case ND_VARREF: {
     gen_ref(node);
     printf("  pop rax\n");
     printf("  mov rax, [rax]\n");
@@ -262,5 +237,5 @@ void gen(Node* node) {
   }
   }
 
-  printf("# endgen %s\n", kinds[node->kind]);
+  printf("# endgen %s\n", node_kinds[node->kind]);
 }

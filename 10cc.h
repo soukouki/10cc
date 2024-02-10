@@ -22,35 +22,36 @@ typedef enum {
   ND_SUB,
   ND_MUL,
   ND_DIV,
-
   // 比較演算子
   ND_EQ,
   ND_NE,
   ND_LT,
   ND_LE, // GT, GEはLT, LEを使って表現できる
+  // 2項演算子はlhs, rhsを持つ
 
   // リテラル
-  ND_NUM,
+  ND_NUM, // valを持つ
 
   // ポインタ
-  ND_ADDR,
-  ND_DEREF,
+  ND_ADDR,  // 単項&, lhsを持つ
+  ND_DEREF, // 単項*, lhsを持つ
 
   // 構文
-  ND_REF,     // 変数の評価
-  ND_CALL,    // 関数呼び出し
-  ND_ASSIGN,
-  ND_LVAR,    // 左辺値(代入される側の値) (今は変数のみ)
-  ND_RETURN,
-  ND_IF,
-  ND_WHILE,
-  ND_FOR,
-  ND_BLOCK,
-  ND_VARDEF,  // 変数の定義
-  ND_FUNCDEF, // 関数定義
+  ND_VARREF,  // 変数の評価, name, varを持つ
+  ND_CALL,    // 関数呼び出し, name, args_callを持つ
+  ND_ASSIGN,  // 代入, lhs, rhsを持つ
+  ND_LVAR,    // 左辺値, varを持つ
+  ND_RETURN,  // return, lhsを持つ
+  ND_IF,      // if文, cond, then, elsを持つ
+  ND_WHILE,   // while文, cond, bodyを持つ
+  ND_FOR,     // for文, init, cond, inc, bodyを持つ
+  ND_BLOCK,   // ブロック, stmtsを持つ
+  ND_VARDEF,  // 変数の定義, var, nameを持つ
+  ND_FUNCDEF, // 関数定義, name, args_name, bodyを持つ
 
   // その他
-  ND_PROGRAM, // プログラム全体
+  ND_PROGRAM, // プログラム全体, funcsを持つ
+  ND_IDENT,   // 識別子(意味解析時に置き換える), nameを持つ
 } NodeKind;
 
 typedef struct Var Var;
@@ -59,7 +60,7 @@ struct Var {
   Var* next;
   char* name;
   int len;
-  int offset;
+  int offset; // 意味解析時に計算される
 };
 
 typedef struct Node Node;
@@ -80,16 +81,23 @@ struct Node {
   int    val;       // 数値リテラルの場合に使う
   char*  name;      // 関数の定義, 関数呼び出し, 変数の参照で使う
   Var*   var;       // ND_LVARの場合に使う
-  Var**  args_def;  // 関数の定義で使う
+  Node** args_name; // 関数の定義で使う(パース->意味解析)
+  Var**  args_def;  // 関数の定義で使う(意味解析->コード生成)
 };
 
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 
+extern char** node_kinds;
+
+Node* new_node(NodeKind kind, Node* lhs, Node* rhs);
+Node* new_node_num(int val);
+Node* new_node_ident(NodeKind kind, char* name);
+
 Token* tokenize(char *p);
-Node* program();
+Node* parse();
+Node* analyse_semantics(Node* node);
 void gen(Node* node);
-Var* find_var(char* name, int len);
 
 extern Token *token;
 extern char* user_input;
