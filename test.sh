@@ -94,5 +94,10 @@ assert 21 "main() { return call6(1, 2, 3, 4, 5, 6); }"
 assert 42 "func() {} main() { return 42; }"
 assert 42 "func() { return 42; } main() { return func(); }"
 assert 42 "a() { return 42; } b() { return a(); } main() { return b(); }"
+assert 42 "func() { a = 20; return a; } main() { a = 42; func(); return a; }"
+
+assert 13 "id(x) { return x; } main() { return id(13); }"
+assert 13 "add(x, y) { return x + y; } main() { return add(3, 10); }"
+assert 13 "fib(n) { if(n <= 1) return n; return fib(n - 1) + fib(n - 2); } main() { return fib(7); }"
 
 echo OK

@@ -131,28 +131,28 @@ void gen(Node* node) {
     break;
   }
   case ND_CALL: {
-    if(node->args[0]) {
-      gen(node->args[0]);
+    if(node->args_call[0]) {
+      gen(node->args_call[0]);
       printf("  pop rdi\n");
     }
-    if(node->args[1]) {
-      gen(node->args[1]);
+    if(node->args_call[1]) {
+      gen(node->args_call[1]);
       printf("  pop rsi\n");
     }
-    if(node->args[2]) {
-      gen(node->args[2]);
+    if(node->args_call[2]) {
+      gen(node->args_call[2]);
       printf("  pop rdx\n");
     }
-    if(node->args[3]) {
-      gen(node->args[3]);
+    if(node->args_call[3]) {
+      gen(node->args_call[3]);
       printf("  pop rcx\n");
     }
-    if(node->args[4]) {
-      gen(node->args[4]);
+    if(node->args_call[4]) {
+      gen(node->args_call[4]);
       printf("  pop r8\n");
     }
-    if(node->args[5]) {
-      gen(node->args[5]);
+    if(node->args_call[5]) {
+      gen(node->args_call[5]);
       printf("  pop r9\n");
     }
     printf("  call %s\n", node->name);
@@ -165,6 +165,24 @@ void gen(Node* node) {
     printf("  mov rbp, rsp\n");
     Var* var = node->var;
     printf("  sub rsp, %d\n", var == NULL ? 0 : var->offset);
+    if(node->args_def[0]) {
+      printf("  mov [rbp-%d], rdi\n", node->args_def[0]->offset);
+    }
+    if(node->args_def[1]) {
+      printf("  mov [rbp-%d], rsi\n", node->args_def[1]->offset);
+    }
+    if(node->args_def[2]) {
+      printf("  mov [rbp-%d], rdx\n", node->args_def[2]->offset);
+    }
+    if(node->args_def[3]) {
+      printf("  mov [rbp-%d], rcx\n", node->args_def[3]->offset);
+    }
+    if(node->args_def[4]) {
+      printf("  mov [rbp-%d], r8\n", node->args_def[4]->offset);
+    }
+    if(node->args_def[5]) {
+      printf("  mov [rbp-%d], r9\n", node->args_def[5]->offset);
+    }
     gen(node->body);
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");

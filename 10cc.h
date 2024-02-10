@@ -61,20 +61,21 @@ typedef struct Node Node;
 
 struct Node {
   NodeKind kind;
-  Node*  init;  // forで使う
-  Node*  inc;   // forで使う
-  Node*  cond;  // if, while, forで使う
-  Node*  then;  // ifで使う
-  Node*  els;   // ifで使う
-  Node*  body;  // while, forで使う
-  Node** stmts; // ブロックで使う
-  Node** args;  // 関数呼び出しで使う
-  Node** funcs; // プログラムで使う
-  Node*  lhs;   // 2項演算子, 代入, returnで使う
-  Node*  rhs;   // 2項演算子, 代入で使う
-  int val;      // 数値リテラルの場合に使う
-  char* name;   // 関数の定義, 関数呼び出し, 変数の参照で使う
-  Var* var;     // ND_LVARの場合に使う
+  Node*  init;      // forで使う
+  Node*  inc;       // forで使う
+  Node*  cond;      // if, while, forで使う
+  Node*  then;      // ifで使う
+  Node*  els;       // ifで使う
+  Node*  body;      // while, forで使う
+  Node** stmts;     // ブロックで使う
+  Node** args_call; // 関数呼び出しで使う
+  Node** funcs;     // プログラムで使う
+  Node*  lhs;       // 2項演算子, 代入, returnで使う
+  Node*  rhs;       // 2項演算子, 代入で使う
+  int    val;       // 数値リテラルの場合に使う
+  char*  name;      // 関数の定義, 関数呼び出し, 変数の参照で使う
+  Var*   var;       // ND_LVARの場合に使う
+  Var**  args_def;  // 関数の定義で使う
 };
 
 void error(char *fmt, ...);

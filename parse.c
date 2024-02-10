@@ -106,7 +106,7 @@ Node* new_node_ident(NodeKind kind, char* name) {
 
 /*
 program    = func*
-func       = ident "(" ")" block // ひとまず0引数の関数のみ
+func       = ident "(" (ident ("," ident)*)? ")" block
 block      = "{" stmt* "}"
 stmt       = assign ";"
            | "return" expr ";"
@@ -156,19 +156,37 @@ Node* program() {
 }
 
 Node* func() {
+  locals = NULL;
   char* name = consume_ident();
+  printf("#   function %s\n", name);
   if(name == NULL) {
     error_at(token->str, "関数名がありません");
   }
   expect("(");
+  Var* args[6];
+  char* arg;
+  if(arg = consume_ident()) {
+    args[0] = new_var(arg, strlen(arg));
+    int i = 1;
+    while(consume(",")) {
+      arg = consume_ident();
+      if(arg == NULL) {
+        error_at(token->str, "引数名がありません");
+      }
+      args[i++] = new_var(arg, strlen(arg));
+    }
+    args[i] = NULL;
+  }
   expect(")");
   expect("{");
-  printf("#   function %s\n", name);
-  locals = NULL;
   Node* bloc = block();
   Node* func = new_node_ident(ND_FUNC, name);
   func->body = bloc;
   func->var = locals;
+  func->args_def = calloc(6, sizeof(Var*));
+  for(int i = 0; args[i]; i++) {
+    func->args_def[i] = args[i];
+  }
   return func;
 }
 
@@ -361,9 +379,9 @@ Node* primary() {
     }
     Node* node = new_node_ident(ND_CALL, ident);
     node->name = ident;
-    node->args = calloc(6, sizeof(Node*));
+    node->args_call = calloc(6, sizeof(Node*));
     for(int j = 0; j < i; j++) {
-      node->args[j] = args[j];
+      node->args_call[j] = args[j];
     }
     return node;
   }
