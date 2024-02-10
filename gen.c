@@ -14,6 +14,8 @@ char* kinds [] = {
   "ND_LT",
   "ND_LE",
   "ND_NUM",
+  "ND_ADDR",
+  "ND_DEREF",
   "ND_REF",
   "ND_CALL",
   "ND_ASSIGN",
@@ -55,6 +57,17 @@ void gen(Node* node) {
     printf("  pop rax\n");
     printf("  mov [rax], rdi\n");
     printf("  push rdi\n");
+    break;
+  }
+  case ND_ADDR: {
+    gen_ref(node->lhs);
+    break;
+  }
+  case ND_DEREF: {
+    gen(node->lhs);
+    printf("  pop rax\n");
+    printf("  mov rax, [rax]\n");
+    printf("  push rax\n");
     break;
   }
   case ND_REF: {

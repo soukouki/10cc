@@ -32,6 +32,10 @@ typedef enum {
   // リテラル
   ND_NUM,
 
+  // ポインタ
+  ND_ADDR,
+  ND_DEREF,
+
   // 構文
   ND_REF,    // 変数の評価
   ND_CALL,   // 関数呼び出し
@@ -70,7 +74,7 @@ struct Node {
   Node** stmts;     // ブロックで使う
   Node** args_call; // 関数呼び出しで使う
   Node** funcs;     // プログラムで使う
-  Node*  lhs;       // 2項演算子, 代入, returnで使う
+  Node*  lhs;       // 2項演算子, 代入, return, 単項&, 単項*で使う
   Node*  rhs;       // 2項演算子, 代入で使う
   int    val;       // 数値リテラルの場合に使う
   char*  name;      // 関数の定義, 関数呼び出し, 変数の参照で使う

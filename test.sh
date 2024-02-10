@@ -100,4 +100,7 @@ assert 13 "id(x) { return x; } main() { return id(13); }"
 assert 13 "add(x, y) { return x + y; } main() { return add(3, 10); }"
 assert 13 "fib(n) { if(n <= 1) return n; return fib(n - 1) + fib(n - 2); } main() { return fib(7); }"
 
+assert 42 "main() { a = 42; b = &a; return *b; }"
+assert 42 "main() { a = 42; b = &a; c = &b; return **c; }"
+
 echo OK
