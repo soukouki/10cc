@@ -90,7 +90,9 @@ void error_at(char *loc, char *fmt, ...);
 
 extern char** node_kinds;
 
-Node* new_node(NodeKind kind, Node* lhs, Node* rhs);
+Node* new_node(NodeKind kind);
+Node* new_node_1branch(NodeKind kind, Node* lhs);
+Node* new_node_2branches(NodeKind kind, Node* lhs, Node* rhs);
 Node* new_node_num(int val);
 Node* new_node_ident(NodeKind kind, char* name);
 
