@@ -58,10 +58,8 @@ int main(int argc, char **argv) {
     "ND_BLOCK",
     "ND_VARDEF",
     "ND_FUNCDEF",
-    "ND_INT",
     "ND_PROGRAM",
     "ND_IDENT",
-    "ND_POINTER",
   };
 
   if (argc != 2) {

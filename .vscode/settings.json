@@ -5,12 +5,6 @@
     "chrono": "c",
     "string.h": "c",
     "10cc.h": "c",
-    "numbers": "c",
-    "deque": "c",
-    "list": "c",
-    "string": "c",
-    "vector": "c",
-    "system_error": "c",
-    "array": "c"
+    "numbers": "c"
   }
 }

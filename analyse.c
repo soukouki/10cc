@@ -9,65 +9,28 @@ Var* locals;
 
 static Var* find_var(char* name, int len) {
   for(Var* var = locals; var; var = var->next) {
-    if(var->name_len == len && !memcmp(var->name, name, len)) {
+    if(var->len == len && !memcmp(name, var->name, var->len)) {
       return var;
     }
   }
   return NULL;
 }
 
-static Var* new_var(char* name, int len, Type* type) {
+static Var* new_var(char* name, int len) {
   Var* var = calloc(1, sizeof(Var));
   var->name = name;
-  var->name_len = len;
+  var->len = len;
   var->next = locals;
-  int offset = locals ? locals->offset + type->size : type->size;
-  var->offset = offset;
+  if(locals) {
+    var->offset = locals->offset + 8;
+  } else {
+    var->offset = 8;
+  }
   locals = var;
   return var;
 }
 
-static Type* type_from_node(Node* node) {
-  switch(node->kind) {
-  case ND_INT: {
-    Type* type = calloc(1, sizeof(Type));
-    type->kind = TY_INT;
-    type->size = 8;
-    return type;
-  }
-  case ND_POINTER: {
-    Type* type = calloc(1, sizeof(Type));
-    type->kind = TY_PTR;
-    type->ptr_to = type_from_node(node->lhs);
-    type->size = 64;
-    return type;
-  }
-  default: {
-    error("その型には対応していません %s %s", node_kinds[node->kind], node->name);
-  }
-  }
-}
-
-static Node* type_into_pointer(Node* node) {
-  switch(node->kind) {
-  case ND_INT: {
-    Node* new_node = new_node_ident(ND_POINTER, node->name);
-    new_node->lhs = node;
-    return new_node;
-  }
-  case ND_POINTER: {
-    Node* new_node = new_node_ident(ND_POINTER, node->name);
-    new_node->lhs = type_into_pointer(node->lhs);
-    return new_node;
-  }
-  default: {
-    error("その型には対応していません %s %s", node_kinds[node->kind], node->name);
-  }
-  }
-}
-
 Node* analyse_semantics(Node* node) {
-  printf("# analyse_semantics %s\n", node_kinds[node->kind]);
   switch(node->kind) {
   case ND_PROGRAM: {
     for(int i = 0; node->funcs[i]; i++) {
@@ -78,23 +41,17 @@ Node* analyse_semantics(Node* node) {
   case ND_FUNCDEF: {
     locals = NULL;
     printf("#   function %s\n", node->name);
-    Node* func = new_node_ident(ND_FUNCDEF, node->name);
-
-    FuncDefSemantics* semantics = calloc(1, sizeof(FuncDefSemantics));
-    Type* ret_type = type_from_node(node->func_def_ast->ret_type);
-    semantics->ret_type = type_from_node(node->func_def_ast->ret_type);
-    
-    semantics->args = calloc(6, sizeof(Var*));
-    for(int i = 0; node->func_def_ast->args[i]; i++) {
-      FuncDefASTTypeAndName* arg = node->func_def_ast->args[i];
-      Var* var = new_var(arg->name, strlen(arg->name), type_from_node(arg->type));
-      semantics->args[i] = var;
+    int i = 0;
+    node->args_def = calloc(6, sizeof(Var*));
+    while(node->args_name[i]) {
+      Var* var = new_var(node->args_name[i]->name, strlen(node->args_name[i]->name));
+      node->args_def[i] = var;
+      i++;
     }
-    func->func_def_semantics = semantics;
-
-    func->body = analyse_semantics(node->body);
-    semantics->stack_offset = locals ? locals->offset : 0;
-    return func;
+    node->args_def[i] = NULL;
+    node->body = analyse_semantics(node->body);
+    node->var = locals;
+    return node;
   }
   case ND_BLOCK: {
     for(int i = 0; node->stmts[i]; i++) {
@@ -103,8 +60,7 @@ Node* analyse_semantics(Node* node) {
     return node;
   }
   case ND_VARDEF: {
-    Type* type = type_from_node(node->lhs);
-    node->var = new_var(node->name, strlen(node->name), type);
+    node->var = new_var(node->lhs->name, strlen(node->lhs->name));
     return node;
   }
   case ND_RETURN: {
@@ -112,14 +68,16 @@ Node* analyse_semantics(Node* node) {
     return node;
   }
   case ND_ASSIGN: {
-    Node* lhs = new_node_ident(ND_LVAR, node->lhs->name);
-    Var* var = find_var(lhs->name, strlen(lhs->name));
-    if(!var) {
-      error("変数%sは定義されていません", lhs->name);
+    if(node->kind == ND_ASSIGN) {
+      Node* lhs = new_node_ident(ND_LVAR, node->lhs->name);
+      Var* var = find_var(lhs->name, strlen(lhs->name));
+      if(!var) {
+        error("変数%sは定義されていません", lhs->name);
+      }
+      lhs->var = var;
+      node->lhs = lhs;
+      node->rhs = analyse_semantics(node->rhs);
     }
-    lhs->var = var;
-    node->lhs = lhs;
-    node->rhs = analyse_semantics(node->rhs);
     return node;
   }
   case ND_CALL: {
@@ -129,6 +87,7 @@ Node* analyse_semantics(Node* node) {
     return node;
   }
   case ND_IDENT: {
+    // ここに来るのは変数参照のみ
     Var* var = find_var(node->name, strlen(node->name));
     if(!var) {
       error("変数%sは定義されていません", node->name);
