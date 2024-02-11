@@ -152,25 +152,25 @@ void gen(Node* node) {
     printf("%s:\n", node->name);
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
-    Var* var = node->var;
-    printf("  sub rsp, %d\n", var == NULL ? 0 : var->offset);
-    if(node->args_def[0]) {
-      printf("  mov [rbp-%d], rdi\n", node->args_def[0]->offset);
+    printf("  sub rsp, %d\n", node->func_def_semantics->stack_offset);
+    FuncDefSemantics* semantics = node->func_def_semantics;
+    if(semantics->args[0]) {
+      printf("  mov [rbp-%d], rdi\n", semantics->args[0]->offset);
     }
-    if(node->args_def[1]) {
-      printf("  mov [rbp-%d], rsi\n", node->args_def[1]->offset);
+    if(semantics->args[1]) {
+      printf("  mov [rbp-%d], rsi\n", semantics->args[1]->offset);
     }
-    if(node->args_def[2]) {
-      printf("  mov [rbp-%d], rdx\n", node->args_def[2]->offset);
+    if(semantics->args[2]) {
+      printf("  mov [rbp-%d], rdx\n", semantics->args[2]->offset);
     }
-    if(node->args_def[3]) {
-      printf("  mov [rbp-%d], rcx\n", node->args_def[3]->offset);
+    if(semantics->args[3]) {
+      printf("  mov [rbp-%d], rcx\n", semantics->args[3]->offset);
     }
-    if(node->args_def[4]) {
-      printf("  mov [rbp-%d], r8\n", node->args_def[4]->offset);
+    if(semantics->args[4]) {
+      printf("  mov [rbp-%d], r8\n", semantics->args[4]->offset);
     }
-    if(node->args_def[5]) {
-      printf("  mov [rbp-%d], r9\n", node->args_def[5]->offset);
+    if(semantics->args[5]) {
+      printf("  mov [rbp-%d], r9\n", semantics->args[5]->offset);
     }
     gen(node->body);
     printf("  mov rsp, rbp\n");

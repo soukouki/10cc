@@ -53,11 +53,44 @@ static int expect_number() {
   return val;
 }
 
+// 次のトークンが期待している記号のときには真を返す
+static bool is_next(char* op) {
+  if(
+    token->kind != TK_SYMBOL ||
+    strlen(op) != token->len ||
+    memcmp(token->str, op, token->len) != 0
+  ) return false;
+  return true;
+}
+
+static bool is_after_next(char* op) {
+  if(token->next->kind != TK_SYMBOL) return false;
+  if(
+    token->next->kind != TK_SYMBOL ||
+    strlen(op) != token->next->len ||
+    memcmp(token->next->str, op, token->next->len) != 0
+  ) return false;
+  return true;
+}
+
 static bool at_eof() {
   return token->kind == TK_EOF;
 }
 
-Node* new_node(NodeKind kind, Node* lhs, Node* rhs) {
+Node* new_node(NodeKind kind) {
+  Node* node = calloc(1, sizeof(Node));
+  node->kind = kind;
+  return node;
+}
+
+Node* new_node_1branch(NodeKind kind, Node* lhs) {
+  Node* node = calloc(1, sizeof(Node));
+  node->kind = kind;
+  node->lhs = lhs;
+  return node;
+}
+
+Node* new_node_2branch(NodeKind kind, Node* lhs, Node* rhs) {
   Node* node = calloc(1, sizeof(Node));
   node->kind = kind;
   node->lhs = lhs;
@@ -81,16 +114,17 @@ Node* new_node_ident(NodeKind kind, char* name) {
 
 /*
 program    = func*
-func       = "int" ident "(" ("int" ident ("," "int" ident)*)? ")" block
+func       = type ident "(" (type ident ("," type ident)*)? ")" block
 block      = "{" stmt* "}"
 stmt       = assign ";"
-           | "int" ident ";"
+           | type ident ";"
            | "return" expr ";"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
            | "for" "(" assign? ";" expr? ";" assign? ")" stmt
            | block
-assign     = (ident "=")? expr
+type       | "int" "*"*
+assign     = expr ("=" expr)?
 expr       = equality
 equality   = relational ("==" relational | "!=" relational)*
 relational = add ("<" add | "<=" add | ">" add | ">=" add)*
@@ -108,6 +142,7 @@ static Node* program();
 static Node* func();
 static Node* block();
 static Node* stmt();
+static Node* type();
 static Node* assign();
 static Node* expr();
 static Node* equality();
@@ -128,7 +163,7 @@ static Node* program() {
     p[i++] = func();
   }
   p[i] = NULL;
-  Node* program = new_node(ND_PROGRAM, NULL, NULL);
+  Node* program = new_node(ND_PROGRAM);
   program->funcs = calloc(i + 1, sizeof(Node*));
   for(int j = 0; j < i; j++) {
     program->funcs[j] = p[j];
@@ -137,41 +172,44 @@ static Node* program() {
 }
 
 static Node* func() {
-  expect("int");
+  Node* ret = type();
   char* name = consume_ident();
   printf("#   function %s\n", name);
   if(name == NULL) {
     error_at(token->str, "関数名がありません");
   }
+
   expect("(");
-  Node* args[6];
-  char* arg;
-  if(consume("int")) {
-    arg = consume_ident();
+  FuncDefASTTypeAndName** args = calloc(6, sizeof(FuncDefASTTypeAndName));
+  int i = 0;
+  while(!consume(")")) {
+    args[i] = calloc(1, sizeof(FuncDefASTTypeAndName));
+    args[i]->type = type();
+    char* arg = consume_ident();
     if(arg == NULL) {
       error_at(token->str, "引数名がありません");
     }
-    args[0] = new_node_ident(ND_IDENT, arg);
-    int i = 1;
-    while(consume(",")) {
-      expect("int");
-      arg = consume_ident();
-      if(arg == NULL) {
-        error_at(token->str, "引数名がありません");
-      }
-      args[i++] = new_node_ident(ND_IDENT, arg);
+    args[i]->name = arg;
+    if(!consume(",")) {
+      expect(")");
+      i++;
+      break;
     }
-    args[i] = NULL;
+    i++;
   }
-  expect(")");
-  expect("{");
-  Node* bloc = block();
+  args[i] = NULL;
+
   Node* func = new_node_ident(ND_FUNCDEF, name);
-  func->body = bloc;
-  func->args_name = calloc(6, sizeof(Node*));
-  for(int j = 0; args[j]; j++) {
-    func->args_name[j] = args[j];
+  FuncDefAST* func_def_ast = calloc(1, sizeof(FuncDefAST));
+  func_def_ast->ret_type = ret;
+  func_def_ast->args = calloc(6, sizeof(FuncDefASTTypeAndName));
+  for(int j = 0; j < i; j++) {
+    func_def_ast->args[j] = args[j];
   }
+  func->func_def_ast = func_def_ast;
+
+  expect("{");
+  func->body = block();
   return func;
 }
 
@@ -182,7 +220,7 @@ static Node* block() {
     b[i++] = stmt();
   }
   b[i] = NULL;
-  Node* block = new_node(ND_BLOCK, NULL, NULL);
+  Node* block = new_node(ND_BLOCK);
   block->stmts = calloc(i + 1, sizeof(Node*));
   for(int j = 0; j < i; j++) {
     block->stmts[j] = b[j];
@@ -194,7 +232,7 @@ static Node* stmt() {
   if(consume("return")) {
     Node* e = expr();
     expect(";");
-    return new_node(ND_RETURN, e, NULL);
+    return new_node_1branch(ND_RETURN, e);
   }
   if(consume("if")) {
     expect("(");
@@ -205,7 +243,7 @@ static Node* stmt() {
     if(consume("else")) {
       els = stmt();
     }
-    Node* i = new_node(ND_IF, NULL, NULL);
+    Node* i = new_node(ND_IF);
     i->cond = cond;
     i->then = then;
     i->els = els;
@@ -216,7 +254,7 @@ static Node* stmt() {
     Node* cond = expr();
     expect(")");
     Node* body = stmt();
-    Node* w = new_node(ND_WHILE, NULL, NULL);
+    Node* w = new_node(ND_WHILE);
     w->cond = cond;
     w->body = body;
     return w;
@@ -239,7 +277,7 @@ static Node* stmt() {
       expect(")");
     }
     Node* body = stmt();
-    Node* f = new_node(ND_FOR, NULL, NULL);
+    Node* f = new_node(ND_FOR);
     f->init = init;
     f->cond = cond;
     f->inc = inc;
@@ -249,30 +287,41 @@ static Node* stmt() {
   if(consume("{")) {
     return block();
   }
-  if(consume("int")) {
-    char* var_name = consume_ident();
-    if(var_name == NULL) {
+  if(is_next("int")) {
+    Node* t = type();
+    char* name = consume_ident();
+    if(name == NULL) {
       error_at(token->str, "変数名がありません");
     }
-    Node* ident = new_node_ident(ND_IDENT, var_name);
     expect(";");
-    Node* assign = new_node(ND_VARDEF, ident, NULL);
-    return assign;
+    Node* v = new_node_ident(ND_VARDEF, name);
+    v->lhs = t;
+    return v;
   }
   Node* e = assign();
   expect(";");
   return e;
 }
 
-static Node* assign() {
-  if(token->next != NULL && token->next->kind == TK_SYMBOL && token->next->len == 1 && token->next->str[0] == '=') {
-    char* lvals_name = consume_ident();
-    expect("=");
-    Node* lval = new_node_ident(ND_LVAR, lvals_name);
-    Node* node = new_node(ND_ASSIGN, lval, expr());
-    return node;
+static Node* type() {
+  if(!consume("int")) {
+    error_at(token->str, "intではありません");
   }
-  return expr();
+  Node* t = new_node(ND_INT);
+  while(consume("*")) {
+    Node* p = new_node(ND_POINTER);
+    p->lhs = t;
+    t = p;
+  }
+  return t;
+}
+
+static Node* assign() {
+  Node* lhs = expr();
+  if(consume("=")) {
+    return new_node_2branch(ND_ASSIGN, lhs, expr());
+  }
+  return lhs;
 }
 
 static Node* expr() {
@@ -284,9 +333,9 @@ static Node* equality() {
 
   for(;;) {
     if(consume("==")) {
-      node = new_node(ND_EQ, node, relational());
+      node = new_node_2branch(ND_EQ, node, relational());
     } else if(consume("!=")) {
-      node = new_node(ND_NE, node, relational());
+      node = new_node_2branch(ND_NE, node, relational());
     } else {
       return node;
     }
@@ -298,13 +347,13 @@ static Node* relational() {
 
   for(;;) {
     if(consume("<")) {
-      node = new_node(ND_LT, node, add());
+      node = new_node_2branch(ND_LT, node, add());
     } else if(consume("<=")) {
-      node = new_node(ND_LE, node, add());
+      node = new_node_2branch(ND_LE, node, add());
     } else if(consume(">")) {
-      node = new_node(ND_LT, add(), node);
+      node = new_node_2branch(ND_LT, add(), node);
     } else if(consume(">=")) {
-      node = new_node(ND_LE, add(), node);
+      node = new_node_2branch(ND_LE, add(), node);
     } else {
       return node;
     }
@@ -316,9 +365,9 @@ static Node* add() {
 
   for(;;) {
     if(consume("+")) {
-      node = new_node(ND_ADD, node, mul());
+      node = new_node_2branch(ND_ADD, node, mul());
     } else if(consume("-")) {
-      node = new_node(ND_SUB, node, mul());
+      node = new_node_2branch(ND_SUB, node, mul());
     } else {
       return node;
     }
@@ -330,9 +379,9 @@ static Node* mul() {
 
   for(;;) {
     if(consume("*")) {
-      node = new_node(ND_MUL, node, unary());
+      node = new_node_2branch(ND_MUL, node, unary());
     } else if(consume("/")) {
-      node = new_node(ND_DIV, node, unary());
+      node = new_node_2branch(ND_DIV, node, unary());
     } else {
       return node;
     }
@@ -344,13 +393,13 @@ static Node* unary() {
     return unary();
   }
   if(consume("-")) {
-    return new_node(ND_SUB, new_node_num(0), unary());
+    return new_node_2branch(ND_SUB, new_node_num(0), unary());
   }
   if(consume("*")) {
-    return new_node(ND_DEREF, unary(), NULL);
+    return new_node_1branch(ND_DEREF, unary());
   }
   if(consume("&")) {
-    return new_node(ND_ADDR, unary(), NULL);
+    return new_node_1branch(ND_ADDR, unary());
   }
   return primary();
 }
