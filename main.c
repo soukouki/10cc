@@ -50,7 +50,6 @@ int main(int argc, char **argv) {
     "ND_VARREF",
     "ND_CALL",
     "ND_ASSIGN",
-    "ND_LVAR",
     "ND_RETURN",
     "ND_IF",
     "ND_WHILE",
@@ -58,6 +57,8 @@ int main(int argc, char **argv) {
     "ND_BLOCK",
     "ND_VARDEF",
     "ND_FUNCDEF",
+    "ND_INT",
+    "ND_PTR",
     "ND_PROGRAM",
     "ND_IDENT",
   };

@@ -115,16 +115,17 @@ Node* new_node_ident(NodeKind kind, char* name) {
 
 /*
 program    = func*
-func       = "int" ident "(" ("int" ident ("," "int" ident)*)? ")" block
+func       = type ident "(" (type ident ("," type ident)*)? ")" block
 block      = "{" stmt* "}"
 stmt       = assign ";"
-           | "int" ident ";"
+           | type ident ";"
            | "return" expr ";"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
            | "for" "(" assign? ";" expr? ";" assign? ")" stmt
            | block
-assign     = (ident "=")? expr
+type       = "int" "*"?
+assign     = expr ("=" expr)?
 expr       = equality
 equality   = relational ("==" relational | "!=" relational)*
 relational = add ("<" add | "<=" add | ">" add | ">=" add)*
@@ -142,6 +143,7 @@ static Node* program();
 static Node* func();
 static Node* block();
 static Node* stmt();
+static Node* type();
 static Node* assign();
 static Node* expr();
 static Node* equality();
@@ -171,41 +173,42 @@ static Node* program() {
 }
 
 static Node* func() {
-  expect("int");
+  type(); // 戻り地の型は今は無視する
   char* name = consume_ident();
   printf("#   function %s\n", name);
   if(name == NULL) {
     error_at(token->str, "関数名がありません");
   }
   expect("(");
-  Node* args[6];
-  char* arg;
-  if(consume("int")) {
-    arg = consume_ident();
-    if(arg == NULL) {
+  Node* func = new_node_ident(ND_FUNCDEF, name);
+  func->args_name = calloc(6, sizeof(Node*));
+  func->args_type = calloc(6, sizeof(Node*));
+  if(is_next("int")) {
+    Node* arg_type = type();
+    char* arg_name = consume_ident();
+    if(arg_name == NULL) {
       error_at(token->str, "引数名がありません");
     }
-    args[0] = new_node_ident(ND_IDENT, arg);
+    func->args_name[0] = new_node_ident(ND_IDENT, arg_name);
+    func->args_type[0] = arg_type;
     int i = 1;
     while(consume(",")) {
-      expect("int");
-      arg = consume_ident();
-      if(arg == NULL) {
+      arg_type = type();
+      arg_name = consume_ident();
+      if(arg_name == NULL) {
         error_at(token->str, "引数名がありません");
       }
-      args[i++] = new_node_ident(ND_IDENT, arg);
+      func->args_name[i] = new_node_ident(ND_IDENT, arg_name);
+      func->args_type[i] = arg_type;
+      i++;
     }
-    args[i] = NULL;
+    func->args_name[i] = NULL;
+    func->args_type[i] = NULL;
   }
   expect(")");
   expect("{");
   Node* bloc = block();
-  Node* func = new_node_ident(ND_FUNCDEF, name);
   func->body = bloc;
-  func->args_name = calloc(6, sizeof(Node*));
-  for(int j = 0; args[j]; j++) {
-    func->args_name[j] = args[j];
-  }
   return func;
 }
 
@@ -283,30 +286,34 @@ static Node* stmt() {
   if(consume("{")) {
     return block();
   }
-  if(consume("int")) {
-    char* var_name = consume_ident();
-    if(var_name == NULL) {
-      error_at(token->str, "変数名がありません");
-    }
-    Node* ident = new_node_ident(ND_IDENT, var_name);
+  if(is_next("int")) {
+    Node* t = type();
+    char* name = consume_ident();
     expect(";");
-    Node* assign = new_node_1branch(ND_VARDEF, ident);
-    return assign;
+    Node* v = new_node_ident(ND_VARDEF, name);
+    v->lhs = t;
+    return v;
   }
   Node* e = assign();
   expect(";");
   return e;
 }
 
-static Node* assign() {
-  if(is_after_next("=")) {
-    char* lvals_name = consume_ident();
-    expect("=");
-    Node* lval = new_node_ident(ND_LVAR, lvals_name);
-    Node* node = new_node_2branches(ND_ASSIGN, lval, expr());
-    return node;
+static Node* type() {
+  expect("int");
+  Node* node = new_node(ND_INT);
+  if(consume("*")) {
+    return new_node_1branch(ND_PTR, node);
   }
-  return expr();
+  return node;
+}
+
+static Node* assign() {
+  Node* node = expr();
+  if(consume("=")) {
+    return new_node_2branches(ND_ASSIGN, node, expr());
+  }
+  return node;
 }
 
 static Node* expr() {

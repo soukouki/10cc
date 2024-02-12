@@ -40,7 +40,6 @@ typedef enum {
   ND_VARREF,  // 変数の評価, name, varを持つ
   ND_CALL,    // 関数呼び出し, name, args_callを持つ
   ND_ASSIGN,  // 代入, lhs, rhsを持つ
-  ND_LVAR,    // 左辺値, varを持つ
   ND_RETURN,  // return, lhsを持つ
   ND_IF,      // if文, cond, then, elsを持つ
   ND_WHILE,   // while文, cond, bodyを持つ
@@ -48,6 +47,10 @@ typedef enum {
   ND_BLOCK,   // ブロック, stmtsを持つ
   ND_VARDEF,  // 変数の定義, var, nameを持つ
   ND_FUNCDEF, // 関数定義, name, args_name, bodyを持つ
+
+  // 型
+  ND_INT,     // int型
+  ND_PTR,     // ポインタ型
 
   // その他
   ND_PROGRAM, // プログラム全体, funcsを持つ
@@ -76,12 +79,13 @@ struct Node {
   Node** stmts;     // ブロックで使う
   Node** args_call; // 関数呼び出しで使う
   Node** funcs;     // プログラムで使う
-  Node*  lhs;       // 2項演算子, 代入, return, 単項&, 単項*で使う
+  Node*  lhs;       // 2項演算子, 代入, return, 単項&, 単項*, ポインタ型で使う
   Node*  rhs;       // 2項演算子, 代入で使う
   int    val;       // 数値リテラルの場合に使う
   char*  name;      // 関数の定義, 関数呼び出し, 変数の参照で使う
   Var*   var;       // ND_LVARの場合に使う
   Node** args_name; // 関数の定義で使う(パース->意味解析)
+  Node** args_type; // 関数の定義で使う(パース->意味解析)
   Var**  args_def;  // 関数の定義で使う(意味解析->コード生成)
 };
 

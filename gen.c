@@ -7,10 +7,19 @@ int local_label = 0;
 char** node_kinds;
 
 void gen_ref(Node* node) {
-  if(node->kind != ND_LVAR && node->kind != ND_VARREF) error("変数の参照ではありません");
-  printf("  mov rax, rbp\n");
-  printf("  sub rax, %d\n", node->var->offset);
-  printf("  push rax\n");
+  switch(node->kind) {
+  case ND_DEREF:
+    gen(node->lhs);
+    break;
+  case ND_VARREF:
+    printf("  mov rax, rbp\n");
+    printf("  sub rax, %d\n", node->var->offset);
+    printf("  push rax\n");
+    break;
+  default:
+    error("変数の参照ではありません");
+    break;
+  }
 }
 
 void gen(Node* node) {
@@ -24,9 +33,9 @@ void gen(Node* node) {
     break;
   }
   case ND_ASSIGN: {
+    printf("# ND_ASSIGN %s %s\n", node_kinds[node->lhs->kind], node_kinds[node->rhs->kind]);
     Node* lval = node->lhs;
     Node* rval = node->rhs;
-    if(lval->kind != ND_LVAR) error("代入の左辺値が変数ではありません");
     gen_ref(lval);
     gen(rval);
     printf("  pop rdi\n");

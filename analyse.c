@@ -26,11 +26,13 @@ static Var* new_var(char* name, int len) {
   } else {
     var->offset = 8;
   }
+  printf("#     new_var %s %d\n", var->name, var->offset);
   locals = var;
   return var;
 }
 
 Node* analyse_semantics(Node* node) {
+  // printf("# analyse_semantics %s\n", node_kinds[node->kind]);
   switch(node->kind) {
   case ND_PROGRAM: {
     for(int i = 0; node->funcs[i]; i++) {
@@ -60,24 +62,11 @@ Node* analyse_semantics(Node* node) {
     return node;
   }
   case ND_VARDEF: {
-    node->var = new_var(node->lhs->name, strlen(node->lhs->name));
+    node->var = new_var(node->name, strlen(node->name));
     return node;
   }
   case ND_RETURN: {
     node->lhs = analyse_semantics(node->lhs);
-    return node;
-  }
-  case ND_ASSIGN: {
-    if(node->kind == ND_ASSIGN) {
-      Node* lhs = new_node_ident(ND_LVAR, node->lhs->name);
-      Var* var = find_var(lhs->name, strlen(lhs->name));
-      if(!var) {
-        error("変数%sは定義されていません", lhs->name);
-      }
-      lhs->var = var;
-      node->lhs = lhs;
-      node->rhs = analyse_semantics(node->rhs);
-    }
     return node;
   }
   case ND_CALL: {
