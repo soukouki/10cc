@@ -124,7 +124,7 @@ stmt       = assign ";"
            | "while" "(" expr ")" stmt
            | "for" "(" assign? ";" expr? ";" assign? ")" stmt
            | block
-type       = "int" "*"?
+type       = "int" "*"*
 assign     = expr ("=" expr)?
 expr       = equality
 equality   = relational ("==" relational | "!=" relational)*
@@ -302,8 +302,10 @@ static Node* stmt() {
 static Node* type() {
   expect("int");
   Node* node = new_node(ND_INT);
-  if(consume("*")) {
-    return new_node_1branch(ND_PTR, node);
+  while(consume("*")) {
+    Node* ptr = new_node(ND_PTR);
+    ptr->lhs = node;
+    node = ptr;
   }
   return node;
 }
