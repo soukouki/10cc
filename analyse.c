@@ -4,30 +4,23 @@
 #include <stdio.h>
 
 #include "10cc.h"
+#include "map.h"
 
-Var* locals;
+Map* local_map;
+int local_offset;
 
 static Var* find_var(char* name, int len) {
-  for(Var* var = locals; var; var = var->next) {
-    if(var->len == len && !memcmp(name, var->name, var->len)) {
-      return var;
-    }
-  }
-  return NULL;
+  return map_get2(local_map, name, len);
 }
 
 static Var* new_var(char* name, int len) {
   Var* var = calloc(1, sizeof(Var));
   var->name = name;
   var->len = len;
-  var->next = locals;
-  if(locals) {
-    var->offset = locals->offset + 8;
-  } else {
-    var->offset = 8;
-  }
+  local_offset += 8;
+  var->offset = local_offset;
   printf("#     new_var %s %d\n", var->name, var->offset);
-  locals = var;
+  map_put2(local_map, name, len, var);
   return var;
 }
 
@@ -41,7 +34,8 @@ Node* analyse_semantics(Node* node) {
     return node;
   }
   case ND_FUNCDEF: {
-    locals = NULL;
+    local_map = map_new();
+    local_offset = 0;
     printf("#   function %s\n", node->name);
     int i = 0;
     node->args_def = calloc(6, sizeof(Var*));
@@ -52,7 +46,7 @@ Node* analyse_semantics(Node* node) {
     }
     node->args_def[i] = NULL;
     node->body = analyse_semantics(node->body);
-    node->var = locals;
+    node->offset = local_offset;
     return node;
   }
   case ND_BLOCK: {
@@ -62,7 +56,8 @@ Node* analyse_semantics(Node* node) {
     return node;
   }
   case ND_VARDEF: {
-    node->var = new_var(node->name, strlen(node->name));
+    new_var(node->name, strlen(node->name));
+    node->var = local_map;
     return node;
   }
   case ND_RETURN: {

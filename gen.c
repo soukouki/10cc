@@ -161,8 +161,7 @@ void gen(Node* node) {
     printf("%s:\n", node->name);
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
-    Var* var = node->var;
-    printf("  sub rsp, %d\n", var == NULL ? 0 : var->offset);
+    printf("  sub rsp, %d\n", node->offset);
     if(node->args_def[0]) {
       printf("  mov [rbp-%d], rdi\n", node->args_def[0]->offset);
     }

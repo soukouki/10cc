@@ -1,4 +1,6 @@
 
+#include "map.h"
+
 typedef enum {
   TK_SYMBOL,
   TK_IDENT,
@@ -60,7 +62,6 @@ typedef enum {
 typedef struct Var Var;
 
 struct Var {
-  Var* next;
   char* name;
   int len;
   int offset; // 意味解析時に計算される
@@ -87,6 +88,7 @@ struct Node {
   Node** args_name; // 関数の定義で使う(パース->意味解析)
   Node** args_type; // 関数の定義で使う(パース->意味解析)
   Var**  args_def;  // 関数の定義で使う(意味解析->コード生成)
+  int    offset;    // 関数の定義で使う(意味解析->コード生成)
 };
 
 void error(char *fmt, ...);
