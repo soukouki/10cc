@@ -73,12 +73,12 @@ int main(int argc, char **argv) {
   token = tokenize(user_input);
   printf("# parse\n");
   Node* code = parse();
-  printf("# analyse semantics\n");
-  Node* analysed_code = analyse_semantics(code);
+  printf("# analyze semantics\n");
+  Node* analyzed_code = analyze_semantics(code);
 
   printf(".intel_syntax noprefix\n");
   printf(".globl main\n");
-  gen(analysed_code);
+  gen(analyzed_code);
 
   return 0;
 }

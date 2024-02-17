@@ -19,6 +19,27 @@ struct Token {
 };
 
 typedef enum {
+  TY_INT,
+  TY_PTR,
+} TypeKind;
+
+typedef struct Type Type;
+
+struct Type {
+  TypeKind kind;
+  Type* ptr_to;
+};
+
+typedef struct Var Var;
+
+struct Var {
+  char* name;
+  int len;
+  int offset; // 意味解析時に計算される
+  Type* type; // 意味解析時でのみ使う
+};
+
+typedef enum {
   // 演算子
   ND_ADD,
   ND_SUB,
@@ -59,14 +80,6 @@ typedef enum {
   ND_IDENT,   // 識別子(意味解析時に置き換える), nameを持つ
 } NodeKind;
 
-typedef struct Var Var;
-
-struct Var {
-  char* name;
-  int len;
-  int offset; // 意味解析時に計算される
-};
-
 typedef struct Node Node;
 
 struct Node {
@@ -80,8 +93,8 @@ struct Node {
   Node** stmts;     // ブロックで使う
   Node** args_call; // 関数呼び出しで使う
   Node** funcs;     // プログラムで使う
-  Node*  lhs;       // 2項演算子, 代入, return, 単項&, 単項*, ポインタ型で使う
-  Node*  rhs;       // 2項演算子, 代入で使う
+  Node*  lhs;       // 2項演算子, 代入(型), return, 単項&, 単項*, ポインタ型で使う
+  Node*  rhs;       // 2項演算子, 代入(値)で使う
   int    val;       // 数値リテラルの場合に使う
   char*  name;      // 関数の定義, 関数呼び出し, 変数の参照で使う
   Var*   var;       // ND_LVARの場合に使う
@@ -104,7 +117,7 @@ Node* new_node_ident(NodeKind kind, char* name);
 
 Token* tokenize(char *p);
 Node* parse();
-Node* analyse_semantics(Node* node);
+Node* analyze_semantics(Node* node);
 void gen(Node* node);
 
 extern Token *token;
