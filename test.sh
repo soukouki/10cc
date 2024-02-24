@@ -143,4 +143,14 @@ assert 2 "int* alloc_int(int, int, int, int); int main() { int* a; a = alloc_int
 assert 4 "int* alloc_int(int, int, int, int); int main() { int* a; a = alloc_int(1, 2, 3, 4); return *(a + 3); }"
 assert 2 "int* alloc_int(int, int, int, int); int main() { int* a; a = alloc_int(1, 2, 3, 4); return *((a + 3) - 2); }"
 
+echo "sizeof演算子"
+assert 4 "int main() { return sizeof(1); }"
+assert 4 "int main() { return sizeof 1; }"
+assert 8 "int main() { int* a; return sizeof(a); }"
+assert 8 "int main() { int* a; return sizeof(a + 4); }"
+assert 8 "int main() { int** a; return sizeof(a); }"
+assert 8 "int main() { int** a; return sizeof(a + 4); }"
+assert 8 "int main() { int** a; return sizeof(*a); }"
+assert 4 "int main() { return sizeof(sizeof(1)); }"
+
 echo OK

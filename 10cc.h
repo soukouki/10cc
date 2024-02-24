@@ -67,6 +67,7 @@ typedef enum {
   ND_IF,       // if文, cond, then, elsを持つ
   ND_WHILE,    // while文, cond, bodyを持つ
   ND_FOR,      // for文, init, cond, inc, bodyを持つ
+  ND_SIZEOF,   // sizeof演算子, lhsを持つ
   ND_BLOCK,    // ブロック, stmtsを持つ
   ND_VARDEF,   // 変数の定義, var, nameを持つ
   ND_FUNCDEF,  // 関数定義, name, args_name, args_type, ret_type, bodyを持つ

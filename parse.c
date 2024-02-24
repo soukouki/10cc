@@ -128,10 +128,11 @@ type       = "int" "*"*
 assign     = expr ("=" expr)?
 expr       = equality
 equality   = relational ("==" relational | "!=" relational)*
-relational = add ("<" add | "<=" add | ">" add | ">=" add)*
+relational = add ("<" add | "<=" add | ">" a  dd | ">=" add)*
 add        = mul ("+" mul | "-" mul)*
 mul        = unary ("*" unary | "/" unary)*
 unary      = ("+" | "-" | "*" | "&")? primary
+           | "sizeof" unary
 primary    = num
            | ident
            | ident "(" (expr ("," expr)*)? ")"
@@ -407,6 +408,9 @@ static Node* unary() {
   }
   if(consume("&")) {
     return new_node_1branch(ND_ADDR, unary());
+  }
+  if(consume("sizeof")) {
+    return new_node_1branch(ND_SIZEOF, unary());
   }
   return primary();
 }

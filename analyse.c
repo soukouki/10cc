@@ -204,6 +204,11 @@ static NodeAndType* analyze(Node* node) {
     node->lhs = lhs->node;
     return return_expression(node, ptr_type(lhs->type));
   }
+  case ND_SIZEOF: {
+    NodeAndType *nat = analyze(node->lhs);
+    Node* num = new_node_num(size_of(nat->type));
+    return return_expression(num, int_type());
+  }
   case ND_NUM: {
     return return_expression(node, int_type());
   }
