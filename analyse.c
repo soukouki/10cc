@@ -27,17 +27,34 @@ static Var* new_var(char* name, int len, Type* type) {
   return var;
 }
 
+static Type* int_type() {
+  Type* type = calloc(1, sizeof(Type));
+  type->kind = TY_INT;
+  return type;
+}
+
+static Type* ptr_type(Type* type) {
+  Type* p = calloc(1, sizeof(Type));
+  p->kind = TY_PTR;
+  p->ptr_to = type;
+  return p;
+}
+
 static Type* node_to_type(Node* node) {
   switch(node->kind) {
   case ND_INT:
-    Type* i = calloc(1, sizeof(Type));
-    i->kind = TY_INT;
-    return i;
+    return int_type();
   case ND_PTR:
-    Type* p = calloc(1, sizeof(Type));
-    p->kind = TY_PTR;
-    p->ptr_to = node_to_type(node->lhs);
-    return p;
+    return ptr_type(node_to_type(node->lhs));
+  }
+}
+
+static int size_of(Type* type) {
+  switch(type->kind) {
+  case TY_INT:
+    return 4;
+  case TY_PTR:
+    return 8;
   }
 }
 
@@ -133,7 +150,62 @@ static NodeAndType* analyze(Node* node) {
     }
     Node* new_node = new_node_ident(ND_VARREF, node->name);
     new_node->var = var;
-    return return_expression(new_node, node_to_type(new_node));
+    return return_expression(new_node, new_node->var->type);
+  }
+  case ND_ADD:
+  case ND_SUB: {
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    NodeAndType* rhs = analyze(node->rhs);
+    TypeKind rkind = rhs->type->kind;
+    node->rhs = rhs->node;
+    if(lkind == TY_INT && rkind == TY_INT) {
+      return return_expression(node, lhs->type);
+    }
+    if(lkind == TY_PTR && rkind == TY_PTR) {
+      error("ポインタ同士の加減算はできません");
+    }
+    if(lkind == TY_PTR) {
+      Node* mul = new_node_2branches(ND_MUL, node->rhs, new_node_num(size_of(lhs->type->ptr_to)));
+      return return_expression(new_node_2branches(node->kind, node->lhs, mul), lhs->type);
+    }
+    if(rkind == TY_PTR) {
+      Node* mul = new_node_2branches(ND_MUL, node->lhs, new_node_num(size_of(rhs->type->ptr_to)));
+      return return_expression(new_node_2branches(node->kind, mul, node->rhs), rhs->type);
+    }
+    error("%sと%sの加減算はできません", type_kinds[lkind], type_kinds[rkind]);
+  }
+  case ND_MUL:
+  case ND_DIV: {
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    NodeAndType* rhs = analyze(node->rhs);
+    TypeKind rkind = rhs->type->kind;
+    node->rhs = rhs->node;
+    if(lkind == TY_INT && rkind == TY_INT) {
+      return return_expression(node, lhs->type);
+    }
+    error("%sと%sの掛け算はできません", type_kinds[lkind], type_kinds[rkind]);
+  }
+  case ND_DEREF: {
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    if(lkind != TY_PTR) {
+      error("ポインタ型でないものを参照しようとしました");
+    }
+    return return_expression(node, lhs->type->ptr_to);
+  }
+  case ND_ADDR: {
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    return return_expression(node, ptr_type(lhs->type));
+  }
+  case ND_NUM: {
+    return return_expression(node, int_type());
   }
   default: {
     if(node->init) {

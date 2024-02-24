@@ -110,6 +110,7 @@ void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 
 extern char** node_kinds;
+extern char** type_kinds;
 
 Node* new_node(NodeKind kind);
 Node* new_node_1branch(NodeKind kind, Node* lhs);

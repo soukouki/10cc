@@ -10,6 +10,9 @@ Token* token;
 // 入力プログラム
 char* user_input;
 
+char** node_kinds;
+char** type_kinds;
+
 // エラーを報告するための関数
 // printfと同じ引数を取る
 void error(char *fmt, ...) {
@@ -62,6 +65,11 @@ int main(int argc, char **argv) {
     "ND_PTR",
     "ND_PROGRAM",
     "ND_IDENT",
+  };
+
+  type_kinds = (char*[]){
+    "TY_INT",
+    "TY_PTR",
   };
 
   if (argc != 2) {

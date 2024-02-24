@@ -4,8 +4,6 @@
 
 int local_label = 0;
 
-char** node_kinds;
-
 void gen_ref(Node* node) {
   switch(node->kind) {
   case ND_DEREF:
