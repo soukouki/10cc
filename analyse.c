@@ -6,7 +6,7 @@
 #include "10cc.h"
 #include "map.h"
 
-Map* global_map;
+Map* func_map;
 
 Map* local_map;
 int local_offset;
@@ -65,7 +65,7 @@ static NodeAndType* analyze(Node* node) {
   // printf("# analyze_semantics %s\n", node_kinds[node->kind]);
   switch(node->kind) {
   case ND_PROGRAM: {
-    global_map = map_new();
+    func_map = map_new();
     for(int i = 0; node->funcs[i]; i++) {
       node->funcs[i] = analyze_semantics(node->funcs[i]);
     }
@@ -74,7 +74,14 @@ static NodeAndType* analyze(Node* node) {
   case ND_FUNCDEF: {
     local_map = map_new();
     local_offset = 0;
+    
     printf("#   function %s\n", node->name);
+
+    if(map_get(func_map, node->name)) {
+      map_delete(func_map, node->name);
+    }
+    map_put(func_map, node->name, node);
+
     int i = 0;
     node->args_def = calloc(6, sizeof(Var*));
     while(node->args_name[i]) {
@@ -85,6 +92,12 @@ static NodeAndType* analyze(Node* node) {
     node->args_def[i] = NULL;
     node->body = analyze_semantics(node->body);
     node->offset = local_offset;
+
+    return return_statement(node);
+  }
+  case ND_FUNCPROT: {
+    printf("#   function prototype %s\n", node->name);
+    map_put(func_map, node->name, node);
     return return_statement(node);
   }
   case ND_BLOCK: {
@@ -106,8 +119,11 @@ static NodeAndType* analyze(Node* node) {
     for(int i = 0; node->args_call[i]; i++) {
       node->args_call[i] = analyze_semantics(node->args_call[i]);
     }
-    Type* type = map_get(global_map, node->name);
-    return return_expression(node, type);
+    Node* func = map_get(func_map, node->name);
+    if(!func) {
+      error("関数%sは定義されていません", node->name);
+    }
+    return return_expression(node, node_to_type(func->ret_type));
   }
   case ND_IDENT: {
     // ここに来るのは変数参照のみ

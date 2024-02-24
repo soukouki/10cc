@@ -186,6 +186,9 @@ void gen(Node* node) {
     printf("  ret\n");
     break;
   }
+  case ND_FUNCPROT: {
+    break;
+  }
   case ND_PROGRAM: {
     for(int i = 0; node->funcs[i]; i++) {
       gen(node->funcs[i]);

@@ -115,7 +115,7 @@ Node* new_node_ident(NodeKind kind, char* name) {
 
 /*
 program    = func*
-func       = type ident "(" (type ident ("," type ident)*)? ")" block
+func       = type ident "(" (type ident? ("," type ident?)*)? ")" (block | ";")
 block      = "{" stmt* "}"
 stmt       = assign ";"
            | type ident ";"
@@ -173,21 +173,22 @@ static Node* program() {
 }
 
 static Node* func() {
-  type(); // 戻り地の型は今は無視する
+  Node* ret_type = type(); // 戻り地の型は今は無視する
   char* name = consume_ident();
-  printf("#   function %s\n", name);
+  printf("#   function %s", name);
   if(name == NULL) {
     error_at(token->str, "関数名がありません");
   }
   expect("(");
   Node* func = new_node_ident(ND_FUNCDEF, name);
+  func->ret_type = ret_type;
   func->args_name = calloc(6, sizeof(Node*));
   func->args_type = calloc(6, sizeof(Node*));
   if(is_next("int")) {
     Node* arg_type = type();
     char* arg_name = consume_ident();
     if(arg_name == NULL) {
-      error_at(token->str, "引数名がありません");
+      arg_name = "";
     }
     func->args_name[0] = new_node_ident(ND_IDENT, arg_name);
     func->args_type[0] = arg_type;
@@ -196,7 +197,7 @@ static Node* func() {
       arg_type = type();
       arg_name = consume_ident();
       if(arg_name == NULL) {
-        error_at(token->str, "引数名がありません");
+        arg_name = "";
       }
       func->args_name[i] = new_node_ident(ND_IDENT, arg_name);
       func->args_type[i] = arg_type;
@@ -206,10 +207,22 @@ static Node* func() {
     func->args_type[i] = NULL;
   }
   expect(")");
-  expect("{");
-  Node* bloc = block();
-  func->body = bloc;
-  return func;
+  if(consume(";")) {
+    printf(" prototype\n");
+    func->kind = ND_FUNCPROT;
+    return func;
+  } else {
+    printf("\n");
+    for(int i = 0; func->args_type[i]; i++) {
+      if(func->args_name[i] == NULL) {
+        error_at(token->str, "%d番目の引数の名前がありません", i + 1);
+      }
+    }
+    expect("{");
+    Node* bloc = block();
+    func->body = bloc;
+    return func;
+  }
 }
 
 static Node* block() {
