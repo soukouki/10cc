@@ -61,10 +61,10 @@ int main(int argc, char **argv) {
     "ND_VARDEF",
     "ND_FUNCDEF",
     "ND_FUNCPROT",
-    "ND_INT",
-    "ND_PTR",
-    "ND_PROGRAM",
+    "ND_DECL",
+    "ND_TYPE",
     "ND_IDENT",
+    "ND_PROGRAM",
   };
 
   type_kinds = (char*[]){

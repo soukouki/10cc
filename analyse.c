@@ -11,14 +11,14 @@ Map* func_map;
 Map* local_map;
 int local_offset;
 
-static Var* find_var(char* name, int len) {
-  return map_get2(local_map, name, len);
+static Var* find_var(char* name) {
+  return map_get(local_map, name);
 }
 
-static Var* new_var(char* name, int len, Type* type) {
+static Var* new_var(char* name, Type* type) {
+  int len = strlen(name);
   Var* var = calloc(1, sizeof(Var));
   var->name = name;
-  var->len = len;
   local_offset += 8;
   var->offset = local_offset;
   var->type = type;
@@ -27,26 +27,17 @@ static Var* new_var(char* name, int len, Type* type) {
   return var;
 }
 
-static Type* int_type() {
+Type* int_type() {
   Type* type = calloc(1, sizeof(Type));
   type->kind = TY_INT;
   return type;
 }
 
-static Type* ptr_type(Type* type) {
+Type* ptr_type(Type* type) {
   Type* p = calloc(1, sizeof(Type));
   p->kind = TY_PTR;
   p->ptr_to = type;
   return p;
-}
-
-static Type* node_to_type(Node* node) {
-  switch(node->kind) {
-  case ND_INT:
-    return int_type();
-  case ND_PTR:
-    return ptr_type(node_to_type(node->lhs));
-  }
 }
 
 static int size_of(Type* type) {
@@ -100,13 +91,14 @@ static NodeAndType* analyze(Node* node) {
     map_put(func_map, node->name, node);
 
     int i = 0;
-    node->args_def = calloc(6, sizeof(Var*));
-    while(node->args_name[i]) {
-      Var* var = new_var(node->args_name[i]->name, strlen(node->args_name[i]->name), node_to_type(node->args_type[i]));
-      node->args_def[i] = var;
+    node->args_var = calloc(6, sizeof(Var*));
+    while(node->args_node[i]) {
+      Node* arg = node->args_node[i];
+      Var* var = new_var(arg->name, arg->type);
+      node->args_var[i] = var;
       i++;
     }
-    node->args_def[i] = NULL;
+    node->args_var[i] = NULL;
     node->body = analyze_semantics(node->body);
     node->offset = local_offset;
 
@@ -123,8 +115,8 @@ static NodeAndType* analyze(Node* node) {
     }
     return return_statement(node);
   }
-  case ND_VARDEF: {
-    Var* var = new_var(node->name, strlen(node->name), node_to_type(node->lhs));
+  case ND_DECL: {
+    Var* var = new_var(node->name, node->type);
     node->var = var;
     return return_statement(node);
   }
@@ -140,11 +132,11 @@ static NodeAndType* analyze(Node* node) {
     if(!func) {
       error("関数%sは定義されていません", node->name);
     }
-    return return_expression(node, node_to_type(func->ret_type));
+    return return_expression(node, func->type);
   }
   case ND_IDENT: {
     // ここに来るのは変数参照のみ
-    Var* var = find_var(node->name, strlen(node->name));
+    Var* var = find_var(node->name);
     if(!var) {
       error("変数%sは定義されていません", node->name);
     }

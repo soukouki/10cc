@@ -115,7 +115,7 @@ Node* new_node_ident(NodeKind kind, char* name) {
 
 /*
 program    = func*
-func       = type ident "(" (type ident? ("," type ident?)*)? ")" (block | ";")
+func       = decl "(" (param ("," param)*)? ")" (block | ";")
 block      = "{" stmt* "}"
 stmt       = assign ";"
            | type ident ";"
@@ -124,7 +124,12 @@ stmt       = assign ";"
            | "while" "(" expr ")" stmt
            | "for" "(" assign? ";" expr? ";" assign? ")" stmt
            | block
-type       = "int" "*"*
+
+decl       = specifier "*"? ident
+type       = specifier "*"?
+param      = decl | type
+specifier  = "int"
+
 assign     = expr ("=" expr)?
 expr       = equality
 equality   = relational ("==" relational | "!=" relational)*
@@ -144,7 +149,13 @@ static Node* program();
 static Node* func();
 static Node* block();
 static Node* stmt();
-static Node* type();
+
+// paramでバックトラックが必要なので、decl, type, specifierは失敗したらトークンを戻した上でNULLを返す
+static Node* decl();      // ND_DECLを返す
+static Node* type();      // ND_TYPEを返す
+static Node* specifier(); // ND_TYPEを返す
+static Node* param();     // ND_DECLを返す
+
 static Node* assign();
 static Node* expr();
 static Node* equality();
@@ -174,7 +185,10 @@ static Node* program() {
 }
 
 static Node* func() {
-  Node* ret_type = type(); // 戻り地の型は今は無視する
+  Node* typ = type();
+  if(typ == NULL) {
+    error_at(token->str, "関数の戻り値の型がありません");
+  }
   char* name = consume_ident();
   printf("#   function %s", name);
   if(name == NULL) {
@@ -182,43 +196,23 @@ static Node* func() {
   }
   expect("(");
   Node* func = new_node_ident(ND_FUNCDEF, name);
-  func->ret_type = ret_type;
-  func->args_name = calloc(6, sizeof(Node*));
-  func->args_type = calloc(6, sizeof(Node*));
-  if(is_next("int")) {
-    Node* arg_type = type();
-    char* arg_name = consume_ident();
-    if(arg_name == NULL) {
-      arg_name = "";
+  func->type = typ->type;
+  func->args_node = calloc(6, sizeof(Node*));
+  int i = 0;
+  while(!consume(")")) {
+    Node* para = param();
+    func->args_node[i++] = para;
+    if(!consume(",")) {
+      expect(")");
+      break;
     }
-    func->args_name[0] = new_node_ident(ND_IDENT, arg_name);
-    func->args_type[0] = arg_type;
-    int i = 1;
-    while(consume(",")) {
-      arg_type = type();
-      arg_name = consume_ident();
-      if(arg_name == NULL) {
-        arg_name = "";
-      }
-      func->args_name[i] = new_node_ident(ND_IDENT, arg_name);
-      func->args_type[i] = arg_type;
-      i++;
-    }
-    func->args_name[i] = NULL;
-    func->args_type[i] = NULL;
   }
-  expect(")");
   if(consume(";")) {
     printf(" prototype\n");
     func->kind = ND_FUNCPROT;
     return func;
   } else {
     printf("\n");
-    for(int i = 0; func->args_type[i]; i++) {
-      if(func->args_name[i] == NULL) {
-        error_at(token->str, "%d番目の引数の名前がありません", i + 1);
-      }
-    }
     expect("{");
     Node* bloc = block();
     func->body = bloc;
@@ -300,28 +294,82 @@ static Node* stmt() {
   if(consume("{")) {
     return block();
   }
-  if(is_next("int")) {
-    Node* t = type();
-    char* name = consume_ident();
+  Node* dec = decl();
+  if(dec != NULL) {
     expect(";");
-    Node* v = new_node_ident(ND_VARDEF, name);
-    v->lhs = t;
-    return v;
+    return dec;
   }
   Node* e = assign();
   expect(";");
   return e;
 }
 
-static Node* type() {
-  expect("int");
-  Node* node = new_node(ND_INT);
-  while(consume("*")) {
-    Node* ptr = new_node(ND_PTR);
-    ptr->lhs = node;
-    node = ptr;
+static Node* decl() {
+  Token* origin = token; // バックトラックがあるので、return時に元のトークンの位置に戻す
+  Node* spec = specifier();
+  if(spec == NULL) {
+    token = origin;
+    return NULL;
   }
-  return node;
+  if(consume("*")) {
+    char* name = consume_ident();
+    if(name == NULL) {
+      token = origin;
+      return NULL;
+    }
+    Node* ptr = new_node_ident(ND_DECL, name);
+    ptr->type = ptr_type(spec->type);
+    return ptr;
+  }
+  char* name = consume_ident();
+  if(name == NULL) {
+    token = origin;
+    return NULL;
+  }
+  Node* decl = new_node_ident(ND_DECL, name);
+  decl->type = spec->type;
+  return decl;
+}
+
+static Node* type() {
+  Token* origin = token; // バックトラックがあるので、return時に元のトークンの位置に戻す
+  Node* spec = specifier();
+  if(spec == NULL) {
+    token = origin;
+    return NULL;
+  }
+  if(consume("*")) {
+    Node* ptr = new_node(ND_TYPE);
+    ptr->type = ptr_type(spec->type);
+    return ptr;
+  }
+  return spec;
+}
+
+static Node* param() {
+  Node* dec = decl();
+  if(dec != NULL) {
+    return dec;
+  }
+  Node* typ = type();
+  if(typ != NULL) {
+    Node* decl = new_node(ND_DECL);
+    decl->type = typ->type;
+    decl->name = "";
+    return decl;
+  }
+  error_at(token->str, "引数が不正です\n");
+}
+
+static Node* specifier() {
+  Token* origin = token; // バックトラックがあるので、return時に元のトークンの位置に戻す
+  if(consume("int")) {
+    Node* t = new_node(ND_TYPE);
+    t->type = int_type();
+    return t;
+  }
+  token = origin;
+  return NULL;
 }
 
 static Node* assign() {

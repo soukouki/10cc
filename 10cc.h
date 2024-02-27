@@ -34,7 +34,6 @@ typedef struct Var Var;
 
 struct Var {
   char* name;
-  int len;
   int offset; // 意味解析時に計算される
   Type* type; // 意味解析時でのみ使う
 };
@@ -69,17 +68,15 @@ typedef enum {
   ND_FOR,      // for文, init, cond, inc, bodyを持つ
   ND_SIZEOF,   // sizeof演算子, lhsを持つ
   ND_BLOCK,    // ブロック, stmtsを持つ
-  ND_VARDEF,   // 変数の定義, var, nameを持つ
   ND_FUNCDEF,  // 関数定義, name, args_name, args_type, ret_type, bodyを持つ
   ND_FUNCPROT, // 関数プロトタイプ, name, args_name, args_type, ret_typeを持つ
 
-  // 型
-  ND_INT,     // int型
-  ND_PTR,     // ポインタ型
+  ND_DECL,  // 宣言, name, typeを持つ 変数定義や関数の仮引数で使う
+  ND_TYPE,  // 型, typeを持つ
+  ND_IDENT, // 識別子(意味解析時に置き換える), nameを持つ
 
   // その他
   ND_PROGRAM, // プログラム全体, funcsを持つ
-  ND_IDENT,   // 識別子(意味解析時に置き換える), nameを持つ
 } NodeKind;
 
 typedef struct Node Node;
@@ -100,10 +97,9 @@ struct Node {
   int    val;       // 数値リテラルの場合に使う
   char*  name;      // 関数の定義, 関数呼び出し, 変数の参照で使う
   Var*   var;       // ND_LVARの場合に使う
-  Node*  ret_type;  // 関数の定義で使う(パース->意味解析)
-  Node** args_name; // 関数の定義で使う(パース->意味解析)
-  Node** args_type; // 関数の定義で使う(パース->意味解析)
-  Var**  args_def;  // 関数の定義で使う(意味解析->コード生成)
+  Type*  type;      // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECLで使う
+  Node** args_node; // 関数の定義で使う(パース->意味解析)
+  Var**  args_var;  // 関数の定義で使う(意味解析->コード生成)
   int    offset;    // 関数の定義で使う(意味解析->コード生成)
 };
 
@@ -118,6 +114,9 @@ Node* new_node_1branch(NodeKind kind, Node* lhs);
 Node* new_node_2branches(NodeKind kind, Node* lhs, Node* rhs);
 Node* new_node_num(int val);
 Node* new_node_ident(NodeKind kind, char* name);
+
+Type* int_type();
+Type* ptr_type(Type* ptr_to);
 
 Token* tokenize(char *p);
 Node* parse();
