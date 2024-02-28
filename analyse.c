@@ -16,14 +16,13 @@ static Var* find_var(char* name) {
 }
 
 static Var* new_var(char* name, Type* type) {
-  int len = strlen(name);
   Var* var = calloc(1, sizeof(Var));
   var->name = name;
   local_offset += 8;
   var->offset = local_offset;
   var->type = type;
   printf("#     new_var %s %d\n", var->name, var->offset);
-  map_put2(local_map, name, len, var);
+  map_put(local_map, name, var);
   return var;
 }
 
@@ -85,9 +84,6 @@ static NodeAndType* analyze(Node* node) {
     
     printf("#   function %s\n", node->name);
 
-    if(map_get(func_map, node->name)) {
-      map_delete(func_map, node->name);
-    }
     map_put(func_map, node->name, node);
 
     int i = 0;

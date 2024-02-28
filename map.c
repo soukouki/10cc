@@ -17,6 +17,10 @@ struct Map {
   MapEntry* first;
 };
 
+static void* map_get2(Map* map, const char* key, int key_len);
+static void map_put2(Map* map, const char* key, int key_len, void* data);
+static void map_delete2(Map* map, const char* key, int key_len);
+
 Map* map_new() {
   Map* map = malloc(sizeof(Map));
   map->first = NULL;
@@ -27,7 +31,7 @@ void* map_get(Map* map, const char* key) {
   return map_get2(map, key, strlen(key));
 }
 
-void* map_get2(Map* map, const char* key, int key_len) {
+static void* map_get2(Map* map, const char* key, int key_len) {
   MapEntry* entry = map->first;
   while (entry != NULL) {
     if (entry->key_len == key_len && memcmp(entry->key, key, key_len) == 0) {
@@ -42,7 +46,10 @@ void map_put(Map* map, const char* key, void* data) {
   map_put2(map, key, strlen(key), data);
 }
 
-void map_put2(Map* map, const char* key, int key_len, void* data) {
+static void map_put2(Map* map, const char* key, int key_len, void* data) {
+  if(map_get2(map, key, key_len) != NULL) {
+    map_delete2(map, key, key_len);
+  }
   MapEntry* entry = malloc(sizeof(MapEntry));
   entry->key = malloc(key_len);
   memcpy(entry->key, key, key_len);
@@ -56,7 +63,7 @@ void map_delete(Map* map, const char* key) {
   map_delete2(map, key, strlen(key));
 }
 
-void map_delete2(Map* map, const char* key, int key_len) {
+static void map_delete2(Map* map, const char* key, int key_len) {
   MapEntry* entry = map->first;
   MapEntry* prev = NULL;
   while (entry != NULL) {
