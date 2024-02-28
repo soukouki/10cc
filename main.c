@@ -47,10 +47,15 @@ int main(int argc, char **argv) {
     "ND_NE",
     "ND_LT",
     "ND_LE",
-    "ND_NUM",
+
+    "ND_SIZEOF",
     "ND_ADDR",
     "ND_DEREF",
+
+    "ND_NUM",
+
     "ND_VARREF",
+    "ND_ARRAYREF",
     "ND_CALL",
     "ND_ASSIGN",
     "ND_RETURN",
@@ -58,18 +63,20 @@ int main(int argc, char **argv) {
     "ND_WHILE",
     "ND_FOR",
     "ND_BLOCK",
-    "ND_VARDEF",
     "ND_FUNCDEF",
     "ND_FUNCPROT",
+
     "ND_DECL",
     "ND_TYPE",
     "ND_IDENT",
+
     "ND_PROGRAM",
   };
 
   type_kinds = (char*[]){
     "TY_INT",
     "TY_PTR",
+    "TY_ARR",
   };
 
   if (argc != 2) {

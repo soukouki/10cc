@@ -21,6 +21,7 @@ struct Token {
 typedef enum {
   TY_INT,
   TY_PTR,
+  TY_ARRAY,
 } TypeKind;
 
 typedef struct Type Type;
@@ -28,6 +29,7 @@ typedef struct Type Type;
 struct Type {
   TypeKind kind;
   Type* ptr_to;
+  int array_size;
 };
 
 typedef struct Var Var;
@@ -39,7 +41,7 @@ struct Var {
 };
 
 typedef enum {
-  // 演算子
+  // 2項演算子(lhs, rhsを持つ)
   ND_ADD,
   ND_SUB,
   ND_MUL,
@@ -49,24 +51,24 @@ typedef enum {
   ND_NE,
   ND_LT,
   ND_LE, // GT, GEはLT, LEを使って表現できる
-  // 2項演算子はlhs, rhsを持つ
-
-  // リテラル
-  ND_NUM, // valを持つ
-
+  // 単項演算子(lhsを持つ)
+  ND_SIZEOF,   // sizeof演算子, lhsを持つ
   // ポインタ
   ND_ADDR,  // 単項&, lhsを持つ
   ND_DEREF, // 単項*, lhsを持つ
 
+  // リテラル
+  ND_NUM, // valを持つ
+
   // 構文
   ND_VARREF,   // 変数の評価, name, varを持つ
+  ND_ARRAYREF, // 配列の参照, lhs, rhsを持つ
   ND_CALL,     // 関数呼び出し, name, args_callを持つ
   ND_ASSIGN,   // 代入, lhs, rhsを持つ
   ND_RETURN,   // return, lhsを持つ
   ND_IF,       // if文, cond, then, elsを持つ
   ND_WHILE,    // while文, cond, bodyを持つ
   ND_FOR,      // for文, init, cond, inc, bodyを持つ
-  ND_SIZEOF,   // sizeof演算子, lhsを持つ
   ND_BLOCK,    // ブロック, stmtsを持つ
   ND_FUNCDEF,  // 関数定義, name, args_name, args_type, ret_type, bodyを持つ
   ND_FUNCPROT, // 関数プロトタイプ, name, args_name, args_type, ret_typeを持つ
@@ -117,6 +119,7 @@ Node* new_node_ident(NodeKind kind, char* name);
 
 Type* int_type();
 Type* ptr_type(Type* ptr_to);
+Type* arr_type(Type* ptr_to, int array_size);
 
 Token* tokenize(char *p);
 Node* parse();

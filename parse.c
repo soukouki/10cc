@@ -125,8 +125,8 @@ stmt       = assign ";"
            | "for" "(" assign? ";" expr? ";" assign? ")" stmt
            | block
 
-decl       = specifier pointer ident
-type       = specifier pointer
+decl       = specifier pointer ident ("[" num "]")?
+type       = specifier pointer       ("[" num "]")?
 pointer    = "*"*
 param      = decl | type
 specifier  = "int"
@@ -141,6 +141,7 @@ unary      = ("+" | "-" | "*" | "&")? primary
            | "sizeof" unary
 primary    = num
            | ident
+           | ident "[" expr "]"
            | ident "(" (expr ("," expr)*)? ")"
            | "(" expr ")"
 */
@@ -319,8 +320,16 @@ static Node* decl() {
     token = origin;
     return NULL;
   }
+  Node* arr = NULL;
+  if(consume("[")) {
+    arr = new_node(ND_TYPE);
+    arr->type = arr_type(t->type, expect_number());
+    expect("]");
+  } else {
+    arr = t;
+  }
   Node* decl = new_node_ident(ND_DECL, name);
-  decl->type = t->type;
+  decl->type = arr->type;
   return decl;
 }
 
@@ -331,7 +340,15 @@ static Node* type() {
     token = origin;
     return NULL;
   }
-  Node* t = pointer(spec);
+  Node* arr = NULL;
+  if(consume("[")) {
+    arr = new_node(ND_TYPE);
+    arr->type = arr_type(spec->type, expect_number());
+    expect("]");
+  } else {
+    arr = spec;
+  }
+  Node* t = pointer(arr);
   return t;
 }
 
@@ -468,6 +485,11 @@ static Node* primary() {
     return node;
   }
   char* ident = consume_ident();
+  if(consume("[")) {
+    Node* node = new_node_2branches(ND_ARRAYREF, new_node_ident(ND_IDENT, ident), expr());
+    expect("]");
+    return node;
+  }
   if(consume("(")) {
     // 6変数以上はスタック経由で渡したりして大変なので、サポートしない
     Node* args[6];

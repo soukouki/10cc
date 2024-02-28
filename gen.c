@@ -15,7 +15,7 @@ void gen_ref(Node* node) {
     printf("  push rax\n");
     break;
   default:
-    error("変数の参照ではありません");
+    error("%sは変数の参照ではありません", node_kinds[node->kind]);
     break;
   }
 }

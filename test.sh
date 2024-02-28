@@ -155,4 +155,14 @@ assert 8 "int main() { int** a; return sizeof(a); }"
 assert 8 "int main() { int** a; return sizeof(a + 4); }"
 assert 8 "int main() { int** a; return sizeof(*a); }"
 
+echo "配列"
+assert 1 "int main() { int a[1]; return 1; }"
+
+echo "配列の添字アクセス"
+assert 2 "int main() { int a[3]; a[0] = 2; return *a; }"
+assert 3 "int main() { int a[3]; a[1] = 3; return *(a + 1); }"
+assert 4 "int main() { int a[3]; a[1] = 3; int* b; b = a; return *(b + 1); }"
+assert 5 "int main() { int a[3]; (a)[1] = 5; return (a)[1]; }"
+assert 6 "int main() { int a[3]; 1[a] = 6; return 1[a]; }"
+
 echo OK

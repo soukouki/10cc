@@ -15,10 +15,12 @@ static Var* find_var(char* name) {
   return map_get(local_map, name);
 }
 
+static int size_of(Type* type);
+
 static Var* new_var(char* name, Type* type) {
   Var* var = calloc(1, sizeof(Var));
   var->name = name;
-  local_offset += 8;
+  local_offset += size_of(type);
   var->offset = local_offset;
   var->type = type;
   printf("#     new_var %s %s %d\n", type_kinds[var->type->kind], var->name, var->offset);
@@ -39,12 +41,22 @@ Type* ptr_type(Type* type) {
   return p;
 }
 
+Type* arr_type(Type* type, int size) {
+  Type* a = calloc(1, sizeof(Type));
+  a->kind = TY_ARRAY;
+  a->ptr_to = type;
+  a->array_size = size;
+  return a;
+}
+
 static int size_of(Type* type) {
   switch(type->kind) {
   case TY_INT:
     return 4;
   case TY_PTR:
     return 8;
+  case TY_ARRAY:
+    return size_of(type->ptr_to) * type->array_size;
   }
 }
 
@@ -148,6 +160,12 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* rhs = analyze(node->rhs);
     TypeKind rkind = rhs->type->kind;
     node->rhs = rhs->node;
+    if(lkind == TY_ARRAY) {
+      lkind = TY_PTR;
+    }
+    if(rkind == TY_ARRAY) {
+      rkind = TY_PTR;
+    }
     if(lkind == TY_INT && rkind == TY_INT) {
       return return_expression(node, lhs->type);
     }
@@ -181,7 +199,7 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* lhs = analyze(node->lhs);
     TypeKind lkind = lhs->type->kind;
     node->lhs = lhs->node;
-    if(lkind != TY_PTR) {
+    if(lkind != TY_PTR && lkind != TY_ARRAY) {
       error("ポインタ型でない%sを参照しようとしました", type_kinds[lkind]);
     }
     return return_expression(node, lhs->type->ptr_to);
@@ -199,6 +217,24 @@ static NodeAndType* analyze(Node* node) {
   }
   case ND_NUM: {
     return return_expression(node, int_type());
+  }
+  case ND_ARRAYREF: {
+    // a[i] を *(a+i) に変換する
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    NodeAndType* rhs = analyze(node->rhs);
+    TypeKind rkind = rhs->type->kind;
+    node->rhs = rhs->node;
+    if(lkind != TY_PTR && lkind != TY_ARRAY) {
+      error("ポインタ型でない%sを参照しようとしました", type_kinds[lkind]);
+    }
+    if(rkind != TY_INT) {
+      error("整数型でない%sを参照しようとしました", type_kinds[rkind]);
+    }
+    Node* add = new_node_2branches(ND_ADD, node->lhs, node->rhs);
+    Node* deref = new_node_1branch(ND_DEREF, add);
+    return return_expression(deref, lhs->type->ptr_to);
   }
   default: {
     if(node->init) {
