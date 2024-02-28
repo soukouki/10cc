@@ -77,6 +77,7 @@ static NodeAndType* return_expression(Node* node, Type* type) {
   NodeAndType* nat = calloc(1, sizeof(NodeAndType));
   nat->node = node;
   nat->type = type;
+  node->type = type; // genで代入時に、正しいバイト長で変数を扱えるようにするために使う
   return nat;
 }
 
