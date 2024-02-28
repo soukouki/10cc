@@ -125,8 +125,9 @@ stmt       = assign ";"
            | "for" "(" assign? ";" expr? ";" assign? ")" stmt
            | block
 
-decl       = specifier "*"? ident
-type       = specifier "*"?
+decl       = specifier pointer ident
+type       = specifier pointer
+pointer    = "*"*
 param      = decl | type
 specifier  = "int"
 
@@ -151,10 +152,11 @@ static Node* block();
 static Node* stmt();
 
 // paramでバックトラックが必要なので、decl, type, specifierは失敗したらトークンを戻した上でNULLを返す
-static Node* decl();      // ND_DECLを返す
-static Node* type();      // ND_TYPEを返す
-static Node* specifier(); // ND_TYPEを返す
-static Node* param();     // ND_DECLを返す
+static Node* decl();           // ND_DECLを返す
+static Node* type();           // ND_TYPEを返す
+static Node* pointer(Node* t); // ND_TYPEを返す
+static Node* specifier();      // ND_TYPEを返す
+static Node* param();          // ND_DECLを返す
 
 static Node* assign();
 static Node* expr();
@@ -311,23 +313,14 @@ static Node* decl() {
     token = origin;
     return NULL;
   }
-  if(consume("*")) {
-    char* name = consume_ident();
-    if(name == NULL) {
-      token = origin;
-      return NULL;
-    }
-    Node* ptr = new_node_ident(ND_DECL, name);
-    ptr->type = ptr_type(spec->type);
-    return ptr;
-  }
+  Node* t = pointer(spec);
   char* name = consume_ident();
   if(name == NULL) {
     token = origin;
     return NULL;
   }
   Node* decl = new_node_ident(ND_DECL, name);
-  decl->type = spec->type;
+  decl->type = t->type;
   return decl;
 }
 
@@ -338,12 +331,28 @@ static Node* type() {
     token = origin;
     return NULL;
   }
-  if(consume("*")) {
+  Node* t = pointer(spec);
+  return t;
+}
+
+static Node* pointer(Node* t) {
+  while(consume("*")) {
     Node* ptr = new_node(ND_TYPE);
-    ptr->type = ptr_type(spec->type);
-    return ptr;
+    ptr->type = ptr_type(t->type);
+    t = ptr;
   }
-  return spec;
+  return t;
+}
+
+static Node* specifier() {
+  Token* origin = token; // バックトラックがあるので、return時に元のトークンの位置に戻す
+  if(consume("int")) {
+    Node* t = new_node(ND_TYPE);
+    t->type = int_type();
+    return t;
+  }
+  token = origin;
+  return NULL;
 }
 
 static Node* param() {
@@ -358,18 +367,7 @@ static Node* param() {
     decl->name = "";
     return decl;
   }
-  error_at(token->str, "引数が不正です\n");
-}
-
-static Node* specifier() {
-  Token* origin = token; // バックトラックがあるので、return時に元のトークンの位置に戻す
-  if(consume("int")) {
-    Node* t = new_node(ND_TYPE);
-    t->type = int_type();
-    return t;
-  }
-  token = origin;
-  return NULL;
+  error_at(token->str, "引数が不正です");
 }
 
 static Node* assign() {

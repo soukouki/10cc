@@ -21,7 +21,7 @@ static Var* new_var(char* name, Type* type) {
   local_offset += 8;
   var->offset = local_offset;
   var->type = type;
-  printf("#     new_var %s %d\n", var->name, var->offset);
+  printf("#     new_var %s %s %d\n", type_kinds[var->type->kind], var->name, var->offset);
   map_put(local_map, name, var);
   return var;
 }
@@ -182,7 +182,7 @@ static NodeAndType* analyze(Node* node) {
     TypeKind lkind = lhs->type->kind;
     node->lhs = lhs->node;
     if(lkind != TY_PTR) {
-      error("ポインタ型でないものを参照しようとしました");
+      error("ポインタ型でない%sを参照しようとしました", type_kinds[lkind]);
     }
     return return_expression(node, lhs->type->ptr_to);
   }
