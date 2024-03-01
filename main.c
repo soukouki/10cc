@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "10cc.h"
 
@@ -36,6 +37,12 @@ void error_at(char *loc, char *fmt, ...) {
   fprintf(stderr, "\n");
   exit(1);
 }
+
+typedef enum {
+  RUN_NORMAL,
+  RUN_PARSE,
+  RUN_ANALYZE,
+} RunMode;
 
 int main(int argc, char **argv) {
   node_kinds = (char*[]){
@@ -79,18 +86,36 @@ int main(int argc, char **argv) {
     "TY_ARR",
   };
 
-  if (argc != 2) {
-    fprintf(stderr, "引数の個数が正しくありません\n");
-    return 1;
+  RunMode mode = RUN_NORMAL;
+  if(argc == 3) {
+    if(strcmp(argv[1], "-p") == 0) {
+      mode = RUN_PARSE;
+    } else if(strcmp(argv[1], "-a") == 0) {
+      mode = RUN_ANALYZE;
+    } else {
+      error("不明なオプションです: %s", argv[1]);
+    }
+    user_input = argv[2];
+  } else if(argc != 2) {
+    error("引数の個数が正しくありません");
+  } else {
+    user_input = argv[1];
   }
 
-  user_input = argv[1];
   printf("# tokenize\n");
   token = tokenize(user_input);
   printf("# parse\n");
   Node* code = parse();
+  if(mode == RUN_PARSE) {
+    print_node(code);
+    return 0;
+  }
   printf("# analyze semantics\n");
   Node* analyzed_code = analyze_semantics(code);
+  if(mode == RUN_ANALYZE) {
+    print_node(analyzed_code);
+    return 0;
+  }
 
   printf(".intel_syntax noprefix\n");
   printf(".globl main\n");

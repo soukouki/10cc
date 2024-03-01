@@ -108,6 +108,8 @@ struct Node {
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 
+void print_node(Node* node);
+
 extern char** node_kinds;
 extern char** type_kinds;
 
