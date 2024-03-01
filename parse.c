@@ -140,10 +140,12 @@ mul        = unary ("*" unary | "/" unary)*
 unary      = ("+" | "-" | "*" | "&")? primary
            | "sizeof" unary
 primary    = num
-           | ident
-           | ident "[" expr "]"
-           | ident "(" (expr ("," expr)*)? ")"
            | "(" expr ")"
+           | ident
+           | ident call
+           | primary arrayref
+arrayref   = "[" expr "]
+call       = "(" (expr ("," expr)*)? ")"
 */
 
 Node* parse();
@@ -167,6 +169,8 @@ static Node* add();
 static Node* mul();
 static Node* unary();
 static Node* primary();
+static Node* arrayref(Node* node);
+static Node* call(char* name);
 
 Node* parse() {
   return program();
@@ -479,39 +483,50 @@ static Node* unary() {
 }
 
 static Node* primary() {
+  Node* prim = NULL;
+  char* ident = NULL;
   if(consume("(")) {
-    Node* node = expr();
+    prim = expr();
     expect(")");
-    return node;
+  } else if (ident = consume_ident()) {
+    if(is_next("(")) {
+      prim = call(ident);
+    } else {
+      prim = new_node_ident(ND_IDENT, ident);
+    }
+  } else {
+    prim = new_node_num(expect_number());
   }
-  char* ident = consume_ident();
-  if(consume("[")) {
-    Node* node = new_node_2branches(ND_ARRAYREF, new_node_ident(ND_IDENT, ident), expr());
-    expect("]");
-    return node;
+  while(is_next("[")) {
+    prim = arrayref(prim);
   }
-  if(consume("(")) {
-    // 6変数以上はスタック経由で渡したりして大変なので、サポートしない
-    Node* args[6];
-    int i = 0;
-    if(!consume(")")) {
+  return prim;
+}
+
+static Node* arrayref(Node* node) {
+  expect("[");
+  Node* array = new_node_2branches(ND_ARRAYREF, node, expr());
+  expect("]");
+  return array;
+}
+
+static Node* call(char* name) {
+  expect("(");
+  // 6変数以上はスタック経由で渡したりして大変なので、サポートしない
+  Node* args[6];
+  int i = 0;
+  if(!consume(")")) {
+    args[i++] = expr();
+    while(consume(",")) {
       args[i++] = expr();
-      while(consume(",")) {
-        args[i++] = expr();
-      }
-      expect(")");
     }
-    Node* node = new_node_ident(ND_CALL, ident);
-    node->name = ident;
-    node->args_call = calloc(6, sizeof(Node*));
-    for(int j = 0; j < i; j++) {
-      node->args_call[j] = args[j];
-    }
-    return node;
+    expect(")");
   }
-  if(ident != NULL) {
-    Node* ref = new_node_ident(ND_IDENT, ident);
-    return ref;
+  Node* node = new_node_ident(ND_CALL, name);
+  node->name = name;
+  node->args_call = calloc(6, sizeof(Node*));
+  for(int j = 0; j < i; j++) {
+    node->args_call[j] = args[j];
   }
-  return new_node_num(expect_number());
+  return node;
 }

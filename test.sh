@@ -167,5 +167,6 @@ assert 4 "int main() { int a[3]; a[1] = 4; return *(a + 1); }"
 assert 5 "int main() { int a[3]; a[1] = 5; int* b; b = a; return *(b + 1); }"
 assert 6 "int main() { int a[3]; (a)[1] = 6; return (a)[1]; }"
 assert 7 "int main() { int a[3]; 1[a] = 7; return 1[a]; }"
+assert 8 "int main() { int *a[3]; int b; b = 8; a[1] = &b; return *(a[1]); }"
 
 echo OK
