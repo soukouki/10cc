@@ -82,7 +82,7 @@ static NodeAndType* return_expression(Node* node, Type* type) {
 }
 
 static NodeAndType* analyze(Node* node) {
-  printf("# analyze_semantics %s\n", node_kinds[node->kind]);
+  // printf("# analyze_semantics %s\n", node_kinds[node->kind]);
   switch(node->kind) {
   case ND_PROGRAM: {
     func_map = map_new();
@@ -148,6 +148,12 @@ static NodeAndType* analyze(Node* node) {
     Var* var = find_var(node->name);
     if(!var) {
       error("変数%sは定義されていません", node->name);
+    }
+    if(var->type->kind == TY_ARRAY) {
+      Node* new_node = new_node_ident(ND_VARREF, node->name);
+      new_node->var = var;
+      Node* addr = new_node_1branch(ND_ADDR, new_node);
+      return return_expression(addr, ptr_type(var->type->ptr_to));
     }
     Node* new_node = new_node_ident(ND_VARREF, node->name);
     new_node->var = var;
@@ -224,8 +230,7 @@ static NodeAndType* analyze(Node* node) {
     return return_expression(node, int_type());
   }
   case ND_ARRAYREF: {
-    Node* addr = new_node_1branch(ND_ADDR, node->lhs);
-    Node* add = new_node_2branches(ND_ADD, addr, node->rhs);
+    Node* add = new_node_2branches(ND_ADD, node->lhs, node->rhs);
     Node* deref = new_node_1branch(ND_DEREF, add);
     NodeAndType* nat = analyze(deref);
     return return_expression(deref, nat->type);

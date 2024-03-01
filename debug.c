@@ -109,8 +109,8 @@ void print_node(Node* node) {
     printf_i("%s", node->name);
     break;
   case ND_ARRAYREF:
-    printf_i("%s[", node->name);
-    print_node(node->lhs);
+    printf_i("%s[", node->lhs->name);
+    print_node(node->rhs);
     printf_i("]");
     break;
   case ND_CALL:

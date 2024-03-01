@@ -88,14 +88,14 @@ int main(int argc, char **argv) {
 
   RunMode mode = RUN_NORMAL;
   if(argc == 3) {
-    if(strcmp(argv[1], "-p") == 0) {
+    if(strcmp(argv[2], "-p") == 0) {
       mode = RUN_PARSE;
-    } else if(strcmp(argv[1], "-a") == 0) {
+    } else if(strcmp(argv[2], "-a") == 0) {
       mode = RUN_ANALYZE;
     } else {
       error("不明なオプションです: %s", argv[1]);
     }
-    user_input = argv[2];
+    user_input = argv[1];
   } else if(argc != 2) {
     error("引数の個数が正しくありません");
   } else {
