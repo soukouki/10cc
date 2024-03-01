@@ -82,7 +82,7 @@ static NodeAndType* return_expression(Node* node, Type* type) {
 }
 
 static NodeAndType* analyze(Node* node) {
-  // printf("# analyze_semantics %s\n", node_kinds[node->kind]);
+  printf("# analyze_semantics %s\n", node_kinds[node->kind]);
   switch(node->kind) {
   case ND_PROGRAM: {
     func_map = map_new();
@@ -200,14 +200,18 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* lhs = analyze(node->lhs);
     TypeKind lkind = lhs->type->kind;
     node->lhs = lhs->node;
-    if(lkind != TY_PTR && lkind != TY_ARRAY) {
+    if(lkind == TY_ARRAY) {
+      // int a[3]; *a = 1; が来たら、 *&aに変換する
+      Node* addr = new_node_1branch(ND_ADDR, node->lhs);
+      return return_expression(new_node_1branch(ND_DEREF, addr), lhs->type->ptr_to);
+    }
+    if(lkind != TY_PTR) {
       error("ポインタ型でない%sを参照しようとしました", type_kinds[lkind]);
     }
     return return_expression(node, lhs->type->ptr_to);
   }
   case ND_ADDR: {
     NodeAndType* lhs = analyze(node->lhs);
-    TypeKind lkind = lhs->type->kind;
     node->lhs = lhs->node;
     return return_expression(node, ptr_type(lhs->type));
   }
@@ -220,22 +224,11 @@ static NodeAndType* analyze(Node* node) {
     return return_expression(node, int_type());
   }
   case ND_ARRAYREF: {
-    // a[i] を *(a+i) に変換する
-    NodeAndType* lhs = analyze(node->lhs);
-    TypeKind lkind = lhs->type->kind;
-    node->lhs = lhs->node;
-    NodeAndType* rhs = analyze(node->rhs);
-    TypeKind rkind = rhs->type->kind;
-    node->rhs = rhs->node;
-    if(lkind != TY_PTR && lkind != TY_ARRAY) {
-      error("ポインタ型でない%sを参照しようとしました", type_kinds[lkind]);
-    }
-    if(rkind != TY_INT) {
-      error("整数型でない%sを参照しようとしました", type_kinds[rkind]);
-    }
-    Node* add = new_node_2branches(ND_ADD, node->lhs, node->rhs);
+    Node* addr = new_node_1branch(ND_ADDR, node->lhs);
+    Node* add = new_node_2branches(ND_ADD, addr, node->rhs);
     Node* deref = new_node_1branch(ND_DEREF, add);
-    return return_expression(deref, lhs->type->ptr_to);
+    NodeAndType* nat = analyze(deref);
+    return return_expression(deref, nat->type);
   }
   default: {
     if(node->init) {

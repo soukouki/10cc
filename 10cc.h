@@ -85,24 +85,24 @@ typedef struct Node Node;
 
 struct Node {
   NodeKind kind;
-  Node*  init;      // forで使う
-  Node*  inc;       // forで使う
-  Node*  cond;      // if, while, forで使う
-  Node*  then;      // ifで使う
-  Node*  els;       // ifで使う
-  Node*  body;      // while, forで使う
-  Node** stmts;     // ブロックで使う
-  Node** args_call; // 関数呼び出しで使う
-  Node** funcs;     // プログラムで使う
-  Node*  lhs;       // 2項演算子, 代入(型), return, 単項&, 単項*, ポインタ型で使う
-  Node*  rhs;       // 2項演算子, 代入(値)で使う
-  int    val;       // 数値リテラルの場合に使う
-  char*  name;      // 関数の定義, 関数呼び出し, 変数の参照で使う
-  Var*   var;       // ND_LVARの場合に使う
-  Type*  type;      // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECLで使う
-  Node** args_node; // 関数の定義で使う(パース->意味解析)
-  Var**  args_var;  // 関数の定義で使う(意味解析->コード生成)
-  int    offset;    // 関数の定義で使う(意味解析->コード生成)
+  Node*  init;        // forで使う
+  Node*  inc;         // forで使う
+  Node*  cond;        // if, while, forで使う
+  Node*  then;        // ifで使う
+  Node*  els;         // ifで使う
+  Node*  body;        // while, forで使う
+  Node** stmts;       // ブロックで使う
+  Node** args_call;   // 関数呼び出しで使う
+  Node** funcs;       // プログラムで使う
+  Node*  lhs;         // 2項演算子, 代入(型), return, 単項&, 単項*, ポインタ型で使う
+  Node*  rhs;         // 2項演算子, 代入(値)で使う
+  int    val;         // 数値リテラルの場合に使う
+  char*  name;        // 関数の定義, 関数呼び出し, 変数の参照で使う
+  Var*   var;         // ND_LVARの場合に使う
+  Type*  type;        // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECLで使う
+  Node** args_node;   // 関数の定義で使う(パース->意味解析)
+  Var**  args_var;    // 関数の定義で使う(意味解析->コード生成)
+  int    offset;      // 関数の定義で使う(意味解析->コード生成)
 };
 
 void error(char *fmt, ...);
