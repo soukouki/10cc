@@ -27,6 +27,27 @@ Token* tokenize(char *p) {
       continue;
     }
 
+    // コメントをスキップ
+    if(strncmp(p, "//", 2) == 0) {
+      p += 2;
+      while(*p != '\n') {
+        p++;
+      }
+      continue;
+    }
+    if(strncmp(p, "/*", 2) == 0) {
+      char* start = p;
+      p += 2;
+      while(strncmp(p, "*/", 2) != 0) {
+        if(*p == '\0') {
+          error_at(start, "コメントが閉じられていません");
+        }
+        p++;
+      }
+      p += 2;
+      continue;
+    }
+
     if(strncmp(p, ">=", 2) == 0 || strncmp(p, "<=", 2) == 0 || strncmp(p, "==", 2) == 0 || strncmp(p, "!=", 2) == 0) {
       cur = new_token(TK_SYMBOL, cur, p, 2);
       p += 2;

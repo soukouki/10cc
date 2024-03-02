@@ -197,6 +197,11 @@ assert 115 'int main() { char* a; a = "test"; return a[2]; }'
 assert 116 'int main() { char* a; a = "test"; return a[3]; }'
 assert 0   'int main() { char* a; a = "test"; return a[4]; }'
 
+echo "コメント"
+new_line=$'\n'
+assert 1 "int main() { // コメント${new_line} return 1; }"
+assert 1 "int main() { /* コメント${new_line} */ return 1; }"
+
 # TODO
 # - 多次元配列
 # - 型名のsizeof
