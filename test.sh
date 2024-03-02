@@ -113,6 +113,8 @@ assert 60 "int call3(int, int, int);                int main() { return call3(10
 assert 99 "int call4(int, int, int, int);           int main() { return call4(10, 20, 30, 39); }"
 assert 15 "int call5(int, int, int, int, int);      int main() { return call5(1, 2, 3, 4, 5); }"
 assert 21 "int call6(int, int, int, int, int, int); int main() { return call6(1, 2, 3, 4, 5, 6); }"
+assert 13 "int call2(int, int); int main() { return call2(3, 5 + 5); }"
+assert 13 "int call2(int, int); int main() { return call2(5 * 2, 3); }"
 
 echo "0引数の関数定義"
 assert 42 "int func() {} int main() { return 42; }"

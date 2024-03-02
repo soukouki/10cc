@@ -181,7 +181,7 @@ void print_node(Node* node) {
     printf_i(" %s(", node->name);
     for(int i = 0; node->args_node[i]; i++) {
       print_type(node->args_node[i]->type);
-      printf_i(" %s", node->args_node[i]->name);
+      printf_i(" L_%s", node->args_node[i]->name);
       if(node->args_node[i + 1]) {
         printf_i(", ");
       }

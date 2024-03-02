@@ -148,27 +148,39 @@ void gen(Node* node) {
   case ND_CALL: {
     if(node->args_call[0]) {
       gen(node->args_call[0]);
-      printf("  pop rdi\n");
     }
     if(node->args_call[1]) {
       gen(node->args_call[1]);
-      printf("  pop rsi\n");
     }
     if(node->args_call[2]) {
       gen(node->args_call[2]);
-      printf("  pop rdx\n");
     }
     if(node->args_call[3]) {
       gen(node->args_call[3]);
-      printf("  pop rcx\n");
     }
     if(node->args_call[4]) {
       gen(node->args_call[4]);
-      printf("  pop r8\n");
     }
     if(node->args_call[5]) {
       gen(node->args_call[5]);
+    }
+    if(node->args_call[5]) {
       printf("  pop r9\n");
+    }
+    if(node->args_call[4]) {
+      printf("  pop r8\n");
+    }
+    if(node->args_call[3]) {
+      printf("  pop rcx\n");
+    }
+    if(node->args_call[2]) {
+      printf("  pop rdx\n");
+    }
+    if(node->args_call[1]) {
+      printf("  pop rsi\n");
+    }
+    if(node->args_call[0]) {
+      printf("  pop rdi\n");
     }
     printf("  mov al, 0\n"); // 浮動小数点数の数をALに入れる必要があるが、今は扱わないので0を入れておく
     printf("  call %s\n", node->name);
