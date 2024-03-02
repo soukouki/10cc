@@ -3,7 +3,8 @@ assert() {
   expected="$1"
   input="$2"
 
-  ./10cc "$input" > tmp.s
+  echo "$input" > tmp.c
+  ./10cc tmp.c > tmp.s
   cc -no-pie -o tmp.o tmp.s test.s
   ./tmp.o
   actual="$?"
