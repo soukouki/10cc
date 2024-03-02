@@ -219,9 +219,11 @@ void print_node(Node* node) {
     printf_i("%s", node->name);
     break;
   case ND_PROGRAM:
-    for(int i = 0; node->strings[i]; i++) {
-      print_node(node->strings[i]);
-      printf_i("\n");
+    if(node->strings) {
+      for(int i = 0; node->strings[i]; i++) {
+        print_node(node->strings[i]);
+        printf_i("\n");
+      }
     }
     for(int i = 0; node->funcs[i]; i++) {
       print_node(node->funcs[i]);

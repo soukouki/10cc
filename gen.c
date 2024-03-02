@@ -170,6 +170,7 @@ void gen(Node* node) {
       gen(node->args_call[5]);
       printf("  pop r9\n");
     }
+    printf("  mov al, 0\n"); // 浮動小数点数の数をALに入れる必要があるが、今は扱わないので0を入れておく
     printf("  call %s\n", node->name);
     printf("  push rax\n");
     break;
