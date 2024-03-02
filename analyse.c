@@ -8,6 +8,8 @@
 
 Map* func_map;
 
+Map* global_map;
+
 Map* local_map;
 int local_offset;
 
@@ -17,14 +19,24 @@ static Var* find_var(char* name) {
 
 static int size_of(Type* type);
 
-static Var* new_var(char* name, Type* type) {
+static Var* new_local_var(char* name, Type* type) {
   Var* var = calloc(1, sizeof(Var));
   var->name = name;
   local_offset += size_of(type);
   var->offset = local_offset;
   var->type = type;
+  var->size = size_of(type);
   printf("#     new_var %s %s %d\n", type_kinds[var->type->kind], var->name, var->offset);
   map_put(local_map, name, var);
+  return var;
+}
+
+static Var* new_global_var(char* name, Type* type) {
+  Var* var = calloc(1, sizeof(Var));
+  var->name = name;
+  var->type = type;
+  var->size = size_of(type);
+  map_put(global_map, name, var);
   return var;
 }
 
@@ -82,10 +94,11 @@ static NodeAndType* return_expression(Node* node, Type* type) {
 }
 
 static NodeAndType* analyze(Node* node) {
-  // printf("# analyze_semantics %s\n", node_kinds[node->kind]);
+  printf("# analyze_semantics %s\n", node_kinds[node->kind]);
   switch(node->kind) {
   case ND_PROGRAM: {
     func_map = map_new();
+    global_map = map_new();
     for(int i = 0; node->funcs[i]; i++) {
       node->funcs[i] = analyze_semantics(node->funcs[i]);
     }
@@ -103,7 +116,7 @@ static NodeAndType* analyze(Node* node) {
     node->args_var = calloc(6, sizeof(Var*));
     while(node->args_node[i]) {
       Node* arg = node->args_node[i];
-      Var* var = new_var(arg->name, arg->type);
+      Var* var = new_local_var(arg->name, arg->type);
       node->args_var[i] = var;
       i++;
     }
@@ -118,6 +131,12 @@ static NodeAndType* analyze(Node* node) {
     map_put(func_map, node->name, node);
     return return_statement(node);
   }
+  case ND_GDECL: {
+    printf("#   global var %s\n", node->name);
+    Var* var = new_global_var(node->name, node->type);
+    node->var = var;
+    return return_statement(node);
+  }
   case ND_BLOCK: {
     for(int i = 0; node->stmts[i]; i++) {
       node->stmts[i] = analyze_semantics(node->stmts[i]);
@@ -125,7 +144,7 @@ static NodeAndType* analyze(Node* node) {
     return return_statement(node);
   }
   case ND_DECL: {
-    Var* var = new_var(node->name, node->type);
+    Var* var = new_local_var(node->name, node->type);
     node->var = var;
     return return_statement(node);
   }
@@ -146,17 +165,25 @@ static NodeAndType* analyze(Node* node) {
   case ND_IDENT: {
     // ここに来るのは変数参照のみ
     Var* var = find_var(node->name);
+    _Bool is_global = var == NULL;
     if(!var) {
-      error("変数%sは定義されていません", node->name);
+      var = map_get(global_map, node->name);
+      if(!var) {
+        error("変数%sは定義されていません", node->name);
+      }
     }
+
+    Node* new_node;
+    if(is_global) {
+      new_node = new_node_ident(ND_GVARREF, node->name);
+    } else {
+      new_node = new_node_ident(ND_VARREF, node->name);
+    }
+    new_node->var = var;
     if(var->type->kind == TY_ARRAY) {
-      Node* new_node = new_node_ident(ND_VARREF, node->name);
-      new_node->var = var;
       Node* addr = new_node_1branch(ND_ADDR, new_node);
       return return_expression(addr, ptr_type(var->type->ptr_to));
     }
-    Node* new_node = new_node_ident(ND_VARREF, node->name);
-    new_node->var = var;
     return return_expression(new_node, new_node->var->type);
   }
   case ND_ADD:

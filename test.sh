@@ -4,7 +4,7 @@ assert() {
   input="$2"
 
   ./10cc "$input" > tmp.s
-  cc -o tmp.o tmp.s test.s
+  cc -no-pie -o tmp.o tmp.s test.s
   ./tmp.o
   actual="$?"
 
@@ -168,5 +168,14 @@ assert 5 "int main() { int a[3]; a[1] = 5; int* b; b = a; return *(b + 1); }"
 assert 6 "int main() { int a[3]; (a)[1] = 6; return (a)[1]; }"
 assert 7 "int main() { int a[3]; 1[a] = 7; return 1[a]; }"
 assert 8 "int main() { int *a[3]; int b; b = 8; a[1] = &b; return *(a[1]); }"
+
+echo "グローバル変数"
+assert 0 "int a;    int main() { return a; }"
+assert 1 "int a;    int main() { a = 1; return a; }"
+assert 2 "int* a;   int main() { int b; b = 2; a = &b; return *a; }"
+assert 3 "int a[3]; int main() { a[1] = 3; return a[1]; }"
+assert 4 "int a;    int f() { return a; } int main() { a = 4; return f(); }"
+assert 0 "int a;    int f() { return a; } int main() { int a; a = 0; return f(); }"
+assert 5 "int a;    int main() { int* b; b = &a; *b = 5; return a; }"
 
 echo OK

@@ -106,7 +106,10 @@ void print_node(Node* node) {
     printf_i("%d", node->val);
     break;
   case ND_VARREF:
-    printf_i("%s", node->name);
+    printf_i("L_%s", node->name);
+    break;
+  case ND_GVARREF:
+    printf_i("G_%s", node->name);
     break;
   case ND_ARRAYREF:
     printf_i("%s[", node->lhs->name);
@@ -191,9 +194,13 @@ void print_node(Node* node) {
     }
     printf_i(");\n");
     break;
+  case ND_GDECL:
+    print_type(node->type);
+    printf_i(" G_%s", node->name);
+    break;
   case ND_DECL:
     print_type(node->type);
-    printf_i(" %s", node->name);
+    printf_i(" L_%s", node->name);
     break;
   case ND_TYPE:
     print_type(node->type);

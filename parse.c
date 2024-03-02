@@ -114,11 +114,11 @@ Node* new_node_ident(NodeKind kind, char* name) {
 }
 
 /*
-program    = func*
+program    = (func | decl ";")*
 func       = decl "(" (param ("," param)*)? ")" (block | ";")
 block      = "{" stmt* "}"
 stmt       = assign ";"
-           | type ident ";"
+           | decl ";"
            | "return" expr ";"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
@@ -180,6 +180,14 @@ static Node* program() {
   int i = 0;
   Node* p[100];
   while(!at_eof()) {
+    Token* origin = token;
+    Node* globalvar = decl();
+    if(globalvar != NULL && consume(";")) {
+      globalvar->kind = ND_GDECL;
+      p[i++] = globalvar;
+      continue;
+    }
+    token = origin;
     p[i++] = func();
   }
   p[i] = NULL;

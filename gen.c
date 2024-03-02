@@ -14,6 +14,9 @@ void gen_ref(Node* node) {
     printf("  sub rax, %d\n", node->var->offset);
     printf("  push rax\n");
     break;
+  case ND_GVARREF:
+    printf("  push offset %s\n", node->name);
+    break;
   default:
     error("%sは変数の参照ではありません", node_kinds[node->kind]);
     break;
@@ -62,6 +65,17 @@ void gen(Node* node) {
     break;
   }
   case ND_VARREF: {
+    gen_ref(node);
+    printf("  pop rax\n");
+    if(node->type->kind == TY_INT) {
+      printf("  mov eax, [rax]\n");
+    } else {
+      printf("  mov rax, [rax]\n");
+    }
+    printf("  push rax\n");
+    break;
+  }
+  case ND_GVARREF: {
     gen_ref(node);
     printf("  pop rax\n");
     if(node->type->kind == TY_INT) {
@@ -168,6 +182,7 @@ void gen(Node* node) {
     break;
   }
   case ND_FUNCDEF: {
+    printf(".text\n");
     printf("%s:\n", node->name);
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
@@ -230,6 +245,12 @@ void gen(Node* node) {
     break;
   }
   case ND_DECL: {
+    break;
+  }
+  case ND_GDECL: {
+    printf(".data\n");
+    printf("%s:\n", node->name);
+    printf("  .zero %d\n", node->var->size);
     break;
   }
   default: {

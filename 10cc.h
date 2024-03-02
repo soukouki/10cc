@@ -1,6 +1,4 @@
 
-#include "map.h"
-
 typedef enum {
   TK_SYMBOL,
   TK_IDENT,
@@ -36,8 +34,9 @@ typedef struct Var Var;
 
 struct Var {
   char* name;
-  int offset; // 意味解析時に計算される
+  int offset; // 意味解析時に計算される, ローカル変数の場合のみ
   Type* type; // 意味解析時でのみ使う
+  int size;
 };
 
 typedef enum {
@@ -61,7 +60,8 @@ typedef enum {
   ND_NUM, // valを持つ
 
   // 構文
-  ND_VARREF,   // 変数の評価, name, varを持つ
+  ND_VARREF,   // 変数の参照, name, varを持つ
+  ND_GVARREF,  // グローバル変数の参照, name, varを持つ
   ND_ARRAYREF, // 配列の参照, lhs, rhsを持つ
   ND_CALL,     // 関数呼び出し, name, args_callを持つ
   ND_ASSIGN,   // 代入, lhs, rhsを持つ
@@ -74,6 +74,7 @@ typedef enum {
   ND_FUNCPROT, // 関数プロトタイプ, name, args_name, args_type, ret_typeを持つ
 
   ND_DECL,  // 宣言, name, typeを持つ 変数定義や関数の仮引数で使う
+  ND_GDECL, // グローバル変数宣言, name, type, varを持つ
   ND_TYPE,  // 型, typeを持つ
   ND_IDENT, // 識別子(意味解析時に置き換える), nameを持つ
 

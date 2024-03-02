@@ -62,6 +62,7 @@ int main(int argc, char **argv) {
     "ND_NUM",
 
     "ND_VARREF",
+    "ND_GVARREF",
     "ND_ARRAYREF",
     "ND_CALL",
     "ND_ASSIGN",
@@ -74,6 +75,7 @@ int main(int argc, char **argv) {
     "ND_FUNCPROT",
 
     "ND_DECL",
+    "ND_GDECL",
     "ND_TYPE",
     "ND_IDENT",
 
