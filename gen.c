@@ -28,7 +28,7 @@ void gen_ref_push(Node* node) {
   if(node->type->kind == TY_INT) {
     printf("  mov eax, [rax]\n");
   } else if(node->type->kind == TY_CHAR) {
-    printf("  mov al, BYTE PTR [rax]\n");
+    printf("  movzx eax, BYTE PTR [rax]\n");
   } else {
     printf("  mov rax, [rax]\n");
   }
