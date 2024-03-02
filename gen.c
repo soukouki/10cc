@@ -115,7 +115,6 @@ void gen(Node* node) {
     gen(node->body);
     printf("  jmp .Lbegin%d\n", while_label);
     printf(".Lend%d:\n", while_label);
-    printf("  push 0\n"); // なんか必要
     break;
   }
   case ND_FOR: {
@@ -133,7 +132,6 @@ void gen(Node* node) {
     if(node->inc) gen(node->inc);
     printf("  jmp .Lbegin%d\n", for_label);
     printf(".Lend%d:\n", for_label);
-    printf("  push 0\n"); // なんか必要
     local_label++;
     break;
   }
