@@ -178,4 +178,21 @@ assert 4 "int a;    int f() { return a; } int main() { a = 4; return f(); }"
 assert 0 "int a;    int f() { return a; } int main() { int a; a = 0; return f(); }"
 assert 5 "int a;    int main() { int* b; b = &a; *b = 5; return a; }"
 
+echo "文字列型"
+assert 1 "int main() { char a; a = 1; return a; }"
+assert 2 "int main() { char a; char* b; b = &a; *b = 2; return a; }"
+assert 3 "int main() { char a[3]; a[0] = 2; a[1] = 3; a[2] = 4; return a[1]; }"
+assert 4 "char f(char a, char b) { return a + b; } int main() { return f(1, 3); }"
+assert 6 "int main() { char a; a = 2; char b; b = 3; return a * b; }"
+assert 1 "int main() { char a; a = 1; char b; b = 1; return a == b; }"
+assert 0 "int main() { char a; a = 1; char b; b = 1; return a != b; }"
+assert 1 "int main() { char a; a = 1; char b; b = 2; return a < b; }"
+assert 1 "int main() { char a; a = 1; char b; b = 2; return a <= b; }"
+
+# TODO
+# - 多次元配列
+# - 型名のsizeof
+# - 配列のポインタ
+# - 暗黙の型変換(char -> int)
+
 echo OK

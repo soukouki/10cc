@@ -23,6 +23,18 @@ void gen_ref(Node* node) {
   }
 }
 
+void gen_ref_push(Node* node) {
+  printf("  pop rax\n");
+  if(node->type->kind == TY_INT) {
+    printf("  mov eax, [rax]\n");
+  } else if(node->type->kind == TY_CHAR) {
+    printf("  mov al, BYTE PTR [rax]\n");
+  } else {
+    printf("  mov rax, [rax]\n");
+  }
+  printf("  push rax\n");
+}
+
 void gen(Node* node) {
   if(node == NULL) {
     error("ノードがありません");
@@ -43,10 +55,11 @@ void gen(Node* node) {
     printf("  pop rax\n");
     if(lval->type->kind == TY_INT) {
       printf("  mov [rax], edi\n");
+    } else if(lval->type->kind == TY_CHAR) {
+      printf("  mov [rax], dil\n");
     } else {
       printf("  mov [rax], rdi\n");
     }
-    printf("  push rdi\n");
     break;
   }
   case ND_ADDR: {
@@ -55,35 +68,13 @@ void gen(Node* node) {
   }
   case ND_DEREF: {
     gen(node->lhs);
-    printf("  pop rax\n");
-    if(node->type->kind == TY_INT) {
-      printf("  mov eax, [rax]\n");
-    } else {
-      printf("  mov rax, [rax]\n");
-    }
-    printf("  push rax\n");
+    gen_ref_push(node);
     break;
   }
-  case ND_VARREF: {
-    gen_ref(node);
-    printf("  pop rax\n");
-    if(node->type->kind == TY_INT) {
-      printf("  mov eax, [rax]\n");
-    } else {
-      printf("  mov rax, [rax]\n");
-    }
-    printf("  push rax\n");
-    break;
-  }
+  case ND_VARREF:
   case ND_GVARREF: {
     gen_ref(node);
-    printf("  pop rax\n");
-    if(node->type->kind == TY_INT) {
-      printf("  mov eax, [rax]\n");
-    } else {
-      printf("  mov rax, [rax]\n");
-    }
-    printf("  push rax\n");
+    gen_ref_push(node);
     break;
   }
   case ND_RETURN: {
@@ -190,6 +181,8 @@ void gen(Node* node) {
     if(node->args_var[0]) {
       if(node->args_var[0]->type->kind == TY_INT) {
         printf("  mov [rbp-%d], edi\n", node->args_var[0]->offset);
+      } else if(node->args_var[0]->type->kind == TY_CHAR) {
+        printf("  mov [rbp-%d], dil\n", node->args_var[0]->offset);
       } else {
         printf("  mov [rbp-%d], rdi\n", node->args_var[0]->offset);
       }
@@ -197,6 +190,8 @@ void gen(Node* node) {
     if(node->args_var[1]) {
       if(node->args_var[1]->type->kind == TY_INT) {
         printf("  mov [rbp-%d], esi\n", node->args_var[1]->offset);
+      } else if(node->args_var[1]->type->kind == TY_CHAR) {
+        printf("  mov [rbp-%d], sil\n", node->args_var[1]->offset);
       } else {
         printf("  mov [rbp-%d], rsi\n", node->args_var[1]->offset);
       }
@@ -204,6 +199,8 @@ void gen(Node* node) {
     if(node->args_var[2]) {
       if(node->args_var[2]->type->kind == TY_INT) {
         printf("  mov [rbp-%d], edx\n", node->args_var[2]->offset);
+      } else if(node->args_var[2]->type->kind == TY_CHAR) {
+        printf("  mov [rbp-%d], dl\n", node->args_var[2]->offset);
       } else {
         printf("  mov [rbp-%d], rdx\n", node->args_var[2]->offset);
       }
@@ -211,6 +208,8 @@ void gen(Node* node) {
     if(node->args_var[3]) {
       if(node->args_var[3]->type->kind == TY_INT) {
         printf("  mov [rbp-%d], ecx\n", node->args_var[3]->offset);
+      } else if(node->args_var[3]->type->kind == TY_CHAR) {
+        printf("  mov [rbp-%d], cl\n", node->args_var[3]->offset);
       } else {
         printf("  mov [rbp-%d], rcx\n", node->args_var[3]->offset);
       }
@@ -218,6 +217,8 @@ void gen(Node* node) {
     if(node->args_var[4]) {
       if(node->args_var[4]->type->kind == TY_INT) {
         printf("  mov [rbp-%d], r8d\n", node->args_var[4]->offset);
+      } else if(node->args_var[4]->type->kind == TY_CHAR) {
+        printf("  mov [rbp-%d], r8b\n", node->args_var[4]->offset);
       } else {
         printf("  mov [rbp-%d], r8\n", node->args_var[4]->offset);
       }
@@ -225,6 +226,8 @@ void gen(Node* node) {
     if(node->args_var[5]) {
       if(node->args_var[5]->type->kind == TY_INT) {
         printf("  mov [rbp-%d], r9d\n", node->args_var[5]->offset);
+      } else if(node->args_var[5]->type->kind == TY_CHAR) {
+        printf("  mov [rbp-%d], r9b\n", node->args_var[5]->offset);
       } else {
         printf("  mov [rbp-%d], r9\n", node->args_var[5]->offset);
       }

@@ -84,6 +84,7 @@ int main(int argc, char **argv) {
 
   type_kinds = (char*[]){
     "TY_INT",
+    "TY_CHAR",
     "TY_PTR",
     "TY_ARR",
   };

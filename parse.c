@@ -129,7 +129,7 @@ decl       = specifier pointer ident ("[" num "]")?
 type       = specifier pointer       ("[" num "]")?
 pointer    = "*"*
 param      = decl | type
-specifier  = "int"
+specifier  = "int" | "char"
 
 assign     = expr ("=" expr)?
 expr       = equality
@@ -378,6 +378,11 @@ static Node* specifier() {
   if(consume("int")) {
     Node* t = new_node(ND_TYPE);
     t->type = int_type();
+    return t;
+  }
+  if(consume("char")) {
+    Node* t = new_node(ND_TYPE);
+    t->type = char_type();
     return t;
   }
   token = origin;

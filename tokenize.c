@@ -82,6 +82,10 @@ Token* tokenize(char *p) {
         cur = new_token(TK_SYMBOL, cur, start, 3);
         continue;
       }
+      if(p - start == 4 && !memcmp(start, "char", 4)) {
+        cur = new_token(TK_SYMBOL, cur, start, 4);
+        continue;
+      }
       cur = new_token(TK_IDENT, cur, start, p - start);
       continue;
     }

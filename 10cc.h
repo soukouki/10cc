@@ -18,6 +18,7 @@ struct Token {
 
 typedef enum {
   TY_INT,
+  TY_CHAR,
   TY_PTR,
   TY_ARRAY,
 } TypeKind;
@@ -121,6 +122,7 @@ Node* new_node_num(int val);
 Node* new_node_ident(NodeKind kind, char* name);
 
 Type* int_type();
+Type* char_type();
 Type* ptr_type(Type* ptr_to);
 Type* arr_type(Type* ptr_to, int array_size);
 

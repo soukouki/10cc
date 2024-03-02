@@ -46,6 +46,12 @@ Type* int_type() {
   return type;
 }
 
+Type* char_type() {
+  Type* type = calloc(1, sizeof(Type));
+  type->kind = TY_CHAR;
+  return type;
+}
+
 Type* ptr_type(Type* type) {
   Type* p = calloc(1, sizeof(Type));
   p->kind = TY_PTR;
@@ -65,6 +71,8 @@ static int size_of(Type* type) {
   switch(type->kind) {
   case TY_INT:
     return 4;
+  case TY_CHAR:
+    return 1;
   case TY_PTR:
     return 8;
   case TY_ARRAY:
@@ -203,6 +211,9 @@ static NodeAndType* analyze(Node* node) {
     if(lkind == TY_INT && rkind == TY_INT) {
       return return_expression(node, lhs->type);
     }
+    if(lkind == TY_CHAR && rkind == TY_CHAR) {
+      return return_expression(node, lhs->type);
+    }
     if(lkind == TY_PTR && rkind == TY_PTR) {
       error("ポインタ同士の加減算はできません");
     }
@@ -225,6 +236,9 @@ static NodeAndType* analyze(Node* node) {
     TypeKind rkind = rhs->type->kind;
     node->rhs = rhs->node;
     if(lkind == TY_INT && rkind == TY_INT) {
+      return return_expression(node, lhs->type);
+    }
+    if(lkind == TY_CHAR && rkind == TY_CHAR) {
       return return_expression(node, lhs->type);
     }
     error("%sと%sの掛け算はできません", type_kinds[lkind], type_kinds[rkind]);
