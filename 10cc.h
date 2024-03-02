@@ -90,6 +90,7 @@ typedef struct Node Node;
 
 struct Node {
   NodeKind kind;
+  char*  loc;         // エラー表示用
   Node*  init;        // forで使う
   Node*  inc;         // forで使う
   Node*  cond;        // if, while, forで使う
@@ -121,11 +122,11 @@ void print_node(Node* node);
 extern char** node_kinds;
 extern char** type_kinds;
 
-Node* new_node(NodeKind kind);
-Node* new_node_1branch(NodeKind kind, Node* lhs);
-Node* new_node_2branches(NodeKind kind, Node* lhs, Node* rhs);
-Node* new_node_num(int val);
-Node* new_node_ident(NodeKind kind, char* name);
+Node* new_node(NodeKind kind, char* loc);
+Node* new_node_1branch(NodeKind kind, char* loc, Node* lhs);
+Node* new_node_2branches(NodeKind kind, char* loc, Node* lhs, Node* rhs);
+Node* new_node_num(char* loc, int val);
+Node* new_node_ident(NodeKind kind, char* loc, char* name);
 
 Type* int_type();
 Type* char_type();

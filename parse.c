@@ -78,45 +78,51 @@ static bool at_eof() {
   return token->kind == TK_EOF;
 }
 
-Node* new_node(NodeKind kind) {
+Node* new_node(NodeKind kind, char* loc) {
   Node* node = calloc(1, sizeof(Node));
   node->kind = kind;
+  node->loc = loc;
   return node;
 }
 
-Node* new_node_1branch(NodeKind kind, Node* lhs) {
+Node* new_node_1branch(NodeKind kind, char* loc, Node* lhs) {
   Node* node = calloc(1, sizeof(Node));
   node->kind = kind;
+  node->loc = loc;
   node->lhs = lhs;
   return node;
 }
 
-Node* new_node_2branches(NodeKind kind, Node* lhs, Node* rhs) {
+Node* new_node_2branches(NodeKind kind, char* loc, Node* lhs, Node* rhs) {
   Node* node = calloc(1, sizeof(Node));
   node->kind = kind;
+  node->loc = loc;
   node->lhs = lhs;
   node->rhs = rhs;
   return node;
 }
 
-Node* new_node_num(int val) {
+Node* new_node_num(char* loc, int val) {
   Node* node = calloc(1, sizeof(Node));
   node->kind = ND_NUM;
+  node->loc = loc;
   node->int_val = val;
   return node;
 }
 
-Node* new_node_str(char* str) {
+Node* new_node_str(char* loc, char* str) {
   Node* node = calloc(1, sizeof(Node));
   node->kind = ND_STR;
+  node->loc = loc;
   node->str_val = str;
   node->str_key = -1;
   return node;
 }
 
-Node* new_node_ident(NodeKind kind, char* name) {
+Node* new_node_ident(NodeKind kind, char* loc, char* name) {
   Node* node = calloc(1, sizeof(Node));
   node->kind = kind;
+  node->loc = loc;
   node->name = name;
   return node;
 }
@@ -200,7 +206,7 @@ static Node* program() {
     p[i++] = func();
   }
   p[i] = NULL;
-  Node* program = new_node(ND_PROGRAM);
+  Node* program = new_node(ND_PROGRAM, token->str);
   program->funcs = calloc(i + 1, sizeof(Node*));
   for(int j = 0; j < i; j++) {
     program->funcs[j] = p[j];
@@ -219,7 +225,7 @@ static Node* func() {
     error_at(token->str, "関数名がありません");
   }
   expect("(");
-  Node* func = new_node_ident(ND_FUNCDEF, name);
+  Node* func = new_node_ident(ND_FUNCDEF, token->str, name);
   func->type = typ->type;
   func->args_node = calloc(6, sizeof(Node*));
   int i = 0;
@@ -251,7 +257,7 @@ static Node* block() {
     b[i++] = stmt();
   }
   b[i] = NULL;
-  Node* block = new_node(ND_BLOCK);
+  Node* block = new_node(ND_BLOCK, token->str);
   block->stmts = calloc(i + 1, sizeof(Node*));
   for(int j = 0; j < i; j++) {
     block->stmts[j] = b[j];
@@ -263,7 +269,7 @@ static Node* stmt() {
   if(consume("return")) {
     Node* e = expr();
     expect(";");
-    return new_node_1branch(ND_RETURN, e);
+    return new_node_1branch(ND_RETURN, token->str, e);
   }
   if(consume("if")) {
     expect("(");
@@ -274,7 +280,7 @@ static Node* stmt() {
     if(consume("else")) {
       els = stmt();
     }
-    Node* i = new_node(ND_IF);
+    Node* i = new_node(ND_IF, token->str);
     i->cond = cond;
     i->then = then;
     i->els = els;
@@ -285,7 +291,7 @@ static Node* stmt() {
     Node* cond = expr();
     expect(")");
     Node* body = stmt();
-    Node* w = new_node(ND_WHILE);
+    Node* w = new_node(ND_WHILE, token->str);
     w->cond = cond;
     w->body = body;
     return w;
@@ -308,7 +314,7 @@ static Node* stmt() {
       expect(")");
     }
     Node* body = stmt();
-    Node* f = new_node(ND_FOR);
+    Node* f = new_node(ND_FOR, token->str);
     f->init = init;
     f->cond = cond;
     f->inc = inc;
@@ -343,13 +349,13 @@ static Node* decl() {
   }
   Node* arr = NULL;
   if(consume("[")) {
-    arr = new_node(ND_TYPE);
+    arr = new_node(ND_TYPE, token->str);
     arr->type = arr_type(t->type, expect_number());
     expect("]");
   } else {
     arr = t;
   }
-  Node* decl = new_node_ident(ND_DECL, name);
+  Node* decl = new_node_ident(ND_DECL, token->str, name);
   decl->type = arr->type;
   return decl;
 }
@@ -363,7 +369,7 @@ static Node* type() {
   }
   Node* arr = NULL;
   if(consume("[")) {
-    arr = new_node(ND_TYPE);
+    arr = new_node(ND_TYPE, token->str);
     arr->type = arr_type(spec->type, expect_number());
     expect("]");
   } else {
@@ -375,7 +381,7 @@ static Node* type() {
 
 static Node* pointer(Node* t) {
   while(consume("*")) {
-    Node* ptr = new_node(ND_TYPE);
+    Node* ptr = new_node(ND_TYPE, token->str);
     ptr->type = ptr_type(t->type);
     t = ptr;
   }
@@ -385,12 +391,12 @@ static Node* pointer(Node* t) {
 static Node* specifier() {
   Token* origin = token; // バックトラックがあるので、return時に元のトークンの位置に戻す
   if(consume("int")) {
-    Node* t = new_node(ND_TYPE);
+    Node* t = new_node(ND_TYPE, token->str);
     t->type = int_type();
     return t;
   }
   if(consume("char")) {
-    Node* t = new_node(ND_TYPE);
+    Node* t = new_node(ND_TYPE, token->str);
     t->type = char_type();
     return t;
   }
@@ -405,7 +411,7 @@ static Node* param() {
   }
   Node* typ = type();
   if(typ != NULL) {
-    Node* decl = new_node(ND_DECL);
+    Node* decl = new_node(ND_DECL, token->str);
     decl->type = typ->type;
     decl->name = "";
     return decl;
@@ -416,7 +422,7 @@ static Node* param() {
 static Node* assign() {
   Node* node = expr();
   if(consume("=")) {
-    return new_node_2branches(ND_ASSIGN, node, expr());
+    return new_node_2branches(ND_ASSIGN, token->str, node, expr());
   }
   return node;
 }
@@ -430,9 +436,9 @@ static Node* equality() {
 
   for(;;) {
     if(consume("==")) {
-      node = new_node_2branches(ND_EQ, node, relational());
+      node = new_node_2branches(ND_EQ, token->str, node, relational());
     } else if(consume("!=")) {
-      node = new_node_2branches(ND_NE, node, relational());
+      node = new_node_2branches(ND_NE, token->str, node, relational());
     } else {
       return node;
     }
@@ -444,13 +450,13 @@ static Node* relational() {
 
   for(;;) {
     if(consume("<")) {
-      node = new_node_2branches(ND_LT, node, add());
+      node = new_node_2branches(ND_LT, token->str, node, add());
     } else if(consume("<=")) {
-      node = new_node_2branches(ND_LE, node, add());
+      node = new_node_2branches(ND_LE, token->str, node, add());
     } else if(consume(">")) {
-      node = new_node_2branches(ND_LT, add(), node);
+      node = new_node_2branches(ND_LT, token->str, add(), node);
     } else if(consume(">=")) {
-      node = new_node_2branches(ND_LE, add(), node);
+      node = new_node_2branches(ND_LE, token->str, add(), node);
     } else {
       return node;
     }
@@ -462,9 +468,9 @@ static Node* add() {
 
   for(;;) {
     if(consume("+")) {
-      node = new_node_2branches(ND_ADD, node, mul());
+      node = new_node_2branches(ND_ADD, token->str, node, mul());
     } else if(consume("-")) {
-      node = new_node_2branches(ND_SUB, node, mul());
+      node = new_node_2branches(ND_SUB, token->str, node, mul());
     } else {
       return node;
     }
@@ -476,9 +482,9 @@ static Node* mul() {
 
   for(;;) {
     if(consume("*")) {
-      node = new_node_2branches(ND_MUL, node, unary());
+      node = new_node_2branches(ND_MUL, token->str, node, unary());
     } else if(consume("/")) {
-      node = new_node_2branches(ND_DIV, node, unary());
+      node = new_node_2branches(ND_DIV, token->str, node, unary());
     } else {
       return node;
     }
@@ -490,16 +496,16 @@ static Node* unary() {
     return unary();
   }
   if(consume("-")) {
-    return new_node_2branches(ND_SUB, new_node_num(0), unary());
+    return new_node_2branches(ND_SUB, token->str, new_node_num(token->str, 0), unary());
   }
   if(consume("*")) {
-    return new_node_1branch(ND_DEREF, unary());
+    return new_node_1branch(ND_DEREF, token->str, unary());
   }
   if(consume("&")) {
-    return new_node_1branch(ND_ADDR, unary());
+    return new_node_1branch(ND_ADDR, token->str, unary());
   }
   if(consume("sizeof")) {
-    return new_node_1branch(ND_SIZEOF, unary());
+    return new_node_1branch(ND_SIZEOF, token->str, unary());
   }
   return primary();
 }
@@ -514,12 +520,12 @@ static Node* primary() {
     if(is_next("(")) {
       prim = call(ident);
     } else {
-      prim = new_node_ident(ND_IDENT, ident);
+      prim = new_node_ident(ND_IDENT, token->str, ident);
     }
   } else if (token->kind == TK_NUM) {
-    prim = new_node_num(expect_number());
+    prim = new_node_num(token->str, expect_number());
   } else if (token->kind == TK_STR) {
-    prim = new_node_str(token->str);
+    prim = new_node_str(token->str, token->str);
     token = token->next;
   } else {
     error_at(token->str, "不正な式です");
@@ -532,7 +538,7 @@ static Node* primary() {
 
 static Node* arrayref(Node* node) {
   expect("[");
-  Node* array = new_node_2branches(ND_ARRAYREF, node, expr());
+  Node* array = new_node_2branches(ND_ARRAYREF, token->str, node, expr());
   expect("]");
   return array;
 }
@@ -549,7 +555,7 @@ static Node* call(char* name) {
     }
     expect(")");
   }
-  Node* node = new_node_ident(ND_CALL, name);
+  Node* node = new_node_ident(ND_CALL, token->str, name);
   node->name = name;
   node->args_call = calloc(6, sizeof(Node*));
   for(int j = 0; j < i; j++) {

@@ -18,7 +18,7 @@ void gen_ref(Node* node) {
     printf("  push offset %s\n", node->name);
     break;
   default:
-    error("%sは変数の参照ではありません", node_kinds[node->kind]);
+    error_at(node->loc, "%sは変数の参照ではありません", node_kinds[node->kind]);
     break;
   }
 }
@@ -310,7 +310,7 @@ void gen(Node* node) {
         printf("  movzb rax, al\n");
         break;
       default:
-        error("不正なノードです");
+        error_at(node->loc, "%sは対応していないノードです", node_kinds[node->kind]);
         break;
     }
     printf("  push rax\n");

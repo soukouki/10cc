@@ -171,7 +171,7 @@ static NodeAndType* analyze(Node* node) {
     }
     Node* func = map_get(func_map, node->name);
     if(!func) {
-      error("関数%sは定義されていません", node->name);
+      error_at(node->loc, "関数%sは定義されていません", node->name);
     }
     return return_expression(node, func->type);
   }
@@ -182,19 +182,19 @@ static NodeAndType* analyze(Node* node) {
     if(!var) {
       var = map_get(global_map, node->name);
       if(!var) {
-        error("変数%sは定義されていません", node->name);
+        error_at(node->loc, "変数%sは定義されていません", node->name);
       }
     }
 
     Node* new_node;
     if(is_global) {
-      new_node = new_node_ident(ND_GVARREF, node->name);
+      new_node = new_node_ident(ND_GVARREF, node->loc, node->name);
     } else {
-      new_node = new_node_ident(ND_VARREF, node->name);
+      new_node = new_node_ident(ND_VARREF, node->loc, node->name);
     }
     new_node->var = var;
     if(var->type->kind == TY_ARRAY) {
-      Node* addr = new_node_1branch(ND_ADDR, new_node);
+      Node* addr = new_node_1branch(ND_ADDR, node->loc, new_node);
       return return_expression(addr, ptr_type(var->type->ptr_to));
     }
     return return_expression(new_node, new_node->var->type);
@@ -220,17 +220,19 @@ static NodeAndType* analyze(Node* node) {
       return return_expression(node, lhs->type);
     }
     if(lkind == TY_PTR && rkind == TY_PTR) {
-      error("ポインタ同士の加減算はできません");
+      error_at(node->loc, "ポインタ同士の加減算はできません");
     }
     if(lkind == TY_PTR) {
-      Node* mul = new_node_2branches(ND_MUL, node->rhs, new_node_num(size_of(lhs->type->ptr_to)));
-      return return_expression(new_node_2branches(node->kind, node->lhs, mul), lhs->type);
+      Node* size = new_node_num(node->loc, size_of(lhs->type->ptr_to));
+      Node* mul = new_node_2branches(ND_MUL, node->loc, node->rhs, size);
+      return return_expression(new_node_2branches(node->kind, node->loc, node->lhs, mul), lhs->type);
     }
     if(rkind == TY_PTR) {
-      Node* mul = new_node_2branches(ND_MUL, node->lhs, new_node_num(size_of(rhs->type->ptr_to)));
-      return return_expression(new_node_2branches(node->kind, mul, node->rhs), rhs->type);
+      Node* size = new_node_num(node->loc, size_of(rhs->type->ptr_to));
+      Node* mul = new_node_2branches(ND_MUL, node->loc, node->lhs, size);
+      return return_expression(new_node_2branches(node->kind, node->loc, mul, node->rhs), rhs->type);
     }
-    error("%sと%sの加減算はできません", type_kinds[lkind], type_kinds[rkind]);
+    error_at(node->loc, "%sと%sの加減算はできません", type_kinds[lkind], type_kinds[rkind]);
   }
   case ND_MUL:
   case ND_DIV: {
@@ -246,7 +248,7 @@ static NodeAndType* analyze(Node* node) {
     if(lkind == TY_CHAR && rkind == TY_CHAR) {
       return return_expression(node, lhs->type);
     }
-    error("%sと%sの掛け算はできません", type_kinds[lkind], type_kinds[rkind]);
+    error_at(node->loc, "%sと%sの乗除算はできません", type_kinds[lkind], type_kinds[rkind]);
   }
   case ND_DEREF: {
     NodeAndType* lhs = analyze(node->lhs);
@@ -254,11 +256,11 @@ static NodeAndType* analyze(Node* node) {
     node->lhs = lhs->node;
     if(lkind == TY_ARRAY) {
       // int a[3]; *a = 1; が来たら、 *&aに変換する
-      Node* addr = new_node_1branch(ND_ADDR, node->lhs);
-      return return_expression(new_node_1branch(ND_DEREF, addr), lhs->type->ptr_to);
+      Node* addr = new_node_1branch(ND_ADDR, node->loc, node->lhs);
+      return return_expression(new_node_1branch(ND_DEREF, node->loc, addr), lhs->type->ptr_to);
     }
     if(lkind != TY_PTR) {
-      error("ポインタ型でない%sを参照しようとしました", type_kinds[lkind]);
+      error_at(node->loc, "ポインタでない%sを参照しようとしました", type_kinds[lkind]);
     }
     return return_expression(node, lhs->type->ptr_to);
   }
@@ -269,14 +271,14 @@ static NodeAndType* analyze(Node* node) {
   }
   case ND_SIZEOF: {
     NodeAndType *nat = analyze(node->lhs);
-    Node* num = new_node_num(size_of(nat->type));
+    Node* num = new_node_num(node->loc, size_of(nat->type));
     return return_expression(num, int_type());
   }
   case ND_NUM: {
     return return_expression(node, int_type());
   }
   case ND_STR: {
-    Node* str_def = new_node(ND_STRDEF);
+    Node* str_def = new_node(ND_STRDEF, node->loc);
     str_def->str_val = node->str_val;
     str_def->str_key = string_count;
     node->str_key = string_count;
@@ -285,8 +287,8 @@ static NodeAndType* analyze(Node* node) {
     return return_expression(node, ptr_type(char_type()));
   }
   case ND_ARRAYREF: {
-    Node* add = new_node_2branches(ND_ADD, node->lhs, node->rhs);
-    Node* deref = new_node_1branch(ND_DEREF, add);
+    Node* add = new_node_2branches(ND_ADD, node->loc, node->lhs, node->rhs);
+    Node* deref = new_node_1branch(ND_DEREF, node->loc, add);
     NodeAndType* nat = analyze(deref);
     return return_expression(deref, nat->type);
   }
