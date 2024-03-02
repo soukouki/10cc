@@ -3,6 +3,7 @@ typedef enum {
   TK_SYMBOL,
   TK_IDENT,
   TK_NUM,
+  TK_STR,
   TK_EOF,
 } TokenKind;
 
@@ -59,6 +60,7 @@ typedef enum {
 
   // リテラル
   ND_NUM, // valを持つ
+  ND_STR, // valを持つ
 
   // 構文
   ND_VARREF,   // 変数の参照, name, varを持つ
@@ -73,6 +75,7 @@ typedef enum {
   ND_BLOCK,    // ブロック, stmtsを持つ
   ND_FUNCDEF,  // 関数定義, name, args_name, args_type, ret_type, bodyを持つ
   ND_FUNCPROT, // 関数プロトタイプ, name, args_name, args_type, ret_typeを持つ
+  ND_STRDEF,   // 文字列定義, name, str_valを持つ
 
   ND_DECL,  // 宣言, name, typeを持つ 変数定義や関数の仮引数で使う
   ND_GDECL, // グローバル変数宣言, name, type, varを持つ
@@ -80,7 +83,7 @@ typedef enum {
   ND_IDENT, // 識別子(意味解析時に置き換える), nameを持つ
 
   // その他
-  ND_PROGRAM, // プログラム全体, funcsを持つ
+  ND_PROGRAM, // プログラム全体, funcs, stringsを持つ
 } NodeKind;
 
 typedef struct Node Node;
@@ -96,10 +99,13 @@ struct Node {
   Node** stmts;       // ブロックで使う
   Node** args_call;   // 関数呼び出しで使う
   Node** funcs;       // プログラムで使う
+  Node** strings;     // プログラムで使う
   Node*  lhs;         // 2項演算子, 代入(型), return, 単項&, 単項*, ポインタ型で使う
   Node*  rhs;         // 2項演算子, 代入(値)で使う
-  int    val;         // 数値リテラルの場合に使う
-  char*  name;        // 関数の定義, 関数呼び出し, 変数の参照で使う
+  int    int_val;     // 数値リテラルの場合に使う
+  char*  str_val;     // 文字列リテラルの場合に使う
+  int    str_key;     // 文字列リテラルの場合に使う
+  char*  name;        // 関数の定義, 関数呼び出し, 変数の参照の場合に使う
   Var*   var;         // ND_LVARの場合に使う
   Type*  type;        // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECLで使う
   Node** args_node;   // 関数の定義で使う(パース->意味解析)

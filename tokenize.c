@@ -49,6 +49,21 @@ Token* tokenize(char *p) {
       continue;
     }
 
+    if(*p == '"') {
+      p++;
+      char* start = p;
+      while(*p != '"') {
+        if(*p == '\0') {
+          error_at(start, "文字列が閉じられていません");
+        }
+        p++;
+      }
+      cur = new_token(TK_STR, cur, start, p - start);
+      cur->str[p - start] = '\0'; // 文字列の終端を設定
+      p++;
+      continue;
+    }
+
     if('a' <= *p && *p <= 'z' || 'A' <= *p && *p <= 'Z' || *p == '_') {
       char* start = p;
       while('a' <= *p && *p <= 'z' || 'A' <= *p && *p <= 'Z' || *p == '_' || '0' <= *p && *p <= '9') {

@@ -42,7 +42,11 @@ void gen(Node* node) {
   printf("# gen %s\n", node_kinds[node->kind]);
   switch (node->kind) {
   case ND_NUM: {
-    printf("  push %d\n", node->val);
+    printf("  push %d\n", node->int_val);
+    break;
+  }
+  case ND_STR: {
+    printf("  push offset .LC%d\n", node->str_key);
     break;
   }
   case ND_ASSIGN: {
@@ -239,7 +243,16 @@ void gen(Node* node) {
   case ND_FUNCPROT: {
     break;
   }
+  case ND_STRDEF: {
+    printf(".data\n");
+    printf(".LC%d:\n", node->str_key);
+    printf("  .string \"%s\"\n", node->str_val);
+    break;
+  }
   case ND_PROGRAM: {
+    for(int i = 0; node->strings[i]; i++) {
+      gen(node->strings[i]);
+    }
     for(int i = 0; node->funcs[i]; i++) {
       gen(node->funcs[i]);
     }

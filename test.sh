@@ -189,6 +189,13 @@ assert 0 "int main() { char a; a = 1; char b; b = 1; return a != b; }"
 assert 1 "int main() { char a; a = 1; char b; b = 2; return a < b; }"
 assert 1 "int main() { char a; a = 1; char b; b = 2; return a <= b; }"
 
+echo "文字列リテラル"
+assert 116 'int main() { char* a; a = "test"; return a[0]; }'
+assert 101 'int main() { char* a; a = "test"; return a[1]; }'
+assert 115 'int main() { char* a; a = "test"; return a[2]; }'
+assert 116 'int main() { char* a; a = "test"; return a[3]; }'
+assert 0   'int main() { char* a; a = "test"; return a[4]; }'
+
 # TODO
 # - 多次元配列
 # - 型名のsizeof

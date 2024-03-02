@@ -103,7 +103,14 @@ void print_node(Node* node) {
     print_node(node->lhs);
     break;
   case ND_NUM:
-    printf_i("%d", node->val);
+    printf_i("%d", node->int_val);
+    break;
+  case ND_STR:
+    if(node->str_key == -1) {
+      printf_i("\"%s\"", node->str_val);
+    } else {
+      printf_i("(LC%d:\"%s\")", node->str_key, node->str_val);
+    }
     break;
   case ND_VARREF:
     printf_i("L_%s", node->name);
@@ -194,6 +201,9 @@ void print_node(Node* node) {
     }
     printf_i(");\n");
     break;
+  case ND_STRDEF:
+    printf_i("LC%d = \"%s\"", node->str_key, node->str_val);
+    break;
   case ND_GDECL:
     print_type(node->type);
     printf_i(" G_%s", node->name);
@@ -209,6 +219,10 @@ void print_node(Node* node) {
     printf_i("%s", node->name);
     break;
   case ND_PROGRAM:
+    for(int i = 0; node->strings[i]; i++) {
+      print_node(node->strings[i]);
+      printf_i("\n");
+    }
     for(int i = 0; node->funcs[i]; i++) {
       print_node(node->funcs[i]);
       printf_i("\n");

@@ -6,6 +6,9 @@
 #include "10cc.h"
 #include "map.h"
 
+Map* string_map;
+int  string_count = 0;
+
 Map* func_map;
 
 Map* global_map;
@@ -105,11 +108,13 @@ static NodeAndType* analyze(Node* node) {
   printf("# analyze_semantics %s\n", node_kinds[node->kind]);
   switch(node->kind) {
   case ND_PROGRAM: {
+    string_map = map_new();
     func_map = map_new();
     global_map = map_new();
     for(int i = 0; node->funcs[i]; i++) {
       node->funcs[i] = analyze_semantics(node->funcs[i]);
     }
+    node->strings = (Node**)map_values(string_map);
     return return_statement(node);
   }
   case ND_FUNCDEF: {
@@ -269,6 +274,15 @@ static NodeAndType* analyze(Node* node) {
   }
   case ND_NUM: {
     return return_expression(node, int_type());
+  }
+  case ND_STR: {
+    Node* str_def = new_node(ND_STRDEF);
+    str_def->str_val = node->str_val;
+    str_def->str_key = string_count;
+    node->str_key = string_count;
+    map_put(string_map, node->str_val, str_def);
+    string_count++;
+    return return_expression(node, ptr_type(char_type()));
   }
   case ND_ARRAYREF: {
     Node* add = new_node_2branches(ND_ADD, node->lhs, node->rhs);

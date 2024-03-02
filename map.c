@@ -15,6 +15,7 @@ struct MapEntry {
 
 struct Map {
   MapEntry* first;
+  int size;
 };
 
 static void* map_get2(Map* map, const char* key, int key_len);
@@ -24,6 +25,7 @@ static void map_delete2(Map* map, const char* key, int key_len);
 Map* map_new() {
   Map* map = malloc(sizeof(Map));
   map->first = NULL;
+  map->size = 0;
   return map;
 }
 
@@ -57,6 +59,7 @@ static void map_put2(Map* map, const char* key, int key_len, void* data) {
   entry->data = data;
   entry->next = map->first;
   map->first = entry;
+  map->size++;
 }
 
 void map_delete(Map* map, const char* key) {
@@ -75,9 +78,21 @@ static void map_delete2(Map* map, const char* key, int key_len) {
       }
       free(entry->key);
       free(entry);
+      map->size--;
       return;
     }
     prev = entry;
     entry = entry->next;
   }
+}
+
+void** map_values(Map* map) {
+  void** all = malloc(sizeof(void*) * (map->size + 1));
+  MapEntry* entry = map->first;
+  for (int i = 0; i < map->size; i++) {
+    all[i] = entry->data;
+    entry = entry->next;
+  }
+  all[map->size] = NULL;
+  return all;
 }

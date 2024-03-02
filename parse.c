@@ -102,7 +102,15 @@ Node* new_node_2branches(NodeKind kind, Node* lhs, Node* rhs) {
 Node* new_node_num(int val) {
   Node* node = calloc(1, sizeof(Node));
   node->kind = ND_NUM;
-  node->val = val;
+  node->int_val = val;
+  return node;
+}
+
+Node* new_node_str(char* str) {
+  Node* node = calloc(1, sizeof(Node));
+  node->kind = ND_STR;
+  node->str_val = str;
+  node->str_key = -1;
   return node;
 }
 
@@ -140,6 +148,7 @@ mul        = unary ("*" unary | "/" unary)*
 unary      = ("+" | "-" | "*" | "&")? primary
            | "sizeof" unary
 primary    = num
+           | str
            | "(" expr ")"
            | ident
            | ident call
@@ -507,8 +516,13 @@ static Node* primary() {
     } else {
       prim = new_node_ident(ND_IDENT, ident);
     }
-  } else {
+  } else if (token->kind == TK_NUM) {
     prim = new_node_num(expect_number());
+  } else if (token->kind == TK_STR) {
+    prim = new_node_str(token->str);
+    token = token->next;
+  } else {
+    error_at(token->str, "不正な式です");
   }
   while(is_next("[")) {
     prim = arrayref(prim);
