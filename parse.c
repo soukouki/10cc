@@ -6,6 +6,9 @@
 
 #include "10cc.h"
 
+#define MAX_FUNCS 1000
+#define MAX_BLOCK_STMTS 100
+
 // 次のトークンが期待している記号のときには、トークンを1つ読み進めて真を返す
 // それ以外の場合には偽を返す
 static bool consume(char* op) {
@@ -193,7 +196,7 @@ Node* parse() {
 
 static Node* program() {
   int i = 0;
-  Node* p[100];
+  Node* p[MAX_FUNCS];
   while(!at_eof()) {
     Token* origin = token;
     Node* globalvar = decl();
@@ -252,7 +255,7 @@ static Node* func() {
 
 static Node* block() {
   int i = 0;
-  Node* b[100];
+  Node* b[MAX_BLOCK_STMTS];
   while(!consume("}")) {
     b[i++] = stmt();
   }
