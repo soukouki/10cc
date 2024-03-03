@@ -105,7 +105,7 @@ static NodeAndType* return_expression(Node* node, Type* type) {
 }
 
 static NodeAndType* analyze(Node* node) {
-  printf("# analyze_semantics %s\n", node_kinds[node->kind]);
+  // printf("# analyze_semantics %s\n", node_kinds[node->kind]);
   switch(node->kind) {
   case ND_PROGRAM: {
     string_map = map_new();
@@ -282,6 +282,9 @@ static NodeAndType* analyze(Node* node) {
     str_def->str_val = node->str_val;
     str_def->str_key = string_count;
     node->str_key = string_count;
+    if(map_get(string_map, node->str_val)) {
+      return return_expression(node, ptr_type(char_type()));
+    }
     map_put(string_map, node->str_val, str_def);
     string_count++;
     return return_expression(node, ptr_type(char_type()));
