@@ -3,9 +3,9 @@ int printf(char*);
 
 int assert(int expected, int actual, char* msg) {
   if(expected != actual) {
-    printf("Assertion failed: %s\n", msg);
-    printf("Expected: %d\n", expected);
-    printf("Actual: %d\n", actual);
+    printf("*** Assertion failed: %s\n", msg);
+    printf("    Expected: %d\n", expected);
+    printf("    Actual: %d\n", actual);
     return 1;
   }
 }
@@ -734,6 +734,16 @@ int comment() {
   */
 }
 
+int sizeof_char() {
+  printf("文字型のsizeof演算子\n");
+  char a;
+  assert(1, sizeof(a), "sizeof(a)");
+  char* b;
+  assert(8, sizeof(b), "sizeof(b)");
+  char c[3];
+  assert(3, sizeof(c), "sizeof(c)");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -764,6 +774,7 @@ int main() {
   global_variable();
   string_type();
   comment();
+  sizeof_char();
 
   printf("OK\n");
   return 0;
