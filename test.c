@@ -607,7 +607,7 @@ int pointer_add() {
   a = alloc_int(1, 2, 3, 4);
   assert(2, *(a + 1), "*(a + 1)");
   assert(3, *(a + 2), "*(a + 2)");
-  assert(3, *(a + 3 - 2), "*(a + 3 - 2)");
+  assert(2, *(a + 3 - 2), "*(a + 3 - 2)");
 }
 
 int sizeof_one_level_pointer() {

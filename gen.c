@@ -5,6 +5,7 @@
 int local_label = 0;
 
 void gen_ref(Node* node) {
+  printf("# gen_ref %s\n", node_kinds[node->kind]);
   switch(node->kind) {
   case ND_DEREF:
     gen(node->lhs);
@@ -78,6 +79,9 @@ void gen(Node* node) {
   case ND_VARREF:
   case ND_GVARREF: {
     gen_ref(node);
+    if(node->type->kind == TY_ARRAY) {
+      return;
+    }
     gen_ref_push(node);
     break;
   }

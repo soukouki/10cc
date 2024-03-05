@@ -193,10 +193,6 @@ static NodeAndType* analyze(Node* node) {
       new_node = new_node_ident(ND_VARREF, node->loc, node->name);
     }
     new_node->var = var;
-    if(var->type->kind == TY_ARRAY) {
-      Node* addr = new_node_1branch(ND_ADDR, node->loc, new_node);
-      return return_expression(addr, ptr_type(var->type->ptr_to));
-    }
     return return_expression(new_node, new_node->var->type);
   }
   case ND_ADD:
@@ -254,13 +250,8 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* lhs = analyze(node->lhs);
     TypeKind lkind = lhs->type->kind;
     node->lhs = lhs->node;
-    if(lkind == TY_ARRAY) {
-      // int a[3]; *a = 1; が来たら、 *&aに変換する
-      Node* addr = new_node_1branch(ND_ADDR, node->loc, node->lhs);
-      return return_expression(new_node_1branch(ND_DEREF, node->loc, addr), lhs->type->ptr_to);
-    }
-    if(lkind != TY_PTR) {
-      error_at(node->loc, "ポインタでない%sを参照しようとしました", type_kinds[lkind]);
+    if(lkind != TY_PTR && lkind != TY_ARRAY) {
+      error_at(node->loc, "ポインタや配列でない%sを参照しようとしました", type_kinds[lkind]);
     }
     return return_expression(node, lhs->type->ptr_to);
   }
