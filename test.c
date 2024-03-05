@@ -3,6 +3,7 @@ int printf();
 
 char* section_name;
 int section_count;
+int is_fall;
 
 int section(char* name) {
   section_name = name;
@@ -16,11 +17,19 @@ int assert(int expected, int actual, char* msg) {
     printf("    Expected: %d\n", expected);
     printf("    Actual: %d\n", actual);
     char* ordinal;
-    if(section_count == 1) ordinal = "st";
-    if(section_count == 2) ordinal = "nd";
-    if(section_count == 3) ordinal = "rd";
-    if(section_count >  3) ordinal = "th";
+    if(section_count % 10 == 1)
+      ordinal = "st";
+    else if(section_count % 10 == 2)
+      ordinal = "nd";
+    else if(section_count % 10 == 3)
+      ordinal = "rd";
+    else
+      ordinal = "th";
+    if(section_count == 11) ordinal = "th";
+    if(section_count == 12) ordinal = "th";
+    if(section_count == 13) ordinal = "th";
     printf("    Test for the %d%s %s\n\n", section_count, ordinal, section_name);
+    is_fall = 1;
     return 1;
   }
 }
@@ -778,6 +787,13 @@ int sizeof_char() {
   assert(3, sizeof(c), "sizeof(c)");
 }
 
+int modulo_operator() {
+  section("剰余演算子");
+  assert(1, 10 % 3, "10 % 3");
+  assert(2, 10 % 4, "10 % 4");
+  assert(0, 10 % 5, "10 % 5");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -811,7 +827,11 @@ int main() {
   comment();
   sizeof_char();
 
-  printf("OK\n");
+  if(is_fall) {
+    printf("FAILED\n");
+  } else {
+    printf("OK\n");
+  }
   return 0;
 }
 

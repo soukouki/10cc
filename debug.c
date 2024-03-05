@@ -77,6 +77,9 @@ void print_node(Node* node) {
   case ND_DIV:
     print_binary_op(node, "/");
     break;
+  case ND_MOD:
+    print_binary_op(node, "%");
+    break;
   case ND_EQ:
     print_binary_op(node, "==");
     break;

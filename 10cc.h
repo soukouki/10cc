@@ -47,6 +47,7 @@ typedef enum {
   ND_SUB,
   ND_MUL,
   ND_DIV,
+  ND_MOD,
   // 比較演算子
   ND_EQ,
   ND_NE,

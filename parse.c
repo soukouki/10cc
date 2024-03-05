@@ -151,9 +151,9 @@ specifier  = "int" | "char"
 assign     = expr ("=" expr)?
 expr       = equality
 equality   = relational ("==" relational | "!=" relational)*
-relational = add ("<" add | "<=" add | ">" a  dd | ">=" add)*
+relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 add        = mul ("+" mul | "-" mul)*
-mul        = unary ("*" unary | "/" unary)*
+mul        = unary ("*" unary | "/" unary | "%" unary)*
 unary      = ("+" | "-" | "*" | "&")? primary
            | "sizeof" unary
 primary    = num
@@ -488,6 +488,8 @@ static Node* mul() {
       node = new_node_2branches(ND_MUL, token->str, node, unary());
     } else if(consume("/")) {
       node = new_node_2branches(ND_DIV, token->str, node, unary());
+    } else if(consume("%")) {
+      node = new_node_2branches(ND_MOD, token->str, node, unary());
     } else {
       return node;
     }
