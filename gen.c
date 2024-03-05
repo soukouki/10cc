@@ -46,7 +46,7 @@ void gen(Node* node) {
     break;
   }
   case ND_STR: {
-    printf("  push offset .LC%d\n", node->str_key);
+    printf("  push offset .LC%d # \"%s\"\n", node->str_key, node->str_val);
     break;
   }
   case ND_ASSIGN: {

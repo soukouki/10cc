@@ -743,6 +743,23 @@ int string_type() {
   assert(0,  a >= d, "a >= d");
 }
 
+int string_literal() {
+  section("文字列リテラル");
+  char* a;
+  a = "abc";
+  assert(97, a[0], "a[0]");
+  assert(98, a[1], "a[1]");
+  assert(99, a[2], "a[2]");
+  assert(0,  a[3], "a[3]");
+  a = "";
+  assert(0,  a[0], "a[0]");
+  a = "abc";
+  assert(97, a[0], "a[0]");
+  assert(98, a[1], "a[1]");
+  assert(99, a[2], "a[2]");
+  assert(0,  a[3], "a[3]");
+}
+
 int comment() {
   section("コメント");
   // コメント
@@ -790,6 +807,7 @@ int main() {
   array_index_access();
   global_variable();
   string_type();
+  string_literal();
   comment();
   sizeof_char();
 

@@ -278,13 +278,15 @@ static NodeAndType* analyze(Node* node) {
     return return_expression(node, int_type());
   }
   case ND_STR: {
+    Node* exists_str;
+    if(exists_str = map_get(string_map, node->str_val)) {
+      node->str_key = exists_str->str_key;
+      return return_expression(node, ptr_type(char_type()));
+    }
+    node->str_key = string_count;
     Node* str_def = new_node(ND_STRDEF, node->loc);
     str_def->str_val = node->str_val;
     str_def->str_key = string_count;
-    node->str_key = string_count;
-    if(map_get(string_map, node->str_val)) {
-      return return_expression(node, ptr_type(char_type()));
-    }
     map_put(string_map, node->str_val, str_def);
     string_count++;
     return return_expression(node, ptr_type(char_type()));
