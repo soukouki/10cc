@@ -1,11 +1,26 @@
 
-int printf(char*);
+int printf();
+
+char* section_name;
+int section_count;
+
+int section(char* name) {
+  section_name = name;
+  section_count = 0;
+}
 
 int assert(int expected, int actual, char* msg) {
+  section_count = section_count + 1;
   if(expected != actual) {
     printf("*** Assertion failed: %s\n", msg);
     printf("    Expected: %d\n", expected);
     printf("    Actual: %d\n", actual);
+    char* ordinal;
+    if(section_count == 1) ordinal = "st";
+    if(section_count == 2) ordinal = "nd";
+    if(section_count == 3) ordinal = "rd";
+    if(section_count >  3) ordinal = "th";
+    printf("    Test for the %d%s %s\n\n", section_count, ordinal, section_name);
     return 1;
   }
 }
@@ -17,13 +32,13 @@ int return_value_2() {
   return 42;
 }
 int return_value() {
-  printf("値を返す\n");
+  section("値を返す");
   assert(0, return_value_1(), "return_value_1");
   assert(42, return_value_2(), "return_value_2");
 }
 
 int four_arithmetic() {
-  printf("四則演算\n");
+  section("四則演算");
   assert(3,  1 + 2, "1 + 2");
   assert(0,  1 + 2 - 3, "1 + 2 - 3");
   assert(1,  1 - 2 + 3 + 4 - 5, "1 - 2 + 3 + 4 - 5");
@@ -32,14 +47,14 @@ int four_arithmetic() {
 }
 
 int monominal() {
-  printf("単項+, 単項-\n");
+  section("単項+, 単項-");
   assert(10, -10 + 20, "-10 + 20");
   assert(10, +10, "+10");
   assert(10, - -10, "- -10");
 }
 
 int compare() {
-  printf("比較演算子\n");
+  section("比較演算子");
   assert(0, 2 == 3, "2 == 3");
   assert(1, 2 != 3, "2 != 3");
   assert(1, 2 <= 2, "2 <= 2");
@@ -66,7 +81,7 @@ int one_char_variable_3() {
   return a + b;
 }
 int one_char_variable() {
-  printf("一文字変数\n");
+  section("一文字変数");
   assert(1, one_char_variable_1(), "one_char_variable_1");
   assert(1, one_char_variable_2(), "one_char_variable_2");
   assert(3, one_char_variable_3(), "one_char_variable_3");
@@ -84,7 +99,7 @@ int multi_char_variable_2() {
   return _ + 4;
 }
 int multi_char_variable() {
-  printf("複数文字, 特殊文字変数\n");
+  section("複数文字, 特殊文字変数");
   assert(12, multi_char_variable_1(), "multi_char_variable_1");
   assert(34, multi_char_variable_2(), "multi_char_variable_2");
 }
@@ -101,7 +116,7 @@ int return_statement_3() {
   return 20;
 }
 int return_statement() {
-  printf("return文\n");
+  section("return文");
   assert(10, return_statement_1(), "return_statement_1");
   assert(10, return_statement_2(), "return_statement_2");
   assert(10, return_statement_3(), "return_statement_3");
@@ -146,7 +161,7 @@ int if_statement_6() {
   return 40;
 }
 int if_statement() {
-  printf("if文\n");
+  section("if文");
   assert(10, if_statement_1(), "if_statement_1");
   assert(20, if_statement_2(), "if_statement_2");
   assert(20, if_statement_3(), "if_statement_3");
@@ -175,7 +190,7 @@ int while_statement_4() {
   while(1) if (a == 5) return a; else a = a + 1;
 }
 int while_statement() {
-  printf("while文\n");
+  section("while文");
   assert(34, while_statement_1(), "while_statement_1");
   assert(56, while_statement_2(), "while_statement_2");
   assert(5,  while_statement_3(), "while_statement_3");
@@ -215,7 +230,7 @@ int for_statement_7() {
   return sum;
 }
 int for_statement() {
-  printf("for文\n");
+  section("for文");
   assert(3,  for_statement_1(), "for_statement_1");
   assert(5,  for_statement_2(), "for_statement_2");
   assert(4,  for_statement_3(), "for_statement_3");
@@ -291,7 +306,7 @@ int block_statement_9() {
   }
 }
 int block_statement() {
-  printf("ブロック文\n");
+  section("ブロック文");
   assert(10, block_statement_1(), "block_statement_1");
   assert(10, block_statement_2(), "block_statement_2");
   assert(20, block_statement_3(), "block_statement_3");
@@ -351,7 +366,7 @@ int *function_prototype_pointer(int *a) {
 }
 
 int function_prototype() {
-  printf("関数プロトタイプ\n");
+  section("関数プロトタイプ");
   assert(10, function_prototype_1(), "function_prototype_1");
   assert(10, function_prototype_2(), "function_prototype_2");
   assert(10, function_prototype_3(), "function_prototype_3");
@@ -390,7 +405,7 @@ int function_call_with_0arg_5() {
   }
 }
 int function_call_with_0arg() {
-  printf("0引数関数呼び出し\n");
+  section("0引数関数呼び出し");
   assert(100, function_call_with_0arg_1(), "function_call_with_0arg_1");
   assert(110, function_call_with_0arg_2(), "function_call_with_0arg_2");
   assert(200, function_call_with_0arg_3(), "function_call_with_0arg_3");
@@ -417,7 +432,7 @@ int function_call_with_1arg_4() {
     return call1(20);
 }
 int function_call_with_1arg() {
-  printf("1引数関数呼び出し\n");
+  section("1引数関数呼び出し");
   assert(110, function_call_with_1arg_1(), "function_call_with_1arg_1");
   assert(220, function_call_with_1arg_2(), "function_call_with_1arg_2");
   assert(110, function_call_with_1arg_3(), "function_call_with_1arg_3");
@@ -446,7 +461,7 @@ int function_call_with_multiarg_7() {
   return call2(5 * 2, 3);
 }
 int function_call_with_multiarg() {
-  printf("複数引数関数呼び出し\n");
+  section("複数引数関数呼び出し");
   assert(30, function_call_with_multiarg_1(), "function_call_with_multiarg_1");
   assert(60, function_call_with_multiarg_2(), "function_call_with_multiarg_2");
   assert(99, function_call_with_multiarg_3(), "function_call_with_multiarg_3");
@@ -456,7 +471,9 @@ int function_call_with_multiarg() {
   assert(13, function_call_with_multiarg_7(), "function_call_with_multiarg_7");
 }
 
-int function_definition_with_0arg_nobody() { }
+int function_definition_with_0arg_nobody() {
+  return 0;
+}
 int function_definition_with_0arg_return() {
   return 42;
 }
@@ -472,7 +489,7 @@ int function_definition_with_0arg_variable() {
   return a;
 }
 int function_definition_with_0arg() {
-  printf("0引数関数定義\n");
+  section("0引数関数定義");
   assert(0,  function_definition_with_0arg_nobody(), "function_definition_with_0arg_nobody");
   assert(42, function_definition_with_0arg_return(), "function_definition_with_0arg_return");
   assert(42, function_definition_with_0arg_call_other_B(), "function_definition_with_0arg_call_other_B");
@@ -491,7 +508,7 @@ int function_definition_with_multiarg_fib(int n) {
   return function_definition_with_multiarg_fib(n - 1) + function_definition_with_multiarg_fib(n - 2);
 }
 int function_definition_with_multiarg() {
-  printf("複数引数関数定義\n");
+  section("複数引数関数定義");
   assert(13, function_definition_with_multiarg_id(13), "function_definition_with_multiarg_id");
   assert(13, function_definition_with_multiarg_add(3, 10), "function_definition_with_multiarg_add");
   assert(13, function_definition_with_multiarg_fib(7), "function_definition_with_multiarg_fib");
@@ -505,7 +522,7 @@ int addr_and_deref_1() {
   return *p;
 }
 int addr_and_deref() {
-  printf("単項&, 単項*\n");
+  section("単項&, 単項*");
   assert(42, addr_and_deref_1(), "addr_and_deref_1");
 }
 
@@ -551,7 +568,7 @@ int one_level_pointer_5() {
   return one_level_pointer_add(&a, &b); 
 }
 int one_level_pointer() {
-  printf("一重ポインタ\n");
+  section("一重ポインタ");
   assert(42, one_level_pointer_1(), "one_level_pointer_1");
   assert(42, one_level_pointer_2(), "one_level_pointer_2");
   assert(42, one_level_pointer_3(), "one_level_pointer_3");
@@ -578,14 +595,14 @@ int multi_level_pointer_2() {
   return a;
 }
 int multi_level_pointer() {
-  printf("多重ポインタ\n");
+  section("多重ポインタ");
   assert(42, multi_level_pointer_1(), "multi_level_pointer_1");
   assert(42, multi_level_pointer_2(), "multi_level_pointer_2");
 }
 
 int *alloc_int(int, int, int, int);
 int pointer_add() {
-  printf("ポインタ加算\n");
+  section("ポインタ加算");
   int *a;
   a = alloc_int(1, 2, 3, 4);
   assert(2, *(a + 1), "*(a + 1)");
@@ -594,7 +611,7 @@ int pointer_add() {
 }
 
 int sizeof_one_level_pointer() {
-  printf("一重ポインタのsizeof演算子\n");
+  section("一重ポインタのsizeof演算子");
   assert(4, sizeof(1), "sizeof(1)");
   assert(4, sizeof 1 , "sizeof 1");
   int a;
@@ -605,7 +622,7 @@ int sizeof_one_level_pointer() {
 }
 
 int sizeof_multi_level_pointer() {
-  printf("多重ポインタのsizeof演算子\n");
+  section("多重ポインタのsizeof演算子");
   int **a;
   assert(8, sizeof(a), "sizeof(a)");
   assert(8, sizeof(a + 4), "sizeof(a + 4)");
@@ -613,7 +630,7 @@ int sizeof_multi_level_pointer() {
 }
 
 int array_declaration() {
-  printf("配列宣言\n");
+  section("配列宣言");
   int a[1];
   *a = 2;
   assert(2, *a, "*a");
@@ -623,7 +640,7 @@ int array_declaration() {
 }
 
 int sizeof_array() {
-  printf("配列のsizeof演算子\n");
+  section("配列のsizeof演算子");
   int a[1];
   assert(4, sizeof(a), "sizeof(a)");
   int b[2];
@@ -635,7 +652,7 @@ int sizeof_array() {
 }
 
 int array_index_access() {
-  printf("配列の添字アクセス\n");
+  section("配列の添字アクセス");
   int a[3];
   *a = 1;
   assert(1, a[0], "a[0]");
@@ -675,7 +692,7 @@ int global_variable_conflict() {
   global_variable_a = 2;
 }
 int global_variable() {
-  printf("グローバル変数\n");
+  section("グローバル変数");
   assert(0, global_variable_a, "global_variable_a");
   assert(0, global_variable_pointer, "global_variable_pointer");
   assert(0, global_variable_array[0], "global_variable_array[0]");
@@ -699,7 +716,7 @@ int global_variable() {
 }
 
 int string_type() {
-  printf("文字列型\n");
+  section("文字列型");
   char a;
   a = 1;
   assert(1, a, "a");
@@ -727,7 +744,7 @@ int string_type() {
 }
 
 int comment() {
-  printf("コメント\n");
+  section("コメント");
   // コメント
   /*
   assert(1, 0, "コメント");
@@ -735,7 +752,7 @@ int comment() {
 }
 
 int sizeof_char() {
-  printf("文字型のsizeof演算子\n");
+  section("文字型のsizeof演算子");
   char a;
   assert(1, sizeof(a), "sizeof(a)");
   char* b;
