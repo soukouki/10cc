@@ -8,6 +8,7 @@
 
 #define MAX_FUNCS 1000
 #define MAX_BLOCK_STMTS 100
+#define MAX_STRUCT_MEMBERS 100
 
 // 次のトークンが期待している記号のときには、トークンを1つ読み進めて真を返す
 // それ以外の場合には偽を返す
@@ -131,7 +132,7 @@ Node* new_node_ident(NodeKind kind, char* loc, char* name) {
 }
 
 /*
-program    = (func | decl ";")*
+program    = (func | decl ";" | struct ";")*
 func       = decl "(" (param ("," param)*)? ")" (block | ";")
 block      = "{" stmt* "}"
 stmt       = assign ";"
@@ -141,6 +142,7 @@ stmt       = assign ";"
            | "while" "(" expr ")" stmt
            | "for" "(" assign? ";" expr? ";" assign? ")" stmt
            | block
+struct     = "struct" ident "{" (decl ";")* "}"
 
 decl       = specifier pointer ident ("[" num "]")?
 type       = specifier pointer       ("[" num "]")?
@@ -171,6 +173,7 @@ static Node* program();
 static Node* func();
 static Node* block();
 static Node* stmt();
+static Node* struct_();
 
 // paramでバックトラックが必要なので、decl, type, specifierは失敗したらトークンを戻した上でNULLを返す
 static Node* decl();           // ND_DECLを返す
@@ -198,6 +201,11 @@ static Node* program() {
   int i = 0;
   Node* p[MAX_FUNCS];
   while(!at_eof()) {
+    if(is_next("struct")) {
+      p[i++] = struct_();
+      expect(";");
+      continue;
+    }
     Token* origin = token;
     Node* globalvar = decl();
     if(globalvar != NULL && consume(";")) {
@@ -335,6 +343,32 @@ static Node* stmt() {
   Node* e = assign();
   expect(";");
   return e;
+}
+
+static Node* struct_() {
+  expect("struct");
+  char* name = consume_ident();
+  if(name == NULL) {
+    error_at(token->str, "構造体名がありません");
+  }
+  expect("{");
+  int i = 0;
+  Node* s[MAX_STRUCT_MEMBERS];
+  while(!consume("}")) {
+    Node* mem = decl();
+    if(mem == NULL) {
+      error_at(token->str, "構造体のメンバが不正です");
+    }
+    s[i++] = mem;
+    expect(";");
+  }
+  s[i] = NULL;
+  Node* str = new_node_ident(ND_STRUCT, token->str, name);
+  str->struct_members = calloc(i + 1, sizeof(Node*));
+  for(int j = 0; j < i; j++) {
+    str->struct_members[j] = s[j];
+  }
+  return str;
 }
 
 static Node* decl() {

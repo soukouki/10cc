@@ -266,6 +266,9 @@ void gen(Node* node) {
     printf("  .string \"%s\"\n", node->str_val);
     break;
   }
+  case ND_STRUCT: {
+    break;
+  }
   case ND_PROGRAM: {
     for(int i = 0; node->strings[i]; i++) {
       gen(node->strings[i]);

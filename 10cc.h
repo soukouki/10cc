@@ -77,6 +77,7 @@ typedef enum {
   ND_FUNCDEF,  // 関数定義, name, args_name, args_type, ret_type, bodyを持つ
   ND_FUNCPROT, // 関数プロトタイプ, name, args_name, args_type, ret_typeを持つ
   ND_STRDEF,   // 文字列定義, name, str_valを持つ
+  ND_STRUCT,   // 構造体, name, struct_membersを持つ
 
   ND_DECL,  // 宣言, name, typeを持つ 変数定義や関数の仮引数で使う
   ND_GDECL, // グローバル変数宣言, name, type, varを持つ
@@ -91,28 +92,29 @@ typedef struct Node Node;
 
 struct Node {
   NodeKind kind;
-  char*  loc;         // エラー表示用
-  Node*  init;        // forで使う
-  Node*  inc;         // forで使う
-  Node*  cond;        // if, while, forで使う
-  Node*  then;        // ifで使う
-  Node*  els;         // ifで使う
-  Node*  body;        // while, forで使う
-  Node** stmts;       // ブロックで使う
-  Node** args_call;   // 関数呼び出しで使う
-  Node** funcs;       // プログラムで使う
-  Node** strings;     // プログラムで使う
-  Node*  lhs;         // 2項演算子, 代入(型), return, 単項&, 単項*, ポインタ型で使う
-  Node*  rhs;         // 2項演算子, 代入(値)で使う
-  int    int_val;     // 数値リテラルの場合に使う
-  char*  str_val;     // 文字列リテラルの場合に使う
-  int    str_key;     // 文字列リテラルの場合に使う
-  char*  name;        // 関数の定義, 関数呼び出し, 変数の参照の場合に使う
-  Var*   var;         // ND_LVARの場合に使う
-  Type*  type;        // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECLで使う
-  Node** args_node;   // 関数の定義で使う(パース->意味解析)
-  Var**  args_var;    // 関数の定義で使う(意味解析->コード生成)
-  int    offset;      // 関数の定義で使う(意味解析->コード生成)
+  char*  loc;            // エラー表示用
+  Node*  init;           // forで使う
+  Node*  inc;            // forで使う
+  Node*  cond;           // if, while, forで使う
+  Node*  then;           // ifで使う
+  Node*  els;            // ifで使う
+  Node*  body;           // while, forで使う
+  Node** stmts;          // ブロックで使う
+  Node** args_call;      // 関数呼び出しで使う
+  Node** funcs;          // プログラムで使う
+  Node** strings;        // プログラムで使う
+  Node** struct_members; // 構造体のメンバ
+  Node*  lhs;            // 2項演算子, 代入(型), return, 単項&, 単項*, ポインタ型で使う
+  Node*  rhs;            // 2項演算子, 代入(値)で使う
+  int    int_val;        // 数値リテラルの場合に使う
+  char*  str_val;        // 文字列リテラルの場合に使う
+  int    str_key;        // 文字列リテラルの場合に使う
+  char*  name;           // 関数の定義, 関数呼び出し, 変数の参照の場合に使う
+  Var*   var;            // ND_LVARの場合に使う
+  Type*  type;           // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECLで使う
+  Node** args_node;      // 関数の定義で使う(パース->意味解析)
+  Var**  args_var;       // 関数の定義で使う(意味解析->コード生成)
+  int    offset;         // 関数の定義で使う(意味解析->コード生成)
 };
 
 void error(char *fmt, ...);

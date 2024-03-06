@@ -207,6 +207,16 @@ void print_node(Node* node) {
   case ND_STRDEF:
     printf_i("LC%d = \"%s\"", node->str_key, node->str_val);
     break;
+  case ND_STRUCT:
+    printf_i("struct %s {", node->name);
+    for(int i = 0; node->struct_members[i]; i++) {
+      print_node(node->struct_members[i]);
+      if(node->struct_members[i + 1]) {
+        printf_i(", ");
+      }
+    }
+    printf_i("}");
+    break;
   case ND_GDECL:
     print_type(node->type);
     printf_i(" G_%s", node->name);

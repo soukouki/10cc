@@ -122,6 +122,10 @@ Token* tokenize(char *p) {
         cur = new_token(TK_SYMBOL, cur, start, 4);
         continue;
       }
+      if(p - start == 6 && !memcmp(start, "struct", 6)) {
+        cur = new_token(TK_SYMBOL, cur, start, 6);
+        continue;
+      }
       cur = new_token(TK_IDENT, cur, start, p - start);
       continue;
     }

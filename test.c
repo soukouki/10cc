@@ -794,6 +794,11 @@ int modulo_operator() {
   assert(0, 10 % 5, "10 % 5");
 }
 
+struct struct_definition_sample {
+  int a;
+  int b;
+};
+
 int main() {
   return_value();
   four_arithmetic();
