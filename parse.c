@@ -40,7 +40,7 @@ static void expect(char* op) {
     token->kind != TK_SYMBOL ||
     strlen(op) != token->len ||
     memcmp(token->str, op, token->len) != 0
-  ) error_at(token->str, "'%s'ではありません", op);
+  ) ERROR_AT(token->str, "'%s'ではありません", op);
 
   token = token->next;
   return;
@@ -50,7 +50,7 @@ static void expect(char* op) {
 // それ以外の場合にはエラーを報告する
 static int expect_number() {
   if(token->kind != TK_NUM) {
-    error_at(token->str, "数ではありません");
+    ERROR_AT(token->str, "数ではありません");
   }
   int val = token->val;
   token = token->next;
@@ -228,12 +228,12 @@ static Node* program() {
 static Node* func() {
   Node* typ = type();
   if(typ == NULL) {
-    error_at(token->str, "関数の戻り値の型がありません");
+    ERROR_AT(token->str, "関数の戻り値の型がありません");
   }
   char* name = consume_ident();
   printf("#   function %s", name);
   if(name == NULL) {
-    error_at(token->str, "関数名がありません");
+    ERROR_AT(token->str, "関数名がありません");
   }
   expect("(");
   Node* func = new_node_ident(ND_FUNCDEF, token->str, name);
@@ -349,7 +349,7 @@ static Node* struct_() {
   expect("struct");
   char* name = consume_ident();
   if(name == NULL) {
-    error_at(token->str, "構造体名がありません");
+    ERROR_AT(token->str, "構造体名がありません");
   }
   expect("{");
   int i = 0;
@@ -357,7 +357,7 @@ static Node* struct_() {
   while(!consume("}")) {
     Node* mem = decl();
     if(mem == NULL) {
-      error_at(token->str, "構造体のメンバが不正です");
+      ERROR_AT(token->str, "構造体のメンバが不正です");
     }
     s[i++] = mem;
     expect(";");
@@ -453,7 +453,7 @@ static Node* param() {
     decl->name = "";
     return decl;
   }
-  error_at(token->str, "引数が不正です");
+  ERROR_AT(token->str, "引数が不正です");
 }
 
 static Node* assign() {
@@ -567,7 +567,7 @@ static Node* primary() {
     prim = new_node_str(token->str, token->str);
     token = token->next;
   } else {
-    error_at(token->str, "不正な式です");
+    ERROR_AT(token->str, "不正な式です");
   }
   while(is_next("[")) {
     prim = arrayref(prim);

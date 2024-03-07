@@ -40,7 +40,7 @@ Token* tokenize(char *p) {
       p += 2;
       while(strncmp(p, "*/", 2) != 0) {
         if(*p == '\0') {
-          error_at(start, "コメントが閉じられていません");
+          ERROR_AT(start, "コメントが閉じられていません");
         }
         p++;
       }
@@ -75,7 +75,7 @@ Token* tokenize(char *p) {
       char* start = p;
       while(*p != '"') {
         if(*p == '\0') {
-          error_at(start, "文字列が閉じられていません");
+          ERROR_AT(start, "文字列が閉じられていません");
         }
         p++;
       }
@@ -130,7 +130,7 @@ Token* tokenize(char *p) {
       continue;
     }
 
-    error_at(p, "トークナイズできません");
+    ERROR_AT(p, "トークナイズできません");
   }
 
   new_token(TK_EOF, cur, p, 0);

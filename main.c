@@ -20,11 +20,11 @@ char** type_kinds;
 
 // エラーを報告するための関数
 // printfと同じ引数を取る
-void error(char *fmt, ...) {
+void error(char* file_name, int file_line, char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
   vfprintf(stderr, fmt, ap);
-  fprintf(stderr, "\n");
+  fprintf(stderr, "\nerror reported at %s:%d\n", file_name, file_line);
   exit(1);
 }
 
@@ -36,7 +36,7 @@ char *filename;
 //
 // foo.c:10: x = y + + 5;
 //                   ^ 式ではありません
-void error_at(char *loc, char *msg, ...) {
+void error_at(char* file_name, int file_line, char *loc, char *msg, ...) {
   va_list ap;
   va_start(ap, msg);
 
@@ -63,8 +63,8 @@ void error_at(char *loc, char *msg, ...) {
   int pos = loc - line + indent;
   fprintf(stderr, "%*s", pos, ""); // pos個の空白を出力
   fprintf(stderr, "^ ");
-  fprintf(stderr, msg, ap);
-  fprintf(stderr, "\n");
+  vfprintf(stderr, fmt, ap);
+  fprintf(stderr, "\nerror reported at %s:%d\n", file_name, file_line);
   exit(1);
 }
 
@@ -73,14 +73,14 @@ char *read_file(char *path) {
   // ファイルを開く
   FILE *fp = fopen(path, "r");
   if (!fp)
-    error("cannot open %s: %s", path, strerror(errno));
+    ERROR("cannot open %s: %s", path, strerror(errno));
 
   // ファイルの長さを調べる
   if (fseek(fp, 0, SEEK_END) == -1)
-    error("%s: fseek: %s", path, strerror(errno));
+    ERROR("%s: fseek: %s", path, strerror(errno));
   size_t size = ftell(fp);
   if (fseek(fp, 0, SEEK_SET) == -1)
-    error("%s: fseek: %s", path, strerror(errno));
+    ERROR("%s: fseek: %s", path, strerror(errno));
 
   // ファイル内容を読み込む
   char *buf = calloc(1, size + 2);
@@ -155,12 +155,12 @@ int main(int argc, char **argv) {
     } else if(strcmp(argv[2], "-a") == 0) {
       mode = RUN_ANALYZE;
     } else {
-      error("不明なオプションです: %s", argv[1]);
+      ERROR("不明なオプションです: %s", argv[1]);
     }
     user_input = read_file(argv[1]);
     filename = argv[1];
   } else if(argc != 2) {
-    error("引数の個数が正しくありません");
+    ERROR("引数の個数が正しくありません");
   } else {
     user_input = read_file(argv[1]);
     filename = argv[1];

@@ -171,7 +171,7 @@ static NodeAndType* analyze(Node* node) {
     }
     Node* func = map_get(func_map, node->name);
     if(!func) {
-      error_at(node->loc, "関数%sは定義されていません", node->name);
+      ERROR_AT(node->loc, "関数%sは定義されていません", node->name);
     }
     return return_expression(node, func->type);
   }
@@ -182,7 +182,7 @@ static NodeAndType* analyze(Node* node) {
     if(!var) {
       var = map_get(global_map, node->name);
       if(!var) {
-        error_at(node->loc, "変数%sは定義されていません", node->name);
+        ERROR_AT(node->loc, "変数%sは定義されていません", node->name);
       }
     }
 
@@ -216,7 +216,7 @@ static NodeAndType* analyze(Node* node) {
       return return_expression(node, lhs->type);
     }
     if(lkind == TY_PTR && rkind == TY_PTR) {
-      error_at(node->loc, "ポインタ同士の加減算はできません");
+      ERROR_AT(node->loc, "ポインタ同士の加減算はできません");
     }
     if(lkind == TY_PTR) {
       Node* size = new_node_num(node->loc, size_of(lhs->type->ptr_to));
@@ -228,7 +228,7 @@ static NodeAndType* analyze(Node* node) {
       Node* mul = new_node_2branches(ND_MUL, node->loc, node->lhs, size);
       return return_expression(new_node_2branches(node->kind, node->loc, mul, node->rhs), rhs->type);
     }
-    error_at(node->loc, "%sと%sの加減算はできません", type_kinds[lkind], type_kinds[rkind]);
+    ERROR_AT(node->loc, "%sと%sの加減算はできません", type_kinds[lkind], type_kinds[rkind]);
   }
   case ND_MUL:
   case ND_DIV: {
@@ -244,14 +244,14 @@ static NodeAndType* analyze(Node* node) {
     if(lkind == TY_CHAR && rkind == TY_CHAR) {
       return return_expression(node, lhs->type);
     }
-    error_at(node->loc, "%sと%sの乗除算はできません", type_kinds[lkind], type_kinds[rkind]);
+    ERROR_AT(node->loc, "%sと%sの乗除算はできません", type_kinds[lkind], type_kinds[rkind]);
   }
   case ND_DEREF: {
     NodeAndType* lhs = analyze(node->lhs);
     TypeKind lkind = lhs->type->kind;
     node->lhs = lhs->node;
     if(lkind != TY_PTR && lkind != TY_ARRAY) {
-      error_at(node->loc, "ポインタや配列でない%sを参照しようとしました", type_kinds[lkind]);
+      ERROR_AT(node->loc, "ポインタや配列でない%sを参照しようとしました", type_kinds[lkind]);
     }
     return return_expression(node, lhs->type->ptr_to);
   }

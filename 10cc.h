@@ -117,8 +117,10 @@ struct Node {
   int    offset;         // 関数の定義で使う(意味解析->コード生成)
 };
 
-void error(char *fmt, ...);
-void error_at(char *loc, char *fmt, ...);
+void error(char* file, int line, char *fmt, ...);
+void error_at(char* file, int line, char *loc, char *fmt, ...);
+#define ERROR(...) error(__FILE__, __LINE__, __VA_ARGS__)
+#define ERROR_AT(...) error_at(__FILE__, __LINE__, __VA_ARGS__)
 
 void print_node(Node* node);
 
