@@ -18,6 +18,18 @@ void gen_ref(Node* node) {
   case ND_GVARREF:
     printf("  push offset %s\n", node->name);
     break;
+  case ND_DOT: {
+    Type* type = node->lhs->type;
+    if(type->kind != TY_STRUCT) {
+      ERROR_AT(node->loc, "構造体の参照ではありません");
+    }
+    StructMember* member = node->struct_member;
+    gen_ref(node->lhs);
+    printf("  pop rax\n");
+    printf("  add rax, %d\n", member->offset);
+    printf("  push rax\n");
+    break;
+  }
   default:
     ERROR_AT(node->loc, "%sは変数の参照ではありません", node_kinds[node->kind]);
     break;
@@ -73,6 +85,11 @@ void gen(Node* node) {
   }
   case ND_DEREF: {
     gen(node->lhs);
+    gen_ref_push(node);
+    break;
+  }
+  case ND_DOT: {
+    gen_ref(node);
     gen_ref_push(node);
     break;
   }

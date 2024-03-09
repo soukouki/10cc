@@ -799,6 +799,16 @@ struct struct_definition_sample {
   int b;
 };
 
+int struct_definition() {
+  section("構造体の定義");
+  struct struct_definition_sample s;
+  s.a = 1;
+  s.b = 2;
+  assert(1, s.a, "s.a");
+  assert(2, s.b, "s.b");
+  assert(3, s.a + s.b, "s.a + s.b");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -831,6 +841,8 @@ int main() {
   string_literal();
   comment();
   sizeof_char();
+  modulo_operator();
+  struct_definition();
 
   if(is_fall) {
     printf("FAILED\n");
@@ -844,6 +856,8 @@ int main() {
 TODO
 - forのinitに宣言を入れられるようにする
 - 多次元配列
+- アロー演算子
+- 多段階のドット・アロー演算子
 - 型名のsizeof
 - 配列のポインタ
 - 暗黙の型変換(char -> int)

@@ -6,10 +6,6 @@
 
 #include "10cc.h"
 
-#define MAX_FUNCS 1000
-#define MAX_BLOCK_STMTS 100
-#define MAX_STRUCT_MEMBERS 100
-
 // 次のトークンが期待している記号のときには、トークンを1つ読み進めて真を返す
 // それ以外の場合には偽を返す
 static bool consume(char* op) {
@@ -148,7 +144,7 @@ decl       = specifier pointer ident ("[" num "]")?
 type       = specifier pointer       ("[" num "]")?
 pointer    = "*"*
 param      = decl | type
-specifier  = "int" | "char"
+specifier  = "int" | "char" | "struct" ident
 
 assign     = expr ("=" expr)?
 expr       = equality
@@ -163,7 +159,8 @@ primary    = num
            | "(" expr ")"
            | ident
            | ident call
-           | primary arrayref
+           | primary "." ident // 1段階まで対応
+           | primary arrayref  // 1段階まで対応
 arrayref   = "[" expr "]
 call       = "(" (expr ("," expr)*)? ")"
 */
@@ -173,7 +170,7 @@ static Node* program();
 static Node* func();
 static Node* block();
 static Node* stmt();
-static Node* struct_();
+static Node* struc();
 
 // paramでバックトラックが必要なので、decl, type, specifierは失敗したらトークンを戻した上でNULLを返す
 static Node* decl();           // ND_DECLを返す
@@ -202,7 +199,7 @@ static Node* program() {
   Node* p[MAX_FUNCS];
   while(!at_eof()) {
     if(is_next("struct")) {
-      p[i++] = struct_();
+      p[i++] = struc();
       expect(";");
       continue;
     }
@@ -345,7 +342,7 @@ static Node* stmt() {
   return e;
 }
 
-static Node* struct_() {
+static Node* struc() {
   expect("struct");
   char* name = consume_ident();
   if(name == NULL) {
@@ -427,14 +424,23 @@ static Node* pointer(Node* t) {
 
 static Node* specifier() {
   Token* origin = token; // バックトラックがあるので、return時に元のトークンの位置に戻す
+  if(consume("char")) {
+    Node* t = new_node(ND_TYPE, token->str);
+    t->type = char_type();
+    return t;
+  }
   if(consume("int")) {
     Node* t = new_node(ND_TYPE, token->str);
     t->type = int_type();
     return t;
   }
-  if(consume("char")) {
+  if(consume("struct")) {
+    char* name = consume_ident();
+    if(name == NULL) {
+      ERROR_AT(token->str, "構造体名がありません");
+    }
     Node* t = new_node(ND_TYPE, token->str);
-    t->type = char_type();
+    t->type = struct_type(name);
     return t;
   }
   token = origin;
@@ -569,7 +575,11 @@ static Node* primary() {
   } else {
     ERROR_AT(token->str, "不正な式です");
   }
-  while(is_next("[")) {
+  if(consume(".")) {
+    prim = new_node_1branch(ND_DOT, token->str, prim);
+    prim->name = consume_ident();
+  }
+  if(is_next("[")) {
     prim = arrayref(prim);
   }
   return prim;

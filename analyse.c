@@ -4,7 +4,6 @@
 #include <stdio.h>
 
 #include "10cc.h"
-#include "map.h"
 
 Map* string_map;
 int  string_count = 0;
@@ -43,15 +42,15 @@ static Var* new_global_var(char* name, Type* type) {
   return var;
 }
 
-Type* int_type() {
-  Type* type = calloc(1, sizeof(Type));
-  type->kind = TY_INT;
-  return type;
-}
-
 Type* char_type() {
   Type* type = calloc(1, sizeof(Type));
   type->kind = TY_CHAR;
+  return type;
+}
+
+Type* int_type() {
+  Type* type = calloc(1, sizeof(Type));
+  type->kind = TY_INT;
   return type;
 }
 
@@ -70,6 +69,13 @@ Type* arr_type(Type* type, int size) {
   return a;
 }
 
+Type* struct_type(char* name) {
+  Type* type = calloc(1, sizeof(Type));
+  type->kind = TY_STRUCT;
+  type->struct_name = name;
+  return type;
+}
+
 static int size_of(Type* type) {
   switch(type->kind) {
   case TY_CHAR:
@@ -80,6 +86,12 @@ static int size_of(Type* type) {
     return 8;
   case TY_ARRAY:
     return size_of(type->ptr_to) * type->array_size;
+  case TY_STRUCT: {
+    Struct* s = map_get(global_map, type->struct_name);
+    return s->size;
+  }
+  default:
+    ERROR("size_of: 未対応の型");
   }
 }
 
@@ -142,6 +154,26 @@ static NodeAndType* analyze(Node* node) {
   case ND_FUNCPROT: {
     printf("#   function prototype %s\n", node->name);
     map_put(func_map, node->name, node);
+    return return_statement(node);
+  }
+  case ND_STRUCT: {
+    printf("#   struct %s\n", node->name);
+    Struct* s = calloc(1, sizeof(Struct));
+    s->name = node->name;
+    s->members = map_new();
+    int i = 0;
+    int offset = 0;
+    while(node->struct_members[i]) {
+      Node* member = node->struct_members[i];
+      StructMember* sm = calloc(1, sizeof(StructMember));
+      sm->type = member->type;
+      sm->offset = offset;
+      offset += size_of(member->type);
+      map_put(s->members, member->name, sm);
+      i++;
+    }
+    s->size = offset;
+    map_put(global_map, node->name, s);
     return return_statement(node);
   }
   case ND_GDECL: {
@@ -264,6 +296,21 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType *nat = analyze(node->lhs);
     Node* num = new_node_num(node->loc, size_of(nat->type));
     return return_expression(num, int_type());
+  }
+  case ND_DOT: {
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    if(lkind != TY_STRUCT) {
+      ERROR_AT(node->loc, "構造体でない%sのメンバを参照しようとしました", type_kinds[lkind]);
+    }
+    Struct* s = map_get(global_map, lhs->type->struct_name);
+    StructMember* sm = map_get(s->members, node->name);
+    if(!sm) {
+      ERROR_AT(node->loc, "構造体%sにメンバ%sはありません", lhs->type->struct_name, node->name);
+    }
+    node->struct_member = sm;
+    return return_expression(node, sm->type);
   }
   case ND_NUM: {
     return return_expression(node, int_type());

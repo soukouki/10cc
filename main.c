@@ -36,9 +36,9 @@ char *filename;
 //
 // foo.c:10: x = y + + 5;
 //                   ^ 式ではありません
-void error_at(char* file_name, int file_line, char *loc, char *msg, ...) {
+void error_at(char* file_name, int file_line, char *loc, char *fmt, ...) {
   va_list ap;
-  va_start(ap, msg);
+  va_start(ap, fmt);
 
   // locが含まれている行の開始地点と終了地点を取得
   char *line = loc;
@@ -115,6 +115,7 @@ int main(int argc, char **argv) {
     "ND_SIZEOF",
     "ND_ADDR",
     "ND_DEREF",
+    "ND_DOT",
 
     "ND_NUM",
     "ND_STR",
@@ -132,6 +133,7 @@ int main(int argc, char **argv) {
     "ND_FUNCDEF",
     "ND_FUNCPROT",
     "ND_STRDEF",
+    "ND_STRUCT",
 
     "ND_DECL",
     "ND_GDECL",
@@ -142,10 +144,11 @@ int main(int argc, char **argv) {
   };
 
   type_kinds = (char*[]){
-    "TY_INT",
     "TY_CHAR",
+    "TY_INT",
     "TY_PTR",
     "TY_ARR",
+    "TY_STRUCT",
   };
 
   RunMode mode = RUN_NORMAL;

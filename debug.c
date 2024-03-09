@@ -105,6 +105,10 @@ void print_node(Node* node) {
     printf_i("*");
     print_node(node->lhs);
     break;
+  case ND_DOT:
+    print_node(node->lhs);
+    printf_i(".%s", node->name);
+    break;
   case ND_NUM:
     printf_i("%d", node->int_val);
     break;

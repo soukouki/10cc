@@ -1,4 +1,10 @@
 
+#include "map.h"
+
+#define MAX_FUNCS 1000
+#define MAX_BLOCK_STMTS 100
+#define MAX_STRUCT_MEMBERS 100
+
 typedef enum {
   TK_SYMBOL,
   TK_IDENT,
@@ -18,10 +24,11 @@ struct Token {
 };
 
 typedef enum {
-  TY_INT,
   TY_CHAR,
+  TY_INT,
   TY_PTR,
   TY_ARRAY,
+  TY_STRUCT,
 } TypeKind;
 
 typedef struct Type Type;
@@ -30,6 +37,22 @@ struct Type {
   TypeKind kind;
   Type* ptr_to;
   int array_size;
+  char* struct_name;
+};
+
+typedef struct StructMember StructMember;
+
+struct StructMember {
+  Type* type;
+  int offset;
+};
+
+typedef struct Struct Struct;
+
+struct Struct {
+  char* name;
+  Map* members;
+  int size;
 };
 
 typedef struct Var Var;
@@ -52,12 +75,14 @@ typedef enum {
   ND_EQ,
   ND_NE,
   ND_LT,
-  ND_LE, // GT, GEはLT, LEを使って表現できる
+  ND_LE,     // GT, GEはLT, LEを使って表現できる
   // 単項演算子(lhsを持つ)
-  ND_SIZEOF,   // sizeof演算子, lhsを持つ
+  ND_SIZEOF, // sizeof演算子, lhsを持つ
   // ポインタ
-  ND_ADDR,  // 単項&, lhsを持つ
-  ND_DEREF, // 単項*, lhsを持つ
+  ND_ADDR,   // 単項&, lhsを持つ
+  ND_DEREF,  // 単項*, lhsを持つ
+  // 構造体
+  ND_DOT,    // lhs, nameを持つ
 
   // リテラル
   ND_NUM, // valを持つ
@@ -115,6 +140,7 @@ struct Node {
   Node** args_node;      // 関数の定義で使う(パース->意味解析)
   Var**  args_var;       // 関数の定義で使う(意味解析->コード生成)
   int    offset;         // 関数の定義で使う(意味解析->コード生成)
+  StructMember* struct_member; // ND_DOTの場合に使う
 };
 
 void error(char* file, int line, char *fmt, ...);
@@ -137,6 +163,7 @@ Type* int_type();
 Type* char_type();
 Type* ptr_type(Type* ptr_to);
 Type* arr_type(Type* ptr_to, int array_size);
+Type* struct_type(char* name);
 
 Token* tokenize(char *p);
 Node* parse();
