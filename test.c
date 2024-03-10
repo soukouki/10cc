@@ -861,6 +861,18 @@ int multi_level_arrow_operator() {
   assert(0, a.tail->tail->tail, "a.tail->tail->tail");
 }
 
+int sizeof_type_name() {
+  section("型名のsizeof演算子");
+  // パディングに対応していないので、複雑な構造体はテストしない
+  assert(1, sizeof(char), "sizeof(char)");
+  assert(4, sizeof(int), "sizeof(int)");
+  assert(8, sizeof(int*), "sizeof(int*)");
+  assert(8, sizeof(char*), "sizeof(char*)");
+  assert(8, sizeof(int**), "sizeof(int**)");
+  assert(8, sizeof(struct struct_definition_sample), "sizeof(struct struct_definition_sample)");
+  assert(8, sizeof(struct struct_definition_sample*), "sizeof(struct struct_definition_sample*)");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -898,6 +910,7 @@ int main() {
   multi_level_struct();
   arrow_operator();
   multi_level_arrow_operator();
+  sizeof_type_name();
 
   if(is_fall) {
     printf("FAILED\n");
@@ -911,7 +924,7 @@ int main() {
 TODO
 - forのinitに宣言を入れられるようにする
 - 多次元配列
-- 型名のsizeof
 - 配列のポインタ
 - 暗黙の型変換(char -> int)
+- 構造体のパディング
 */

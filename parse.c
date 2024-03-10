@@ -154,6 +154,7 @@ add        = mul ("+" mul | "-" mul)*
 mul        = unary ("*" unary | "/" unary | "%" unary)*
 unary      = ("+" | "-" | "*" | "&")? primary
            | "sizeof" unary
+           | "sizeof" "(" type ")"
 primary    = num
            | str
            | "(" expr ")"
@@ -551,6 +552,15 @@ static Node* unary() {
     return new_node_1branch(ND_ADDR, token->str, unary());
   }
   if(consume("sizeof")) {
+    Token* origin = token;
+    if(consume("(")) {
+      Node* t = type();
+      if(t != NULL) {
+        expect(")");
+        return new_node_1branch(ND_SIZEOF, token->str, t);
+      }
+    }
+    token = origin;
     return new_node_1branch(ND_SIZEOF, token->str, unary());
   }
   return primary();
