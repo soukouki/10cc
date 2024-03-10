@@ -159,9 +159,9 @@ primary    = num
            | "(" expr ")"
            | ident
            | ident call
-           | primary dot
+           | primary "."  ident
+           | primary "->" ident
            | primary arrayref // 多段階はパースはできるものの、コード生成は未対応
-dot        = "." ident
 arrayref   = "[" expr "]
 call       = "(" (expr ("," expr)*)? ")"
 */
@@ -576,21 +576,25 @@ static Node* primary() {
   } else {
     ERROR_AT(token->str, "不正な式です");
   }
-  while(is_next(".") || is_next("[")) {
-    if(is_next(".")) {
-      prim = dot(prim);
+  while(is_next(".") || is_next("->") || is_next("[")) {
+    if(consume(".")) {
+      prim = new_node_1branch(ND_DOT, token->str, prim);
+      prim->name = consume_ident();
+      if(prim->name == NULL) {
+        ERROR_AT(token->str, "構造体のメンバ名がありません");
+      }
+    } else if(consume("->")) {
+      Node* deref = new_node_1branch(ND_DEREF, token->str, prim);
+      prim = new_node_1branch(ND_DOT, token->str, deref);
+      prim->name = consume_ident();
+      if(prim->name == NULL) {
+        ERROR_AT(token->str, "構造体のメンバ名がありません");
+      }
     } else if(is_next("[")) {
       prim = arrayref(prim);
     }
   }
   return prim;
-}
-
-static Node* dot(Node* node) {
-  expect(".");
-  Node* dot = new_node_1branch(ND_DOT, token->str, node);
-  dot->name = consume_ident();
-  return dot;
 }
 
 static Node* arrayref(Node* node) {

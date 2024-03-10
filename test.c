@@ -825,6 +825,42 @@ int multi_level_struct() {
   assert(4, s.a + s.b.b, "s.a + s.b.b");
 }
 
+int arrow_operator() {
+  section("アロー演算子");
+  struct struct_definition_sample s;
+  struct struct_definition_sample* p;
+  p = &s;
+  p->a = 1;
+  p->b = 2;
+  assert(1, s.a, "s.a");
+  assert(2, s.b, "s.b");
+}
+
+struct struct_definition_list {
+  int head;
+  struct struct_definition_list* tail;
+};
+
+int* malloc(int);
+
+int multi_level_arrow_operator() {
+  section("多段階のアロー演算子");
+  struct struct_definition_list a;
+  struct struct_definition_list b;
+  a.head = 1;
+  a.tail = &b;
+  b.head = 2;
+  b.tail = 0;
+  assert(1, a.head, "a.head");
+  assert(2, a.tail->head, "a.tail->head");
+  assert(0, a.tail->tail, "a.tail->tail");
+  a.tail->tail = malloc(8);
+  a.tail->tail->head = 3;
+  a.tail->tail->tail = 0;
+  assert(3, a.tail->tail->head, "a.tail->tail->head");
+  assert(0, a.tail->tail->tail, "a.tail->tail->tail");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -860,6 +896,8 @@ int main() {
   modulo_operator();
   struct_definition();
   multi_level_struct();
+  arrow_operator();
+  multi_level_arrow_operator();
 
   if(is_fall) {
     printf("FAILED\n");
@@ -873,8 +911,6 @@ int main() {
 TODO
 - forのinitに宣言を入れられるようにする
 - 多次元配列
-- アロー演算子
-- 多段階のドット・アロー演算子
 - 型名のsizeof
 - 配列のポインタ
 - 暗黙の型変換(char -> int)
