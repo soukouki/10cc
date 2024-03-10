@@ -809,6 +809,22 @@ int struct_definition() {
   assert(3, s.a + s.b, "s.a + s.b");
 }
 
+struct struct_definition_sample2 {
+  int a;
+  struct struct_definition_sample b;
+};
+
+int multi_level_struct() {
+  section("多段階の構造体");
+  struct struct_definition_sample2 s;
+  s.a = 1;
+  s.b.a = 2;
+  s.b.b = 3;
+  assert(1, s.a, "s.a");
+  assert(2, s.b.a, "s.b.a");
+  assert(4, s.a + s.b.b, "s.a + s.b.b");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -843,6 +859,7 @@ int main() {
   sizeof_char();
   modulo_operator();
   struct_definition();
+  multi_level_struct();
 
   if(is_fall) {
     printf("FAILED\n");

@@ -140,8 +140,8 @@ stmt       = assign ";"
            | block
 struct     = "struct" ident "{" (decl ";")* "}"
 
-decl       = specifier pointer ident ("[" num "]")?
-type       = specifier pointer       ("[" num "]")?
+decl       = specifier pointer ident ("[" num "]")*
+type       = specifier pointer       ("[" num "]")*
 pointer    = "*"*
 param      = decl | type
 specifier  = "int" | "char" | "struct" ident
@@ -159,8 +159,9 @@ primary    = num
            | "(" expr ")"
            | ident
            | ident call
-           | primary "." ident // 1段階まで対応
-           | primary arrayref  // 1段階まで対応
+           | primary dot
+           | primary arrayref // 多段階はパースはできるものの、コード生成は未対応
+dot        = "." ident
 arrayref   = "[" expr "]
 call       = "(" (expr ("," expr)*)? ")"
 */
@@ -187,6 +188,7 @@ static Node* add();
 static Node* mul();
 static Node* unary();
 static Node* primary();
+static Node* dot(Node* node);
 static Node* arrayref(Node* node);
 static Node* call(char* name);
 
@@ -375,20 +377,20 @@ static Node* decl() {
     token = origin;
     return NULL;
   }
-  Node* t = pointer(spec);
+  Node* point = pointer(spec);
   char* name = consume_ident();
   if(name == NULL) {
     token = origin;
     return NULL;
   }
-  Node* arr = NULL;
-  if(consume("[")) {
+  Node* arr = point;
+  while(consume("[")) {
+    Node* t = arr;
     arr = new_node(ND_TYPE, token->str);
     arr->type = arr_type(t->type, expect_number());
     expect("]");
-  } else {
-    arr = t;
   }
+  
   Node* decl = new_node_ident(ND_DECL, token->str, name);
   decl->type = arr->type;
   return decl;
@@ -401,13 +403,12 @@ static Node* type() {
     token = origin;
     return NULL;
   }
-  Node* arr = NULL;
-  if(consume("[")) {
+  Node* arr = spec;
+  while(consume("[")) {
+    Node* t = arr;
     arr = new_node(ND_TYPE, token->str);
-    arr->type = arr_type(spec->type, expect_number());
+    arr->type = arr_type(t->type, expect_number());
     expect("]");
-  } else {
-    arr = spec;
   }
   Node* t = pointer(arr);
   return t;
@@ -575,14 +576,21 @@ static Node* primary() {
   } else {
     ERROR_AT(token->str, "不正な式です");
   }
-  if(consume(".")) {
-    prim = new_node_1branch(ND_DOT, token->str, prim);
-    prim->name = consume_ident();
-  }
-  if(is_next("[")) {
-    prim = arrayref(prim);
+  while(is_next(".") || is_next("[")) {
+    if(is_next(".")) {
+      prim = dot(prim);
+    } else if(is_next("[")) {
+      prim = arrayref(prim);
+    }
   }
   return prim;
+}
+
+static Node* dot(Node* node) {
+  expect(".");
+  Node* dot = new_node_1branch(ND_DOT, token->str, node);
+  dot->name = consume_ident();
+  return dot;
 }
 
 static Node* arrayref(Node* node) {

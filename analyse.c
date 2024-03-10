@@ -77,6 +77,9 @@ Type* struct_type(char* name) {
 }
 
 static int size_of(Type* type) {
+  if(!type) {
+    ERROR("size_of: typeがNULL");
+  }
   switch(type->kind) {
   case TY_CHAR:
     return 1;
