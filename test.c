@@ -893,6 +893,60 @@ int enum_definition() {
   assert(2, e, "e");
 }
 
+typedef int typedef_int;
+typedef char typedef_char;
+typedef int* typedef_int_pointer;
+typedef struct struct_definition_sample typedef_struct;
+typedef struct struct_definition_sample* typedef_struct_pointer;
+typedef enum enum_definition_sample typedef_enum;
+typedef enum enum_definition_sample* typedef_enum_pointer;
+
+int typedef_type() {
+  section("typedefの定義");
+  typedef_int a;
+  a = 1;
+  assert(1, a, "a");
+  typedef_char b;
+  b = 2;
+  assert(2, b, "b");
+  typedef_int_pointer c;
+  int d;
+  c = &d;
+  *c = 3;
+  assert(3, d, "d");
+  typedef_struct e;
+  e.a = 4;
+  e.b = 5;
+  assert(4, e.a, "e.a");
+  assert(5, e.b, "e.b");
+  typedef_struct_pointer f;
+  struct struct_definition_sample g;
+  f = &g;
+  f->a = 6;
+  f->b = 7;
+  assert(6, g.a, "g.a");
+  assert(7, g.b, "g.b");
+  typedef_enum h;
+  h = ENUM_DEFINITION_SAMPLE_A;
+  assert(0, h, "h");
+  typedef_enum_pointer i;
+  enum enum_definition_sample j;
+  i = &j;
+  *i = ENUM_DEFINITION_SAMPLE_B;
+  assert(1, j, "j");
+}
+
+int sizeof_typedef() {
+  section("typedefのsizeof演算子");
+  assert(4, sizeof(typedef_int), "sizeof(typedef_int)");
+  assert(1, sizeof(typedef_char), "sizeof(typedef_char)");
+  assert(8, sizeof(typedef_int_pointer), "sizeof(typedef_int_pointer)");
+  assert(8, sizeof(typedef_struct), "sizeof(typedef_struct)");
+  assert(8, sizeof(typedef_struct_pointer), "sizeof(typedef_struct_pointer)");
+  assert(4, sizeof(typedef_enum), "sizeof(typedef_enum)");
+  assert(8, sizeof(typedef_enum_pointer), "sizeof(typedef_enum_pointer)");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -932,6 +986,8 @@ int main() {
   multi_level_arrow_operator();
   sizeof_type_name();
   enum_definition();
+  typedef_type();
+  sizeof_typedef();
 
   if(is_fall) {
     printf("FAILED\n");

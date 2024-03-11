@@ -134,6 +134,10 @@ Token* tokenize(char *p) {
         cur = new_token(TK_SYMBOL, cur, start, 4);
         continue;
       }
+      if(p - start == 7 && !memcmp(start, "typedef", 7)) {
+        cur = new_token(TK_SYMBOL, cur, start, 7);
+        continue;
+      }
       cur = new_token(TK_IDENT, cur, start, p - start);
       continue;
     }

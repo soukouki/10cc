@@ -6,6 +6,9 @@
 
 #include "10cc.h"
 
+// Map<name, Node(Type)>
+Map* typedef_map;
+
 // 次のトークンが期待している記号のときには、トークンを1つ読み進めて真を返す
 // それ以外の場合には偽を返す
 static bool consume(char* op) {
@@ -128,7 +131,7 @@ Node* new_node_ident(NodeKind kind, char* loc, char* name) {
 }
 
 /*
-program    = (func | decl ";" | struct ";" | enum ";")*
+program    = (func | decl ";" | struct ";" | enum ";" | typedef ";")*
 func       = decl "(" (param ("," param)*)? ")" (block | ";")
 block      = "{" stmt* "}"
 stmt       = assign ";"
@@ -140,12 +143,17 @@ stmt       = assign ";"
            | block
 struc      = "struct" ident "{" (decl ";")* "}"
 enu        = "enum" ident "{" ident (, ident)* "}"
+typede     = "typedef" type ident
 
 decl       = specifier pointer ident ("[" num "]")*
 type       = specifier pointer       ("[" num "]")*
 pointer    = "*"*
 param      = decl | type
-specifier  = "int" | "char" | "struct" ident | "enum" ident
+specifier  = "int"
+           | "char"
+           | "struct" ident
+           | "enum" ident
+           | ident // ただしtypedefされたもののみ
 
 assign     = expr ("=" expr)?
 expr       = equality
@@ -175,6 +183,7 @@ static Node* block();
 static Node* stmt();
 static Node* struc();
 static Node* enu();
+static Node* typede();
 
 // paramでバックトラックが必要なので、decl, type, specifierは失敗したらトークンを戻した上でNULLを返す
 static Node* decl();           // ND_DECLを返す
@@ -200,6 +209,7 @@ Node* parse() {
 }
 
 static Node* program() {
+  typedef_map = map_new();
   int i = 0;
   Node* p[MAX_FUNCS];
   while(!at_eof()) {
@@ -210,6 +220,11 @@ static Node* program() {
     }
     if(is_next("enum")) {
       p[i++] = enu();
+      expect(";");
+      continue;
+    }
+    if(is_next("typedef")) {
+      typede();
       expect(";");
       continue;
     }
@@ -405,7 +420,20 @@ static Node* enu() {
     en->enum_members[j] = e[j];
   }
   return en;
+}
 
+static Node* typede() {
+  expect("typedef");
+  Node* t = type();
+  if(t == NULL) {
+    ERROR_AT(token->str, "型がありません");
+  }
+  char* name = consume_ident();
+  if(name == NULL) {
+    ERROR_AT(token->str, "名前がありません");
+  }
+  map_put(typedef_map, name, t);
+  return NULL;
 }
 
 static Node* decl() {
@@ -489,6 +517,15 @@ static Node* specifier() {
     }
     Node* t = new_node(ND_TYPE, token->str);
     t->type = int_type(); // 簡単にするためにint型として扱う
+    return t;
+  }
+  char* name = consume_ident();
+  if(name == NULL) {
+    token = origin;
+    return NULL;
+  }
+  Node* t = map_get(typedef_map, name);
+  if(t != NULL) {
     return t;
   }
   token = origin;
