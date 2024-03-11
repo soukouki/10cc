@@ -130,6 +130,10 @@ Token* tokenize(char *p) {
         cur = new_token(TK_SYMBOL, cur, start, 6);
         continue;
       }
+      if(p - start == 4 && !memcmp(start, "enum", 4)) {
+        cur = new_token(TK_SYMBOL, cur, start, 4);
+        continue;
+      }
       cur = new_token(TK_IDENT, cur, start, p - start);
       continue;
     }

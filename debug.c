@@ -219,7 +219,19 @@ void print_node(Node* node) {
         printf_i(", ");
       }
     }
-    printf_i("}");
+    printf_i("};");
+    break;
+  case ND_ENUM:
+    printf_i("enum %s {\n", node->name);
+    indent += 2;
+    for(int i = 0; node->enum_members[i]; i++) {
+      print_node(node->enum_members[i]);
+      if(node->enum_members[i + 1]) {
+        printf_i(",\n");
+      }
+    }
+    indent -= 2;
+    printf_i("\n};");
     break;
   case ND_GDECL:
     print_type(node->type);

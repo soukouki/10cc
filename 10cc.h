@@ -4,6 +4,7 @@
 #define MAX_FUNCS 1000
 #define MAX_BLOCK_STMTS 100
 #define MAX_STRUCT_MEMBERS 100
+#define MAX_ENUM_MEMBERS 100
 
 typedef enum {
   TK_SYMBOL,
@@ -103,6 +104,7 @@ typedef enum {
   ND_FUNCPROT, // 関数プロトタイプ, name, args_name, args_type, ret_typeを持つ
   ND_STRDEF,   // 文字列定義, name, str_valを持つ
   ND_STRUCT,   // 構造体, name, struct_membersを持つ
+  ND_ENUM,     // 列挙型, name, enum_membersを持つ
 
   ND_DECL,  // 宣言, name, typeを持つ 変数定義や関数の仮引数で使う
   ND_GDECL, // グローバル変数宣言, name, type, varを持つ
@@ -128,7 +130,8 @@ struct Node {
   Node** args_call;      // 関数呼び出しで使う
   Node** funcs;          // プログラムで使う
   Node** strings;        // プログラムで使う
-  Node** struct_members; // 構造体のメンバ
+  Node** struct_members; // 構造体のメンバ, 中身はND_DECL
+  Node** enum_members;   // 列挙型のメンバ, 中身はND_IDENT
   Node*  lhs;            // 2項演算子, 代入(型), return, 単項&, 単項*, ポインタ型で使う
   Node*  rhs;            // 2項演算子, 代入(値)で使う
   int    int_val;        // 数値リテラルの場合に使う

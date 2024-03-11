@@ -134,6 +134,7 @@ int main(int argc, char **argv) {
     "ND_FUNCPROT",
     "ND_STRDEF",
     "ND_STRUCT",
+    "ND_ENUM",
 
     "ND_DECL",
     "ND_GDECL",

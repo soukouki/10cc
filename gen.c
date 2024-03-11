@@ -286,6 +286,9 @@ void gen(Node* node) {
   case ND_STRUCT: {
     break;
   }
+  case ND_ENUM: {
+    break;
+  }
   case ND_PROGRAM: {
     for(int i = 0; node->strings[i]; i++) {
       gen(node->strings[i]);

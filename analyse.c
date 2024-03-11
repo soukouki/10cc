@@ -5,13 +5,20 @@
 
 #include "10cc.h"
 
+// Map<name, Node(ND_STRDEF)>
 Map* string_map;
 int  string_count = 0;
 
+// Map<name, *int>
+Map* constant_map; // enumの定数用
+
+// Map<name, Node(ND_FUNCDEF|ND_FUNCPROT)>
 Map* func_map;
 
+// Map<name, Var>
 Map* global_map;
 
+// Map<name, Var>
 Map* local_map;
 int local_offset;
 
@@ -124,6 +131,7 @@ static NodeAndType* analyze(Node* node) {
   switch(node->kind) {
   case ND_PROGRAM: {
     string_map = map_new();
+    constant_map = map_new();
     func_map = map_new();
     global_map = map_new();
     for(int i = 0; node->funcs[i]; i++) {
@@ -179,6 +187,18 @@ static NodeAndType* analyze(Node* node) {
     map_put(global_map, node->name, s);
     return return_statement(node);
   }
+  case ND_ENUM: {
+    printf("#   enum %s\n", node->name);
+    int i = 0;
+    while(node->enum_members[i]) {
+      Node* member = node->enum_members[i];
+      int* p = calloc(1, sizeof(int));
+      *p = i;
+      map_put(constant_map, member->name, p);
+      i++;
+    }
+    return return_statement(node);
+  }
   case ND_GDECL: {
     printf("#   global var %s\n", node->name);
     Var* var = new_global_var(node->name, node->type);
@@ -212,23 +232,26 @@ static NodeAndType* analyze(Node* node) {
   }
   case ND_IDENT: {
     // ここに来るのは変数参照のみ
-    Var* var = find_var(node->name);
-    _Bool is_global = var == NULL;
-    if(!var) {
-      var = map_get(global_map, node->name);
-      if(!var) {
-        ERROR_AT(node->loc, "変数%sは定義されていません", node->name);
-      }
+    Var* local_var = find_var(node->name);
+    if(local_var) {
+      Node* local_var_ref = new_node(ND_VARREF, node->loc);
+      local_var_ref->var = local_var;
+      local_var_ref->name = node->name;
+      return return_expression(local_var_ref, local_var->type);
     }
-
-    Node* new_node;
-    if(is_global) {
-      new_node = new_node_ident(ND_GVARREF, node->loc, node->name);
-    } else {
-      new_node = new_node_ident(ND_VARREF, node->loc, node->name);
+    Var* global_var = map_get(global_map, node->name);
+    if(global_var) {
+      Node* global_var_ref = new_node(ND_GVARREF, node->loc);
+      global_var_ref->var = global_var;
+      global_var_ref->name = node->name;
+      return return_expression(global_var_ref, global_var->type);
     }
-    new_node->var = var;
-    return return_expression(new_node, new_node->var->type);
+    int* constant_num = map_get(constant_map, node->name);
+    if(constant_num) {
+      Node* num = new_node_num(node->loc, *constant_num);
+      return return_expression(num, int_type());
+    }
+    ERROR_AT(node->loc, "変数%sは定義されていません", node->name);
   }
   case ND_ADD:
   case ND_SUB: {

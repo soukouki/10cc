@@ -873,6 +873,26 @@ int sizeof_type_name() {
   assert(8, sizeof(struct struct_definition_sample*), "sizeof(struct struct_definition_sample*)");
 }
 
+enum enum_definition_sample {
+  ENUM_DEFINITION_SAMPLE_A,
+  ENUM_DEFINITION_SAMPLE_B,
+  ENUM_DEFINITION_SAMPLE_C
+};
+
+int enum_definition() {
+  section("列挙型の定義");
+  assert(0, ENUM_DEFINITION_SAMPLE_A, "ENUM_DEFINITION_SAMPLE_A");
+  assert(1, ENUM_DEFINITION_SAMPLE_B, "ENUM_DEFINITION_SAMPLE_B");
+  assert(2, ENUM_DEFINITION_SAMPLE_C, "ENUM_DEFINITION_SAMPLE_C");
+  enum enum_definition_sample e;
+  e = ENUM_DEFINITION_SAMPLE_A;
+  assert(0, e, "e");
+  e = ENUM_DEFINITION_SAMPLE_B;
+  assert(1, e, "e");
+  e = ENUM_DEFINITION_SAMPLE_C;
+  assert(2, e, "e");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -911,6 +931,7 @@ int main() {
   arrow_operator();
   multi_level_arrow_operator();
   sizeof_type_name();
+  enum_definition();
 
   if(is_fall) {
     printf("FAILED\n");

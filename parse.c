@@ -128,7 +128,7 @@ Node* new_node_ident(NodeKind kind, char* loc, char* name) {
 }
 
 /*
-program    = (func | decl ";" | struct ";")*
+program    = (func | decl ";" | struct ";" | enum ";")*
 func       = decl "(" (param ("," param)*)? ")" (block | ";")
 block      = "{" stmt* "}"
 stmt       = assign ";"
@@ -138,13 +138,14 @@ stmt       = assign ";"
            | "while" "(" expr ")" stmt
            | "for" "(" assign? ";" expr? ";" assign? ")" stmt
            | block
-struct     = "struct" ident "{" (decl ";")* "}"
+struc      = "struct" ident "{" (decl ";")* "}"
+enu        = "enum" ident "{" ident (, ident)* "}"
 
 decl       = specifier pointer ident ("[" num "]")*
 type       = specifier pointer       ("[" num "]")*
 pointer    = "*"*
 param      = decl | type
-specifier  = "int" | "char" | "struct" ident
+specifier  = "int" | "char" | "struct" ident | "enum" ident
 
 assign     = expr ("=" expr)?
 expr       = equality
@@ -173,6 +174,7 @@ static Node* func();
 static Node* block();
 static Node* stmt();
 static Node* struc();
+static Node* enu();
 
 // paramでバックトラックが必要なので、decl, type, specifierは失敗したらトークンを戻した上でNULLを返す
 static Node* decl();           // ND_DECLを返す
@@ -203,6 +205,11 @@ static Node* program() {
   while(!at_eof()) {
     if(is_next("struct")) {
       p[i++] = struc();
+      expect(";");
+      continue;
+    }
+    if(is_next("enum")) {
+      p[i++] = enu();
       expect(";");
       continue;
     }
@@ -351,6 +358,7 @@ static Node* struc() {
   if(name == NULL) {
     ERROR_AT(token->str, "構造体名がありません");
   }
+  Node* str = new_node_ident(ND_STRUCT, token->str, name);
   expect("{");
   int i = 0;
   Node* s[MAX_STRUCT_MEMBERS];
@@ -363,12 +371,41 @@ static Node* struc() {
     expect(";");
   }
   s[i] = NULL;
-  Node* str = new_node_ident(ND_STRUCT, token->str, name);
   str->struct_members = calloc(i + 1, sizeof(Node*));
   for(int j = 0; j < i; j++) {
     str->struct_members[j] = s[j];
   }
   return str;
+}
+
+static Node* enu() {
+  expect("enum");
+  char* name = consume_ident();
+  if(name == NULL) {
+    ERROR_AT(token->str, "列挙型名がありません");
+  }
+  Node* en = new_node_ident(ND_ENUM, token->str, name);
+  expect("{");
+  int i = 0;
+  Node* e[MAX_ENUM_MEMBERS];
+  while(!consume("}")) {
+    char* ident = consume_ident();
+    if(ident == NULL) {
+      ERROR_AT(token->str, "列挙型のメンバ名がありません");
+    }
+    e[i++] = new_node_ident(ND_IDENT, token->str, ident);
+    if(!consume(",")) {
+      expect("}");
+      break;
+    }
+  }
+  e[i] = NULL;
+  en->enum_members = calloc(i + 1, sizeof(Node*));
+  for(int j = 0; j < i; j++) {
+    en->enum_members[j] = e[j];
+  }
+  return en;
+
 }
 
 static Node* decl() {
@@ -443,6 +480,15 @@ static Node* specifier() {
     }
     Node* t = new_node(ND_TYPE, token->str);
     t->type = struct_type(name);
+    return t;
+  }
+  if(consume("enum")) {
+    char* name = consume_ident();
+    if(name == NULL) {
+      ERROR_AT(token->str, "列挙型名がありません");
+    }
+    Node* t = new_node(ND_TYPE, token->str);
+    t->type = int_type(); // 簡単にするためにint型として扱う
     return t;
   }
   token = origin;
