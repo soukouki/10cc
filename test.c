@@ -947,6 +947,14 @@ int sizeof_typedef() {
   assert(8, sizeof(typedef_enum_pointer), "sizeof(typedef_enum_pointer)");
 }
 
+extern int extern_definition_sample;
+int extern_definition() {
+  section("外部変数の定義");
+  extern_definition_sample = 1;
+  assert(1, extern_definition_sample, "extern_definition_sample");
+}
+int extern_definition_sample;
+
 int main() {
   return_value();
   four_arithmetic();
@@ -988,6 +996,7 @@ int main() {
   enum_definition();
   typedef_type();
   sizeof_typedef();
+  extern_definition();
 
   if(is_fall) {
     printf("FAILED\n");

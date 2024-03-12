@@ -131,7 +131,7 @@ Node* new_node_ident(NodeKind kind, char* loc, char* name) {
 }
 
 /*
-program    = (func | decl ";" | struct ";" | enum ";" | typedef ";")*
+program    = (func | extern? decl ";" | struct ";" | enum ";" | typedef ";")*
 func       = decl "(" (param ("," param)*)? ")" (block | ";")
 block      = "{" stmt* "}"
 stmt       = assign ";"
@@ -229,10 +229,20 @@ static Node* program() {
       continue;
     }
     Token* origin = token;
-    Node* globalvar = decl();
-    if(globalvar != NULL && consume(";")) {
-      globalvar->kind = ND_GDECL;
-      p[i++] = globalvar;
+    if(consume("extern")) {
+      Node* extern_var = decl();
+      if(extern_var == NULL) {
+        ERROR_AT(token->str, "extern宣言が不正です");
+      }
+      expect(";");
+      extern_var->kind = ND_GDECL_EXTERN;
+      p[i++] = extern_var;
+      continue;
+    }
+    Node* global_var = decl();
+    if(global_var != NULL && consume(";")) {
+      global_var->kind = ND_GDECL;
+      p[i++] = global_var;
       continue;
     }
     token = origin;

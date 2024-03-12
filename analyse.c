@@ -45,6 +45,32 @@ static Var* new_global_var(char* name, Type* type) {
   var->name = name;
   var->type = type;
   var->size = size_of(type);
+  Var* exists_var = map_get(global_map, name);
+  if(exists_var) {
+    if(exists_var->is_extern) {
+      map_delete(global_map, name);
+    } else {
+      ERROR("変数%sはすでに定義されています", name);
+    }
+  }
+  map_put(global_map, name, var);
+  return var;
+}
+
+static Var* new_global_extern_var(char* name, Type* type) {
+  Var* var = calloc(1, sizeof(Var));
+  var->name = name;
+  var->type = type;
+  var->size = size_of(type);
+  var->is_extern = true;
+  Var* exists_var = map_get(global_map, name);
+  if(exists_var) {
+    if(exists_var->is_extern) {
+      map_delete(global_map, name);
+    } else {
+      ERROR("変数%sはすでに定義されています", name);
+    }
+  }
   map_put(global_map, name, var);
   return var;
 }
@@ -202,6 +228,12 @@ static NodeAndType* analyze(Node* node) {
   case ND_GDECL: {
     printf("#   global var %s\n", node->name);
     Var* var = new_global_var(node->name, node->type);
+    node->var = var;
+    return return_statement(node);
+  }
+  case ND_GDECL_EXTERN: {
+    printf("#   global var extern %s\n", node->name);
+    Var* var = new_global_extern_var(node->name, node->type);
     node->var = var;
     return return_statement(node);
   }

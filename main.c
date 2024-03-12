@@ -138,6 +138,7 @@ int main(int argc, char **argv) {
 
     "ND_DECL",
     "ND_GDECL",
+    "ND_GDECL_EXTERN",
     "ND_TYPE",
     "ND_IDENT",
 

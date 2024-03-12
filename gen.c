@@ -307,6 +307,9 @@ void gen(Node* node) {
     printf("  .zero %d\n", node->var->size);
     break;
   }
+  case ND_GDECL_EXTERN: {
+    break;
+  }
   default: {
     gen(node->lhs);
     gen(node->rhs);

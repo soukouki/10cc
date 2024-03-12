@@ -1,4 +1,6 @@
 
+#include <stdbool.h>
+
 #include "map.h"
 
 #define MAX_FUNCS 1000
@@ -63,6 +65,7 @@ struct Var {
   int offset; // 意味解析時に計算される, ローカル変数の場合のみ
   Type* type; // 意味解析時でのみ使う
   int size;
+  bool is_extern;
 };
 
 typedef enum {
@@ -106,10 +109,11 @@ typedef enum {
   ND_STRUCT,   // 構造体, name, struct_membersを持つ
   ND_ENUM,     // 列挙型, name, enum_membersを持つ
 
-  ND_DECL,  // 宣言, name, typeを持つ 変数定義や関数の仮引数で使う
-  ND_GDECL, // グローバル変数宣言, name, type, varを持つ
-  ND_TYPE,  // 型, typeを持つ
-  ND_IDENT, // 識別子(意味解析時に置き換える), nameを持つ
+  ND_DECL,         // 宣言, name, typeを持つ 変数定義や関数の仮引数で使う
+  ND_GDECL,        // グローバル変数宣言, name, type, varを持つ
+  ND_GDECL_EXTERN, // グローバル変数宣言(外部参照), name, typeを持つ
+  ND_TYPE,         // 型, typeを持つ
+  ND_IDENT,        // 識別子(意味解析時に置き換える), nameを持つ
 
   // その他
   ND_PROGRAM, // プログラム全体, funcs, stringsを持つ

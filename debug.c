@@ -233,13 +233,18 @@ void print_node(Node* node) {
     indent -= 2;
     printf_i("\n};");
     break;
-  case ND_GDECL:
-    print_type(node->type);
-    printf_i(" G_%s", node->name);
-    break;
   case ND_DECL:
     print_type(node->type);
-    printf_i(" L_%s", node->name);
+    printf_i(" L_%s;", node->name);
+    break;
+  case ND_GDECL:
+    print_type(node->type);
+    printf_i(" G_%s;", node->name);
+    break;
+  case ND_GDECL_EXTERN:
+    printf_i("extern ");
+    print_type(node->type);
+    printf_i(" G_%s;", node->name);
     break;
   case ND_TYPE:
     print_type(node->type);
