@@ -109,7 +109,7 @@ typedef enum {
   ND_STRUCT,   // 構造体, name, struct_membersを持つ
   ND_ENUM,     // 列挙型, name, enum_membersを持つ
 
-  ND_DECL,         // 宣言, name, type, var, lhs(Nullable)を持つ 変数定義や関数の仮引数で使う
+  ND_DECL,         // 宣言, name, type, var, lhs, rhs(Nullable)を持つ 変数定義や関数の仮引数で使う
   ND_GDECL,        // グローバル変数宣言, name, type, var, lhs(Nullable)を持つ
   ND_GDECL_EXTERN, // グローバル変数宣言(外部参照), name, typeを持つ
   ND_TYPE,         // 型, typeを持つ

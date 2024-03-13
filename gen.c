@@ -301,13 +301,8 @@ void gen(Node* node) {
     break;
   }
   case ND_DECL: {
-    if(!node->lhs) break;
-    Node lhs;
-    lhs.kind = ND_VARREF;
-    lhs.type = node->type;
-    lhs.name = node->name;
-    lhs.var  = node->var;
-    gen_assign(&lhs, node->lhs);
+    if(!node->rhs) break;
+    gen_assign(node->lhs, node->rhs);
     break;
   }
   case ND_GDECL: {

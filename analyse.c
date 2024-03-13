@@ -246,9 +246,13 @@ static NodeAndType* analyze(Node* node) {
   case ND_DECL: {
     Var* var = new_local_var(node->name, node->type);
     node->var = var;
-    if(node->lhs) {
-      NodeAndType* nat = analyze(node->lhs);
-      node->lhs = nat->node;
+    node->lhs = new_node(ND_VARREF, node->loc);
+    node->lhs->var = var;
+    node->lhs->name = node->name;
+    node->lhs->type = var->type;
+    if(node->rhs) {
+      NodeAndType* nat = analyze(node->rhs);
+      node->rhs = nat->node;
     }
     return return_statement(node);
   }

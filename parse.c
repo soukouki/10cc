@@ -473,7 +473,7 @@ static Node* decl() {
   
   Node* decl = new_node_ident(ND_DECL, token->str, name);
   decl->type = arr->type;
-  decl->lhs = assign;
+  decl->rhs = assign;
   return decl;
 }
 
