@@ -145,7 +145,7 @@ struc      = "struct" ident "{" (decl ";")* "}"
 enu        = "enum" ident "{" ident (, ident)* "}"
 typede     = "typedef" type ident
 
-decl       = specifier pointer ident ("[" num "]")*
+decl       = specifier pointer ident ("[" num "]")* ("=" expr)?
 type       = specifier pointer       ("[" num "]")*
 pointer    = "*"*
 param      = decl | type
@@ -466,9 +466,14 @@ static Node* decl() {
     arr->type = arr_type(t->type, expect_number());
     expect("]");
   }
+  Node* assign = NULL;
+  if(consume("=")) {
+    assign = expr();
+  }
   
   Node* decl = new_node_ident(ND_DECL, token->str, name);
   decl->type = arr->type;
+  decl->lhs = assign;
   return decl;
 }
 

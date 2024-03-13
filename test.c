@@ -955,6 +955,16 @@ int extern_definition() {
 }
 int extern_definition_sample;
 
+int local_declaration_assignment() {
+  section("ローカル変数の宣言時代入");
+  int a = 1;
+  assert(1, a, "a");
+  char b = 2;
+  assert(2, b, "b");
+  int* c = &a;
+  assert(1, *c, "*c");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -997,6 +1007,7 @@ int main() {
   typedef_type();
   sizeof_typedef();
   extern_definition();
+  local_declaration_assignment();
 
   if(is_fall) {
     printf("FAILED\n");

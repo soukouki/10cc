@@ -235,11 +235,21 @@ void print_node(Node* node) {
     break;
   case ND_DECL:
     print_type(node->type);
-    printf_i(" L_%s;", node->name);
+    if(node->lhs) {
+      printf_i(" L_%s = ", node->name);
+      print_node(node->lhs);
+    } else {
+      printf_i(" L_%s", node->name);
+    }
     break;
   case ND_GDECL:
     print_type(node->type);
-    printf_i(" G_%s;", node->name);
+    if(node->lhs) {
+      printf_i(" G_%s = ", node->name);
+      print_node(node->lhs);
+    } else {
+      printf_i(" G_%s", node->name);
+    }
     break;
   case ND_GDECL_EXTERN:
     printf_i("extern ");

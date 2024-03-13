@@ -48,6 +48,20 @@ void gen_ref_push(Node* node) {
   printf("  push rax\n");
 }
 
+void gen_assign(Node* lval, Node* rval) {
+  gen_ref(lval);
+  gen(rval);
+  printf("  pop rdi\n");
+  printf("  pop rax\n");
+  if(lval->type->kind == TY_INT) {
+    printf("  mov [rax], edi\n");
+  } else if(lval->type->kind == TY_CHAR) {
+    printf("  mov [rax], dil\n");
+  } else {
+    printf("  mov [rax], rdi\n");
+  }
+}
+
 void gen(Node* node) {
   if(node == NULL) {
     ERROR("ノードがありません");
@@ -64,19 +78,7 @@ void gen(Node* node) {
   }
   case ND_ASSIGN: {
     printf("# ND_ASSIGN %s %s\n", node_kinds[node->lhs->kind], node_kinds[node->rhs->kind]);
-    Node* lval = node->lhs;
-    Node* rval = node->rhs;
-    gen_ref(lval);
-    gen(rval);
-    printf("  pop rdi\n");
-    printf("  pop rax\n");
-    if(lval->type->kind == TY_INT) {
-      printf("  mov [rax], edi\n");
-    } else if(lval->type->kind == TY_CHAR) {
-      printf("  mov [rax], dil\n");
-    } else {
-      printf("  mov [rax], rdi\n");
-    }
+    gen_assign(node->lhs, node->rhs);
     break;
   }
   case ND_ADDR: {
@@ -299,6 +301,13 @@ void gen(Node* node) {
     break;
   }
   case ND_DECL: {
+    if(!node->lhs) break;
+    Node lhs;
+    lhs.kind = ND_VARREF;
+    lhs.type = node->type;
+    lhs.name = node->name;
+    lhs.var  = node->var;
+    gen_assign(&lhs, node->lhs);
     break;
   }
   case ND_GDECL: {
