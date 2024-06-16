@@ -574,7 +574,7 @@ int one_level_pointer_5() {
   a = 20;
   int b;
   b = 22;
-  return one_level_pointer_add(&a, &b); 
+  return one_level_pointer_add(&a, &b);
 }
 int one_level_pointer() {
   section("一重ポインタ");
@@ -1024,6 +1024,17 @@ int increment_and_decrement() {
   assert(1, a, "a");
 }
 
+int file_and_line() {
+  assert(1028, __LINE__, "__LINE__");
+  assert('t', __FILE__[0], "__FILE__");
+  assert('e', __FILE__[1], "__FILE__");
+  assert('s', __FILE__[2], "__FILE__");
+  assert('t', __FILE__[3], "__FILE__");
+  assert('.', __FILE__[4], "__FILE__");
+  assert('c', __FILE__[5], "__FILE__");
+  assert(0  , __FILE__[6], "__FILE__");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1071,6 +1082,7 @@ int main() {
   char_literal();
   assign_operator();
   increment_and_decrement();
+  file_and_line();
 
   if(is_fall) {
     printf("FAILED\n");

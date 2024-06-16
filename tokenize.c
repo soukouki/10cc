@@ -9,22 +9,30 @@
 #define MAX_STRING_LENGTH 1000
 
 // 新しいトークンを作成してcurにつなげる·
-static Token* new_token(TokenKind kind, Token *cur, char *str, int len) {
+static Token* new_token(TokenKind kind, Token *cur, char *str, int len, char* file, int line) {
   Token *tok = calloc(1, sizeof(Token));
   tok->kind = kind;
   tok->str = str;
   tok->len = len;
+  tok->file = file;
+  tok->line = line;
   cur->next = tok;
   return tok;
 }
 
-Token* tokenize(char *p) {
+Token* tokenize(char *p, char* file) {
   Token head;
   head.next = NULL;
   Token *cur = &head;
+  int line = 1;
 
   while(*p) {
     // 空白文字をスキップ
+    if(*p == '\n') {
+      p++;
+      line++;
+      continue;
+    }
     if(isspace(*p)) {
       p++;
       continue;
@@ -42,6 +50,9 @@ Token* tokenize(char *p) {
       char* start = p;
       p += 2;
       while(strncmp(p, "*/", 2) != 0) {
+        if(*p == '\n') {
+          line++;
+        }
         if(*p == '\0') {
           ERROR_AT(start, "コメントが閉じられていません");
         }
@@ -56,17 +67,17 @@ Token* tokenize(char *p) {
       strncmp(p, "==", 2) == 0 || strncmp(p, "!=", 2) == 0 ||
       strncmp(p, "->", 2) == 0
     ) {
-      cur = new_token(TK_SYMBOL, cur, p, 2);
+      cur = new_token(TK_SYMBOL, cur, p, 2, file, line);
       p += 2;
       continue;
     }
 
     if(*p == '+' || *p == '-') {
       if((*(p + 1) == '+' || *(p + 1) == '-') && *(p + 1) == *p) {
-        cur = new_token(TK_SYMBOL, cur, p, 2);
+        cur = new_token(TK_SYMBOL, cur, p, 2, file, line);
         p += 2;
       } else {
-        cur = new_token(TK_SYMBOL, cur, p++, 1);
+        cur = new_token(TK_SYMBOL, cur, p++, 1, file, line);
       }
       continue;
     }
@@ -77,12 +88,12 @@ Token* tokenize(char *p) {
       *p == '>' || *p == '<' || *p == '=' ||
       *p == ';' || *p == ',' || *p == '.' || *p == '&'
     ) {
-      cur = new_token(TK_SYMBOL, cur, p++, 1);
+      cur = new_token(TK_SYMBOL, cur, p++, 1, file, line);
       continue;
     }
 
     if(isdigit(*p)) {
-      cur = new_token(TK_NUM, cur, p, 0);
+      cur = new_token(TK_NUM, cur, p, 0, file, line);
       cur->val = strtol(p, &p, 10);
       continue;
     }
@@ -113,7 +124,7 @@ Token* tokenize(char *p) {
         }
         p++;
       }
-      cur = new_token(TK_STR, cur, str, len);
+      cur = new_token(TK_STR, cur, str, len, file, line);
       p++;
       continue;
     }
@@ -123,22 +134,22 @@ Token* tokenize(char *p) {
       if(*p == '\\') {
         p++;
         if(*p == 'n') {
-          cur = new_token(TK_NUM, cur, p, 1);
+          cur = new_token(TK_NUM, cur, p, 1, file, line);
           cur->val = '\n';
         } else if(*p == 't') {
-          cur = new_token(TK_NUM, cur, p, 1);
+          cur = new_token(TK_NUM, cur, p, 1, file, line);
           cur->val = '\t';
         } else if(*p == '\\') {
-          cur = new_token(TK_NUM, cur, p, 1);
+          cur = new_token(TK_NUM, cur, p, 1, file, line);
           cur->val = '\\';
         } else if(*p == '\'') {
-          cur = new_token(TK_NUM, cur, p, 1);
+          cur = new_token(TK_NUM, cur, p, 1, file, line);
           cur->val = '\'';
         } else {
           ERROR_AT(p, "無効なエスケープシーケンスです");
         }
       } else {
-        cur = new_token(TK_NUM, cur, p, 1);
+        cur = new_token(TK_NUM, cur, p, 1, file, line);
         cur->val = *p;
       }
       p++;
@@ -155,61 +166,61 @@ Token* tokenize(char *p) {
         p++;
       }
       if(p - start == 6 && !memcmp(start, "return", 6)) {
-        cur = new_token(TK_SYMBOL, cur, start, 6);
+        cur = new_token(TK_SYMBOL, cur, start, 6, file, line);
         continue;
       }
       if(p - start == 2 && !memcmp(start, "if", 2)) {
-        cur = new_token(TK_SYMBOL, cur, start, 2);
+        cur = new_token(TK_SYMBOL, cur, start, 2, file, line);
         continue;
       }
       if(p - start == 4 && !memcmp(start, "else", 4)) {
-        cur = new_token(TK_SYMBOL, cur, start, 4);
+        cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
         continue;
       }
       if(p - start == 5 && !memcmp(start, "while", 5)) {
-        cur = new_token(TK_SYMBOL, cur, start, 5);
+        cur = new_token(TK_SYMBOL, cur, start, 5, file, line);
         continue;
       }
       if(p - start == 3 && !memcmp(start, "for", 3)) {
-        cur = new_token(TK_SYMBOL, cur, start, 3);
+        cur = new_token(TK_SYMBOL, cur, start, 3, file, line);
         continue;
       }
       if(p - start == 6 && !memcmp(start, "sizeof", 6)) {
-        cur = new_token(TK_SYMBOL, cur, start, 6);
+        cur = new_token(TK_SYMBOL, cur, start, 6, file, line);
         continue;
       }
       if(p - start == 3 && !memcmp(start, "int", 3)) {
-        cur = new_token(TK_SYMBOL, cur, start, 3);
+        cur = new_token(TK_SYMBOL, cur, start, 3, file, line);
         continue;
       }
       if(p - start == 4 && !memcmp(start, "char", 4)) {
-        cur = new_token(TK_SYMBOL, cur, start, 4);
+        cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
         continue;
       }
       if(p - start == 6 && !memcmp(start, "struct", 6)) {
-        cur = new_token(TK_SYMBOL, cur, start, 6);
+        cur = new_token(TK_SYMBOL, cur, start, 6, file, line);
         continue;
       }
       if(p - start == 4 && !memcmp(start, "enum", 4)) {
-        cur = new_token(TK_SYMBOL, cur, start, 4);
+        cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
         continue;
       }
       if(p - start == 7 && !memcmp(start, "typedef", 7)) {
-        cur = new_token(TK_SYMBOL, cur, start, 7);
+        cur = new_token(TK_SYMBOL, cur, start, 7, file, line);
         continue;
       }
       if(p - start == 6 && !memcmp(start, "extern", 6)) {
-        cur = new_token(TK_SYMBOL, cur, start, 6);
+        cur = new_token(TK_SYMBOL, cur, start, 6, file, line);
         continue;
       }
-      cur = new_token(TK_IDENT, cur, start, p - start);
+      cur = new_token(TK_IDENT, cur, start, p - start, file, line);
       continue;
     }
 
     ERROR_AT(p, "トークナイズできません");
   }
 
-  new_token(TK_EOF, cur, p, 0);
+  new_token(TK_EOF, cur, p, 0, file, line);
   return head.next;
 }
 

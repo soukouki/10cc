@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
   }
 
   printf("# tokenize\n");
-  token = tokenize(user_input);
+  token = tokenize(user_input, filename);
   printf("# parse\n");
   Node* code = parse();
   if(mode == RUN_PARSE) {

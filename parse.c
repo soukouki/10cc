@@ -689,7 +689,14 @@ static Node* primary() {
     if(is_next("(")) {
       prim = call(ident);
     } else {
-      prim = new_node_ident(ND_IDENT, token->str, ident);
+      // もし__LINE__と__FILE__なら、その値のリテラルにしておく
+      if(strcmp(ident, "__LINE__") == 0) {
+        prim = new_node_num(token->str, token->line);
+      } else if(strcmp(ident, "__FILE__") == 0) {
+        prim = new_node_str(token->str, token->file);
+      } else {
+        prim = new_node_ident(ND_IDENT, token->str, ident);
+      }
     }
   } else if (token->kind == TK_NUM) {
     prim = new_node_num(token->str, expect_number());

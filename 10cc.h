@@ -24,6 +24,8 @@ struct Token {
   int val;
   char* str;
   int len;
+  char* file;
+  int line;
 };
 
 typedef enum {
@@ -172,7 +174,7 @@ Type* ptr_type(Type* ptr_to);
 Type* arr_type(Type* ptr_to, int array_size);
 Type* struct_type(char* name);
 
-Token* tokenize(char *p);
+Token* tokenize(char *p, char* file);
 Node* parse();
 Node* analyze_semantics(Node* node);
 void gen(Node* node);
