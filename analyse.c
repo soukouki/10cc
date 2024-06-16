@@ -153,7 +153,7 @@ static NodeAndType* return_expression(Node* node, Type* type) {
 }
 
 static NodeAndType* analyze(Node* node) {
-  // printf("# analyze_semantics %s\n", node_kinds[node->kind]);
+  printf("# analyze_semantics %s\n", node_kinds[node->kind]);
   switch(node->kind) {
   case ND_PROGRAM: {
     string_map = map_new();
@@ -343,6 +343,14 @@ static NodeAndType* analyze(Node* node) {
       return return_expression(node, lhs->type);
     }
     ERROR_AT(node->loc, "%sと%sの乗除算はできません", type_kinds[lkind], type_kinds[rkind]);
+  }
+  case ND_ASSIGN: {
+    NodeAndType* lhs = analyze(node->lhs);
+    node->lhs = lhs->node;
+    NodeAndType* rhs = analyze(node->rhs);
+    node->rhs = rhs->node;
+    // 型チェックはとりあえず置いとく
+    return return_expression(node, lhs->type);
   }
   case ND_DEREF: {
     NodeAndType* lhs = analyze(node->lhs);

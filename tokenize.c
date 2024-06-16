@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "10cc.h"
 
@@ -60,9 +61,19 @@ Token* tokenize(char *p) {
       continue;
     }
 
+    if(*p == '+' || *p == '-') {
+      if((*(p + 1) == '+' || *(p + 1) == '-') && *(p + 1) == *p) {
+        cur = new_token(TK_SYMBOL, cur, p, 2);
+        p += 2;
+      } else {
+        cur = new_token(TK_SYMBOL, cur, p++, 1);
+      }
+      continue;
+    }
+
     if(
       *p == '(' || *p == ')' || *p == '{' || *p == '}' || *p == '[' || *p == ']' ||
-      *p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '%' ||
+      *p == '*' || *p == '/' || *p == '%' ||
       *p == '>' || *p == '<' || *p == '=' ||
       *p == ';' || *p == ',' || *p == '.' || *p == '&'
     ) {

@@ -1010,6 +1010,20 @@ int assign_operator() {
   assert(3, b, "b");
 }
 
+int increment_and_decrement() {
+  section("インクリメント, デクリメント");
+  int a;
+  a = 1;
+  assert(1, a++, "a++");
+  assert(2, a, "a");
+  assert(2, a--, "a--");
+  assert(1, a, "a");
+  assert(2, ++a, "++a");
+  assert(2, a, "a");
+  assert(1, --a, "--a");
+  assert(1, a, "a");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1056,6 +1070,7 @@ int main() {
   string_escape();
   char_literal();
   assign_operator();
+  increment_and_decrement();
 
   if(is_fall) {
     printf("FAILED\n");
