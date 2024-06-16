@@ -39,7 +39,7 @@ static void expect(char* op) {
     token->kind != TK_SYMBOL ||
     strlen(op) != token->len ||
     memcmp(token->str, op, token->len) != 0
-  ) ERROR_AT(token->str, "'%s'ではありません", op);
+  ) error_at1(__FILE__, __LINE__, token->str, "'%s'ではありません", op);
 
   token = token->next;
   return;
@@ -49,7 +49,7 @@ static void expect(char* op) {
 // それ以外の場合にはエラーを報告する
 static int expect_number() {
   if(token->kind != TK_NUM) {
-    ERROR_AT(token->str, "数ではありません");
+    error_at0(__FILE__, __LINE__, token->str, "数ではありません");
   }
   int val = token->val;
   token = token->next;
@@ -236,7 +236,7 @@ static Node* program() {
     if(consume("extern")) {
       Node* extern_var = decl();
       if(extern_var == NULL) {
-        ERROR_AT(token->str, "extern宣言が不正です");
+        error_at0(__FILE__, __LINE__, token->str, "extern宣言が不正です");
       }
       expect(";");
       extern_var->kind = ND_GDECL_EXTERN;
@@ -264,12 +264,12 @@ static Node* program() {
 static Node* func() {
   Node* typ = type();
   if(typ == NULL) {
-    ERROR_AT(token->str, "関数の戻り値の型がありません");
+    error_at0(__FILE__, __LINE__, token->str, "関数の戻り値の型がありません");
   }
   char* name = consume_ident();
   printf("#   function %s", name);
   if(name == NULL) {
-    ERROR_AT(token->str, "関数名がありません");
+    error_at0(__FILE__, __LINE__, token->str, "関数名がありません");
   }
   expect("(");
   Node* func = new_node_ident(ND_FUNCDEF, token->str, name);
@@ -385,7 +385,7 @@ static Node* struc() {
   expect("struct");
   char* name = consume_ident();
   if(name == NULL) {
-    ERROR_AT(token->str, "構造体名がありません");
+    error_at0(__FILE__, __LINE__, token->str, "構造体名がありません");
   }
   Node* str = new_node_ident(ND_STRUCT, token->str, name);
   expect("{");
@@ -394,7 +394,7 @@ static Node* struc() {
   while(!consume("}")) {
     Node* mem = decl();
     if(mem == NULL) {
-      ERROR_AT(token->str, "構造体のメンバが不正です");
+      error_at0(__FILE__, __LINE__, token->str, "構造体のメンバが不正です");
     }
     s[i++] = mem;
     expect(";");
@@ -411,7 +411,7 @@ static Node* enu() {
   expect("enum");
   char* name = consume_ident();
   if(name == NULL) {
-    ERROR_AT(token->str, "列挙型名がありません");
+    error_at0(__FILE__, __LINE__, token->str, "列挙型名がありません");
   }
   Node* en = new_node_ident(ND_ENUM, token->str, name);
   expect("{");
@@ -420,7 +420,7 @@ static Node* enu() {
   while(!consume("}")) {
     char* ident = consume_ident();
     if(ident == NULL) {
-      ERROR_AT(token->str, "列挙型のメンバ名がありません");
+      error_at0(__FILE__, __LINE__, token->str, "列挙型のメンバ名がありません");
     }
     e[i++] = new_node_ident(ND_IDENT, token->str, ident);
     if(!consume(",")) {
@@ -440,11 +440,11 @@ static Node* typede() {
   expect("typedef");
   Node* t = type();
   if(t == NULL) {
-    ERROR_AT(token->str, "型がありません");
+    error_at0(__FILE__, __LINE__, token->str, "型がありません");
   }
   char* name = consume_ident();
   if(name == NULL) {
-    ERROR_AT(token->str, "名前がありません");
+    error_at0(__FILE__, __LINE__, token->str, "名前がありません");
   }
   map_put(typedef_map, name, t);
   return NULL;
@@ -523,7 +523,7 @@ static Node* specifier() {
   if(consume("struct")) {
     char* name = consume_ident();
     if(name == NULL) {
-      ERROR_AT(token->str, "構造体名がありません");
+      error_at0(__FILE__, __LINE__, token->str, "構造体名がありません");
     }
     Node* t = new_node(ND_TYPE, token->str);
     t->type = struct_type(name);
@@ -532,7 +532,7 @@ static Node* specifier() {
   if(consume("enum")) {
     char* name = consume_ident();
     if(name == NULL) {
-      ERROR_AT(token->str, "列挙型名がありません");
+      error_at0(__FILE__, __LINE__, token->str, "列挙型名がありません");
     }
     Node* t = new_node(ND_TYPE, token->str);
     t->type = int_type(); // 簡単にするためにint型として扱う
@@ -563,7 +563,7 @@ static Node* param() {
     decl->name = "";
     return decl;
   }
-  ERROR_AT(token->str, "引数が不正です");
+  error_at0(__FILE__, __LINE__, token->str, "引数が不正です");
 }
 
 static Node* expr() {
@@ -704,21 +704,21 @@ static Node* primary() {
     prim = new_node_str(token->str, token->str);
     token = token->next;
   } else {
-    ERROR_AT(token->str, "不正な式です");
+    error_at0(__FILE__, __LINE__, token->str, "不正な式です");
   }
   while(is_next(".") || is_next("->") || is_next("[") || is_next("++") || is_next("--")) {
     if(consume(".")) {
       prim = new_node_1branch(ND_DOT, token->str, prim);
       prim->name = consume_ident();
       if(prim->name == NULL) {
-        ERROR_AT(token->str, "構造体のメンバ名がありません");
+        error_at0(__FILE__, __LINE__, token->str, "構造体のメンバ名がありません");
       }
     } else if(consume("->")) {
       Node* deref = new_node_1branch(ND_DEREF, token->str, prim);
       prim = new_node_1branch(ND_DOT, token->str, deref);
       prim->name = consume_ident();
       if(prim->name == NULL) {
-        ERROR_AT(token->str, "構造体のメンバ名がありません");
+        error_at0(__FILE__, __LINE__, token->str, "構造体のメンバ名がありません");
       }
     } else if(is_next("[")) {
       prim = arrayref(prim);

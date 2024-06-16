@@ -25,7 +25,7 @@ void gen_ref(Node* node) {
   case ND_DOT: {
     Type* type = node->lhs->type;
     if(type->kind != TY_STRUCT) {
-      ERROR_AT(node->loc, "構造体の参照ではありません");
+      error_at0(__FILE__, __LINE__, node->loc, "構造体の参照ではありません");
     }
     StructMember* member = node->struct_member;
     gen_ref(node->lhs);
@@ -35,7 +35,7 @@ void gen_ref(Node* node) {
     break;
   }
   default:
-    ERROR_AT(node->loc, "%sは変数の参照ではありません", node_kinds[node->kind]);
+    error_at1(__FILE__, __LINE__, node->loc, "%sは変数の参照ではありません", node_kinds[node->kind]);
     break;
   }
 }
@@ -69,7 +69,7 @@ void gen_assign(Node* lval, Node* rval) {
 
 void gen(Node* node) {
   if(node == NULL) {
-    ERROR("ノードがありません");
+    error0(__FILE__, __LINE__, "ノードがありません");
   }
   printf("# gen %s\n", node_kinds[node->kind]);
   switch (node->kind) {
@@ -366,7 +366,7 @@ void gen(Node* node) {
         printf("  movzb rax, al\n");
         break;
       default:
-        ERROR_AT(node->loc, "%sは対応していないノードです", node_kinds[node->kind]);
+        error_at1(__FILE__, __LINE__, node->loc, "%sは対応していないノードです", node_kinds[node->kind]);
         break;
     }
     printf("  push rax\n");

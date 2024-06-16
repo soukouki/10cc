@@ -50,7 +50,7 @@ static Var* new_global_var(char* name, Type* type) {
     if(exists_var->is_extern) {
       map_delete(global_map, name);
     } else {
-      ERROR("変数%sはすでに定義されています", name);
+      error1(__FILE__, __LINE__, "変数%sはすでに定義されています", name);
     }
   }
   map_put(global_map, name, var);
@@ -68,7 +68,7 @@ static Var* new_global_extern_var(char* name, Type* type) {
     if(exists_var->is_extern) {
       map_delete(global_map, name);
     } else {
-      ERROR("変数%sはすでに定義されています", name);
+      error1(__FILE__, __LINE__, "変数%sはすでに定義されています", name);
     }
   }
   map_put(global_map, name, var);
@@ -111,7 +111,7 @@ Type* struct_type(char* name) {
 
 static int size_of(Type* type) {
   if(!type) {
-    ERROR("size_of: typeがNULL");
+    error0(__FILE__, __LINE__, "size_of: typeがNULL");
   }
   switch(type->kind) {
   case TY_CHAR:
@@ -127,7 +127,7 @@ static int size_of(Type* type) {
     return s->size;
   }
   default:
-    ERROR("size_of: 未対応の型");
+    error0(__FILE__, __LINE__, "size_of: 未対応の型");
   }
 }
 
@@ -266,7 +266,7 @@ static NodeAndType* analyze(Node* node) {
     }
     Node* func = map_get(func_map, node->name);
     if(!func) {
-      ERROR_AT(node->loc, "関数%sは定義されていません", node->name);
+      error_at1(__FILE__, __LINE__, node->loc, "関数%sは定義されていません", node->name);
     }
     return return_expression(node, func->type);
   }
@@ -291,7 +291,7 @@ static NodeAndType* analyze(Node* node) {
       Node* num = new_node_num(node->loc, *constant_num);
       return return_expression(num, int_type());
     }
-    ERROR_AT(node->loc, "変数%sは定義されていません", node->name);
+    error_at1(__FILE__, __LINE__, node->loc, "変数%sは定義されていません", node->name);
   }
   case ND_ADD:
   case ND_SUB: {
@@ -314,7 +314,7 @@ static NodeAndType* analyze(Node* node) {
       return return_expression(node, lhs->type);
     }
     if(lkind == TY_PTR && rkind == TY_PTR) {
-      ERROR_AT(node->loc, "ポインタ同士の加減算はできません");
+      error_at0(__FILE__, __LINE__, node->loc, "ポインタ同士の加減算はできません");
     }
     if(lkind == TY_PTR) {
       Node* size = new_node_num(node->loc, size_of(lhs->type->ptr_to));
@@ -326,7 +326,7 @@ static NodeAndType* analyze(Node* node) {
       Node* mul = new_node_2branches(ND_MUL, node->loc, node->lhs, size);
       return return_expression(new_node_2branches(node->kind, node->loc, mul, node->rhs), rhs->type);
     }
-    ERROR_AT(node->loc, "%sと%sの加減算はできません", type_kinds[lkind], type_kinds[rkind]);
+    error_at2(__FILE__, __LINE__, node->loc, "%sと%sの加減算はできません", type_kinds[lkind], type_kinds[rkind]);
   }
   case ND_MUL:
   case ND_DIV: {
@@ -342,7 +342,7 @@ static NodeAndType* analyze(Node* node) {
     if(lkind == TY_CHAR && rkind == TY_CHAR) {
       return return_expression(node, lhs->type);
     }
-    ERROR_AT(node->loc, "%sと%sの乗除算はできません", type_kinds[lkind], type_kinds[rkind]);
+    error_at2(__FILE__, __LINE__, node->loc, "%sと%sの乗除算はできません", type_kinds[lkind], type_kinds[rkind]);
   }
   case ND_ASSIGN: {
     NodeAndType* lhs = analyze(node->lhs);
@@ -357,7 +357,7 @@ static NodeAndType* analyze(Node* node) {
     TypeKind lkind = lhs->type->kind;
     node->lhs = lhs->node;
     if(lkind != TY_PTR && lkind != TY_ARRAY) {
-      ERROR_AT(node->loc, "ポインタや配列でない%sを参照しようとしました", type_kinds[lkind]);
+      error_at1(__FILE__, __LINE__, node->loc, "ポインタや配列でない%sを参照しようとしました", type_kinds[lkind]);
     }
     return return_expression(node, lhs->type->ptr_to);
   }
@@ -381,12 +381,12 @@ static NodeAndType* analyze(Node* node) {
     TypeKind lkind = lhs->type->kind;
     node->lhs = lhs->node;
     if(lkind != TY_STRUCT) {
-      ERROR_AT(node->loc, "構造体でない%sのメンバを参照しようとしました", type_kinds[lkind]);
+      error_at1(__FILE__, __LINE__, node->loc, "構造体でない%sのメンバを参照しようとしました", type_kinds[lkind]);
     }
     Struct* s = map_get(global_map, lhs->type->struct_name);
     StructMember* sm = map_get(s->members, node->name);
     if(!sm) {
-      ERROR_AT(node->loc, "構造体%sにメンバ%sはありません", lhs->type->struct_name, node->name);
+      error_at2(__FILE__, __LINE__, node->loc, "構造体%sにメンバ%sはありません", lhs->type->struct_name, node->name);
     }
     node->struct_member = sm;
     return return_expression(node, sm->type);

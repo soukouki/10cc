@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -18,28 +17,33 @@ char* user_input;
 char** node_kinds;
 char** type_kinds;
 
+// 入力ファイル名
+char *filename;
+
+
 // エラーを報告するための関数
 // printfと同じ引数を取る
-void error(char* file_name, int file_line, char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  vfprintf(stderr, fmt, ap);
+void error3(char* file_name, int file_line, char* fmt, char* arg1, char* arg2, char* arg3) {
+  fprintf(stderr, fmt, arg1, arg2, arg3);
   fprintf(stderr, "\nerror reported at %s:%d\n", file_name, file_line);
   exit(1);
 }
-
-// 入力ファイル名
-char *filename;
+void error0(char* file_name, int file_line, char* fmt) {
+  error3(file_name, file_line, fmt, "", "", "");
+}
+void error1(char* file_name, int file_line, char* fmt, char* arg1) {
+  error3(file_name, file_line, fmt, arg1, "", "");
+}
+void error2(char* file_name, int file_line, char* fmt, char* arg1, char* arg2) {
+  error3(file_name, file_line, fmt, arg1, arg2, "");
+}
 
 // エラーの起きた場所を報告するための関数
 // 下のようなフォーマットでエラーメッセージを表示する
 //
 // foo.c:10: x = y + + 5;
 //                   ^ 式ではありません
-void error_at(char* file_name, int file_line, char *loc, char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-
+void error_at2(char* file_name, int file_line, char* loc, char* fmt, char* arg1, char* arg2) {
   // locが含まれている行の開始地点と終了地点を取得
   char *line = loc;
   while (user_input < line && line[-1] != '\n')
@@ -63,9 +67,14 @@ void error_at(char* file_name, int file_line, char *loc, char *fmt, ...) {
   int pos = loc - line + indent;
   fprintf(stderr, "%*s", pos, ""); // pos個の空白を出力
   fprintf(stderr, "^ ");
-  vfprintf(stderr, fmt, ap);
   fprintf(stderr, "\nerror reported at %s:%d\n", file_name, file_line);
   exit(1);
+}
+void error_at0(char* file_name, int file_line, char *loc, char* fmt) {
+  error_at2(file_name, file_line, loc, fmt, "", "");
+}
+void error_at1(char* file_name, int file_line, char *loc, char* fmt, char* arg1) {
+  error_at2(file_name, file_line, loc, fmt, arg1, "");
 }
 
 // 指定されたファイルの内容を返す
@@ -73,14 +82,14 @@ char *read_file(char *path) {
   // ファイルを開く
   FILE *fp = fopen(path, "r");
   if (!fp)
-    ERROR("cannot open %s: %s", path, strerror(errno));
+    error2(__FILE__, __LINE__, "cannot open %s: %s", path, strerror(errno));
 
   // ファイルの長さを調べる
   if (fseek(fp, 0, SEEK_END) == -1)
-    ERROR("%s: fseek: %s", path, strerror(errno));
+    error2(__FILE__, __LINE__, "%s: fseek: %s", path, strerror(errno));
   size_t size = ftell(fp);
   if (fseek(fp, 0, SEEK_SET) == -1)
-    ERROR("%s: fseek: %s", path, strerror(errno));
+    error2(__FILE__, __LINE__, "%s: fseek: %s", path, strerror(errno));
 
   // ファイル内容を読み込む
   char *buf = calloc(1, size + 2);
@@ -160,12 +169,12 @@ int main(int argc, char **argv) {
     } else if(strcmp(argv[2], "-a") == 0) {
       mode = RUN_ANALYZE;
     } else {
-      ERROR("不明なオプションです: %s", argv[1]);
+      error1(__FILE__, __LINE__, "不明なオプションです: %s", argv[1]);
     }
     user_input = read_file(argv[1]);
     filename = argv[1];
   } else if(argc != 2) {
-    ERROR("引数の個数が正しくありません");
+    error0(__FILE__, __LINE__, "引数の個数が正しくありません");
   } else {
     user_input = read_file(argv[1]);
     filename = argv[1];

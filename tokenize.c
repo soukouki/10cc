@@ -54,7 +54,7 @@ Token* tokenize(char *p, char* file) {
           line++;
         }
         if(*p == '\0') {
-          ERROR_AT(start, "コメントが閉じられていません");
+          error_at0(__FILE__, __LINE__, start, "コメントが閉じられていません");
         }
         p++;
       }
@@ -104,7 +104,7 @@ Token* tokenize(char *p, char* file) {
       int len = 0;
       while(*p != '"') {
         if(*p == '\0') {
-          ERROR_AT(p, "文字列が閉じられていません");
+          error_at0(__FILE__, __LINE__, p, "文字列が閉じられていません");
         }
         if(*p == '\\') {
           p++;
@@ -117,7 +117,7 @@ Token* tokenize(char *p, char* file) {
           } else if(*p == '"') {
             str[len++] = '"';
           } else {
-            ERROR_AT(p, "無効なエスケープシーケンスです");
+            error_at0(__FILE__, __LINE__, p, "無効なエスケープシーケンスです");
           }
         } else {
           str[len++] = *p;
@@ -146,7 +146,7 @@ Token* tokenize(char *p, char* file) {
           cur = new_token(TK_NUM, cur, p, 1, file, line);
           cur->val = '\'';
         } else {
-          ERROR_AT(p, "無効なエスケープシーケンスです");
+          error_at0(__FILE__, __LINE__, p, "無効なエスケープシーケンスです");
         }
       } else {
         cur = new_token(TK_NUM, cur, p, 1, file, line);
@@ -154,7 +154,7 @@ Token* tokenize(char *p, char* file) {
       }
       p++;
       if(*p != '\'') {
-        ERROR_AT(p, "文字リテラルは1文字でなければいけません");
+        error_at0(__FILE__, __LINE__, p, "文字リテラルは1文字でなければいけません");
       }
       p++;
       continue;
@@ -217,7 +217,7 @@ Token* tokenize(char *p, char* file) {
       continue;
     }
 
-    ERROR_AT(p, "トークナイズできません");
+    error_at0(__FILE__, __LINE__, p, "トークナイズできません");
   }
 
   new_token(TK_EOF, cur, p, 0, file, line);

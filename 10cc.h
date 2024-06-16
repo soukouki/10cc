@@ -152,10 +152,13 @@ struct Node {
   StructMember* struct_member; // ND_DOTの場合に使う
 };
 
-void error(char* file, int line, char *fmt, ...);
-void error_at(char* file, int line, char *loc, char *fmt, ...);
-#define ERROR(...) error(__FILE__, __LINE__, __VA_ARGS__)
-#define ERROR_AT(...) error_at(__FILE__, __LINE__, __VA_ARGS__)
+void error0(char* file, int line, char* fmt);
+void error1(char* file, int line, char* fmt, char* arg1);
+void error2(char* file, int line, char* fmt, char* arg1, char* arg2);
+void error3(char* file, int line, char* fmt, char* arg1, char* arg2, char* arg3);
+void error_at0(char* file, int line, char* loc, char* fmt);
+void error_at1(char* file, int line, char* loc, char* fmt, char* arg1);
+void error_at2(char* file, int line, char* loc, char* fmt, char* arg1, char* arg2);
 
 void print_node(Node* node);
 
