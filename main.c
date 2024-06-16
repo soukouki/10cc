@@ -103,12 +103,6 @@ char *read_file(char *path) {
   return buf;
 }
 
-typedef enum {
-  RUN_NORMAL,
-  RUN_PARSE,
-  RUN_ANALYZE,
-} RunMode;
-
 int main(int argc, char **argv) {
   node_kinds = (char*[]){
     "ND_ADD",
@@ -162,38 +156,15 @@ int main(int argc, char **argv) {
     "TY_STRUCT",
   };
 
-  RunMode mode = RUN_NORMAL;
-  if(argc == 3) {
-    if(strcmp(argv[2], "-p") == 0) {
-      mode = RUN_PARSE;
-    } else if(strcmp(argv[2], "-a") == 0) {
-      mode = RUN_ANALYZE;
-    } else {
-      error1(__FILE__, __LINE__, "不明なオプションです: %s", argv[1]);
-    }
-    user_input = read_file(argv[1]);
-    filename = argv[1];
-  } else if(argc != 2) {
-    error0(__FILE__, __LINE__, "引数の個数が正しくありません");
-  } else {
-    user_input = read_file(argv[1]);
-    filename = argv[1];
-  }
-
+  user_input = read_file(argv[1]);
+  filename = argv[1];
+  
   printf("# tokenize\n");
   token = tokenize(user_input, filename);
   printf("# parse\n");
   Node* code = parse();
-  if(mode == RUN_PARSE) {
-    print_node(code);
-    return 0;
-  }
   printf("# analyze semantics\n");
   Node* analyzed_code = analyze_semantics(code);
-  if(mode == RUN_ANALYZE) {
-    print_node(analyzed_code);
-    return 0;
-  }
 
   printf(".intel_syntax noprefix\n");
   printf(".globl main\n");
