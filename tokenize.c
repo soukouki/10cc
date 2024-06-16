@@ -107,6 +107,37 @@ Token* tokenize(char *p) {
       continue;
     }
 
+    if(*p == '\'') {
+      p++;
+      if(*p == '\\') {
+        p++;
+        if(*p == 'n') {
+          cur = new_token(TK_NUM, cur, p, 1);
+          cur->val = '\n';
+        } else if(*p == 't') {
+          cur = new_token(TK_NUM, cur, p, 1);
+          cur->val = '\t';
+        } else if(*p == '\\') {
+          cur = new_token(TK_NUM, cur, p, 1);
+          cur->val = '\\';
+        } else if(*p == '\'') {
+          cur = new_token(TK_NUM, cur, p, 1);
+          cur->val = '\'';
+        } else {
+          ERROR_AT(p, "無効なエスケープシーケンスです");
+        }
+      } else {
+        cur = new_token(TK_NUM, cur, p, 1);
+        cur->val = *p;
+      }
+      p++;
+      if(*p != '\'') {
+        ERROR_AT(p, "文字リテラルは1文字でなければいけません");
+      }
+      p++;
+      continue;
+    }
+
     if('a' <= *p && *p <= 'z' || 'A' <= *p && *p <= 'Z' || *p == '_') {
       char* start = p;
       while('a' <= *p && *p <= 'z' || 'A' <= *p && *p <= 'Z' || *p == '_' || '0' <= *p && *p <= '9') {

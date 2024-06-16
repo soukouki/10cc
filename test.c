@@ -982,6 +982,21 @@ int string_escape() {
   assert(0,  a[1], "a[1]");
 }
 
+int char_literal() {
+  section("文字リテラル");
+  char a;
+  a = 'a';
+  assert(97, a, "a");
+  a = '\n';
+  assert(10, a, "a");
+  a = '\t';
+  assert(9, a, "a");
+  a = '\'';
+  assert(39, a, "a");
+  a = '\\';
+  assert(92, a, "a");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1026,6 +1041,7 @@ int main() {
   extern_definition();
   local_declaration_assignment();
   string_escape();
+  char_literal();
 
   if(is_fall) {
     printf("FAILED\n");
