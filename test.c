@@ -965,6 +965,23 @@ int local_declaration_assignment() {
   assert(1, *c, "*c");
 }
 
+int string_escape() {
+  section("文字列エスケープ");
+  char* a;
+  a = "\n";
+  assert(10, a[0], "a[0]");
+  assert(0,  a[1], "a[1]");
+  a = "\t";
+  assert(9, a[0], "a[0]");
+  assert(0,  a[1], "a[1]");
+  a = "\"";
+  assert(34, a[0], "a[0]");
+  assert(0,  a[1], "a[1]");
+  a = "\\";
+  assert(92, a[0], "a[0]");
+  assert(0,  a[1], "a[1]");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1008,6 +1025,7 @@ int main() {
   sizeof_typedef();
   extern_definition();
   local_declaration_assignment();
+  string_escape();
 
   if(is_fall) {
     printf("FAILED\n");

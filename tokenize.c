@@ -5,6 +5,8 @@
 
 #include "10cc.h"
 
+#define MAX_STRING_LENGTH 1000
+
 // 新しいトークンを作成してcurにつなげる·
 static Token* new_token(TokenKind kind, Token *cur, char *str, int len) {
   Token *tok = calloc(1, sizeof(Token));
@@ -76,15 +78,31 @@ Token* tokenize(char *p) {
 
     if(*p == '"') {
       p++;
-      char* start = p;
+      char* str = calloc(1, MAX_STRING_LENGTH);
+      int len = 0;
       while(*p != '"') {
         if(*p == '\0') {
-          ERROR_AT(start, "文字列が閉じられていません");
+          ERROR_AT(p, "文字列が閉じられていません");
+        }
+        if(*p == '\\') {
+          p++;
+          if(*p == 'n') {
+            str[len++] = '\n';
+          } else if(*p == 't') {
+            str[len++] = '\t';
+          } else if(*p == '\\') {
+            str[len++] = '\\';
+          } else if(*p == '"') {
+            str[len++] = '"';
+          } else {
+            ERROR_AT(p, "無効なエスケープシーケンスです");
+          }
+        } else {
+          str[len++] = *p;
         }
         p++;
       }
-      cur = new_token(TK_STR, cur, start, p - start);
-      cur->str[p - start] = '\0'; // 文字列の終端を設定
+      cur = new_token(TK_STR, cur, str, len);
       p++;
       continue;
     }

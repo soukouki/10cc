@@ -1,8 +1,12 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include "10cc.h"
 
 int local_label = 0;
+
+char* escape(char*);
 
 void gen_ref(Node* node) {
   printf("# gen_ref %s\n", node_kinds[node->kind]);
@@ -73,7 +77,7 @@ void gen(Node* node) {
     break;
   }
   case ND_STR: {
-    printf("  push offset .LC%d # \"%s\"\n", node->str_key, node->str_val);
+    printf("  push offset .LC%d # \"%s\"\n", node->str_key, escape(node->str_val));
     break;
   }
   case ND_ASSIGN: {
@@ -282,7 +286,7 @@ void gen(Node* node) {
   case ND_STRDEF: {
     printf(".data\n");
     printf(".LC%d:\n", node->str_key);
-    printf("  .string \"%s\"\n", node->str_val);
+    printf("  .string \"%s\"\n", escape(node->str_val));
     break;
   }
   case ND_STRUCT: {
@@ -370,4 +374,27 @@ void gen(Node* node) {
   }
 
   printf("# endgen %s\n", node_kinds[node->kind]);
+}
+
+char* escape(char* str) {
+  int len = strlen(str);
+  char* buf = calloc(len * 2 + 1, sizeof(char));
+  for(int i = 0, j = 0; i < len; i++, j++) {
+    if(str[i] == '\n') {
+      buf[j++] = '\\';
+      buf[j] = 'n';
+    } else if(str[i] == '\t') {
+      buf[j++] = '\\';
+      buf[j] = 't';
+    } else if(str[i] == '\"') {
+      buf[j++] = '\\';
+      buf[j] = '\"';
+    } else if(str[i] == '\\') {
+      buf[j++] = '\\';
+      buf[j] = '\\';
+    } else {
+      buf[j] = str[i];
+    }
+  }
+  return buf;
 }
