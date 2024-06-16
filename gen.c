@@ -64,6 +64,7 @@ void gen_assign(Node* lval, Node* rval) {
   } else {
     printf("  mov [rax], rdi\n");
   }
+  printf("  push rdi\n");
 }
 
 void gen(Node* node) {

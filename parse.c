@@ -134,13 +134,13 @@ Node* new_node_ident(NodeKind kind, char* loc, char* name) {
 program    = (func | extern? decl ";" | struct ";" | enum ";" | typedef ";")*
 func       = decl "(" (param ("," param)*)? ")" (block | ";")
 block      = "{" stmt* "}"
-stmt       = assign ";"
-           | decl ";"
-           | "return" expr ";"
+stmt       = "return" expr ";"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
-           | "for" "(" assign? ";" expr? ";" assign? ")" stmt
+           | "for" "(" expr? ";" expr? ";" expr? ")" stmt
            | block
+           | decl ";"
+           | expr ";"
 struc      = "struct" ident "{" (decl ";")* "}"
 enu        = "enum" ident "{" ident (, ident)* "}"
 typede     = "typedef" type ident
@@ -155,8 +155,9 @@ specifier  = "int"
            | "enum" ident
            | ident // ただしtypedefされたもののみ
 
-assign     = expr ("=" expr)?
-expr       = equality
+expr       = assign
+assign     = primary "=" assign
+           | equality
 equality   = relational ("==" relational | "!=" relational)*
 relational = add ("<" add | "<=" add | ">" add | ">=" add)*
 add        = mul ("+" mul | "-" mul)*
@@ -200,7 +201,6 @@ static Node* add();
 static Node* mul();
 static Node* unary();
 static Node* primary();
-static Node* dot(Node* node);
 static Node* arrayref(Node* node);
 static Node* call(char* name);
 
@@ -345,7 +345,7 @@ static Node* stmt() {
     Node* cond = NULL;
     Node* inc = NULL;
     if(!consume(";")) {
-      init = assign();
+      init = expr();
       expect(";");
     }
     if(!consume(";")) {
@@ -353,7 +353,7 @@ static Node* stmt() {
       expect(";");
     }
     if(!consume(")")) {
-      inc = assign();
+      inc = expr();
       expect(")");
     }
     Node* body = stmt();
@@ -372,7 +372,7 @@ static Node* stmt() {
     expect(";");
     return dec;
   }
-  Node* e = assign();
+  Node* e = expr();
   expect(";");
   return e;
 }
@@ -562,15 +562,17 @@ static Node* param() {
   ERROR_AT(token->str, "引数が不正です");
 }
 
-static Node* assign() {
-  Node* node = expr();
-  if(consume("=")) {
-    return new_node_2branches(ND_ASSIGN, token->str, node, expr());
-  }
-  return node;
+static Node* expr() {
+  return assign();
 }
 
-static Node* expr() {
+static Node* assign() {
+  Token* origin = token;
+  Node* prime = unary();
+  if(prime != NULL && consume("=")) {
+    return new_node_2branches(ND_ASSIGN, token->str, prime, expr());
+  }
+  token = origin;
   return equality();
 }
 

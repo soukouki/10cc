@@ -997,6 +997,19 @@ int char_literal() {
   assert(92, a, "a");
 }
 
+int assign_operator() {
+  section("代入演算子");
+  int a;
+  a = 1;
+  assert(1, a, "a");
+  assert(2, a = 2, "a = 2");
+  assert(2, a, "a");
+  int b;
+  assert(3, a = b = 3, "a = b = 3");
+  assert(3, a, "a");
+  assert(3, b, "b");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1042,6 +1055,7 @@ int main() {
   local_declaration_assignment();
   string_escape();
   char_literal();
+  assign_operator();
 
   if(is_fall) {
     printf("FAILED\n");
