@@ -115,6 +115,8 @@ int main(int argc, char **argv) {
     "ND_NE",
     "ND_LT",
     "ND_LE",
+    "ND_LAND",
+    "ND_LOR",
 
     "ND_SIZEOF",
     "ND_ADDR",

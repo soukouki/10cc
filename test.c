@@ -1170,6 +1170,32 @@ static int ignore_static() {
   assert(10, b, "b");
 }
 
+int and_or_operator() {
+  section("論理演算子");
+  assert(0, 0 && 0, "0 && 0");
+  assert(0, 0 && 1, "0 && 1");
+  assert(0, 1 && 0, "1 && 0");
+  assert(1, 1 && 1, "1 && 1");
+  assert(0, 0 || 0, "0 || 0");
+  assert(1, 0 || 1, "0 || 1");
+  assert(1, 1 || 0, "1 || 0");
+  assert(1, 1 || 1, "1 || 1");
+
+  int a;
+  a = 0;
+  assert(0, 0 && ++a, "0 && ++a");
+  assert(0, a, "a");
+  a = 0;
+  assert(1, 1 && ++a, "1 && ++a");
+  assert(1, a, "a");
+  a = 0;
+  assert(1, 0 || ++a, "0 || ++a");
+  assert(1, a, "a");
+  a = 0;
+  assert(1, 1 || ++a, "1 || ++a");
+  assert(0, a, "a");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1224,6 +1250,7 @@ int main() {
   void_pointer();
   ignore_const();
   ignore_static();
+  and_or_operator();
 
   if(is_fall) {
     printf("FAILED\n");

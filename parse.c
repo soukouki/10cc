@@ -150,30 +150,32 @@ specifier  = "int"
            | "enum" ident
            | ident // ただしtypedefされたもののみ
 
-expr       = assign
-assign     = primary "=" assign
-           | equality
-equality   = relational ("==" relational | "!=" relational)*
-relational = add ("<" add | "<=" add | ">" add | ">=" add)*
-add        = mul ("+" mul | "-" mul)*
-mul        = unary ("*" unary | "/" unary | "%" unary)*
-unary      = ("+" | "-" | "*" | "&")? primary
-           | "sizeof" unary
-           | "sizeof" "(" type ")"
-           | "++" unary
-           | "--" unary
-primary    = num
-           | str
-           | "(" expr ")"
-           | ident
-           | ident call
-           | primary "."  ident
-           | primary "->" ident
-           | primary "++"
-           | primary "--"
-           | primary arrayref // 多段階はパースはできるものの、コード生成は未対応
-arrayref   = "[" expr "]
-call       = "(" (expr ("," expr)*)? ")"
+expr        = assign
+assign      = primary "=" assign
+            | logical_or
+logical_or  = logical_and ("||" logical_and)*
+logical_and = equality ("&&" equality)*
+equality    = relational ("==" relational | "!=" relational)*
+relational  = add ("<" add | "<=" add | ">" add | ">=" add)*
+add         = mul ("+" mul | "-" mul)*
+mul         = unary ("*" unary | "/" unary | "%" unary)*
+unary       = ("+" | "-" | "*" | "&")? primary
+            | "sizeof" unary
+            | "sizeof" "(" type ")"
+            | "++" unary
+            | "--" unary
+primary     = num
+            | str
+            | "(" expr ")"
+            | ident
+            | ident call
+            | primary "."  ident
+            | primary "->" ident
+            | primary "++"
+            | primary "--"
+            | primary arrayref // 多段階はパースはできるものの、コード生成は未対応
+arrayref    = "[" expr "]
+call        = "(" (expr ("," expr)*)? ")"
 */
 
 Node* parse();
@@ -194,6 +196,8 @@ static Node* param();          // ND_DECLを返す
 
 static Node* assign();
 static Node* expr();
+static Node* logical_or();
+static Node* logical_and();
 static Node* equality();
 static Node* relational();
 static Node* add();
@@ -615,7 +619,31 @@ static Node* assign() {
     return new_node_2branches(ND_ASSIGN, token->str, prime, expr());
   }
   token = origin;
-  return equality();
+  return logical_or();
+}
+
+static Node* logical_or() {
+  Node* node = logical_and();
+
+  for(;;) {
+    if(consume("||")) {
+      node = new_node_2branches(ND_LOR, token->str, node, logical_and());
+    } else {
+      return node;
+    }
+  }
+}
+
+static Node* logical_and() {
+  Node* node = equality();
+
+  for(;;) {
+    if(consume("&&")) {
+      node = new_node_2branches(ND_LAND, token->str, node, equality());
+    } else {
+      return node;
+    }
+  }
 }
 
 static Node* equality() {

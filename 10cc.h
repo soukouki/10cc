@@ -83,6 +83,9 @@ typedef enum {
   ND_NE,
   ND_LT,
   ND_LE,     // GT, GEはLT, LEを使って表現できる
+  // 論理演算子
+  ND_LAND,
+  ND_LOR,
   // 単項演算子(lhsを持つ)
   ND_SIZEOF, // sizeof演算子, lhsを持つ
   // ポインタ
@@ -160,7 +163,7 @@ struct Node {
   Var**  args_var;       // 関数の定義で使う(意味解析->コード生成)
   int    offset;         // 関数の定義で使う(意味解析->コード生成)
   char*  goto_label;     // break, continue, case, defaultで使う(意味解析->コード生成)
-  int    local_label;    // if, while, forで使う(意味解析->コード生成)
+  int    local_label;    // if, while, for, &&, ||で使う(意味解析->コード生成)
   StructMember* struct_member; // ND_DOTの場合に使う
 };
 

@@ -107,6 +107,40 @@ void gen(Node* node) {
     gen_ref_push(node);
     break;
   }
+  case ND_LAND: {
+    int land_label = node->local_label;
+    gen(node->lhs);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je  .Lfalse%d\n", land_label);
+    gen(node->rhs);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je  .Lfalse%d\n", land_label);
+    printf("  push 1\n");
+    printf("  jmp .Lend%d\n", land_label);
+    printf(".Lfalse%d:\n", land_label);
+    printf("  push 0\n");
+    printf(".Lend%d:\n", land_label);
+    break;
+  }
+  case ND_LOR: {
+    int lor_label = node->local_label;
+    gen(node->lhs);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  jne .Ltrue%d\n", lor_label);
+    gen(node->rhs);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  jne .Ltrue%d\n", lor_label);
+    printf("  push 0\n");
+    printf("  jmp .Lend%d\n", lor_label);
+    printf(".Ltrue%d:\n", lor_label);
+    printf("  push 1\n");
+    printf(".Lend%d:\n", lor_label);
+    break;
+  }
   case ND_RETURN: {
     gen(node->lhs);
     printf("  pop rax\n");

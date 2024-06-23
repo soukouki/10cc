@@ -373,6 +373,32 @@ static NodeAndType* analyze(Node* node) {
     }
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの乗除算はできません", type_kinds[lkind], type_kinds[rkind]);
   }
+  case ND_LAND: {
+    node->local_label = local_label++;
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    NodeAndType* rhs = analyze(node->rhs);
+    TypeKind rkind = rhs->type->kind;
+    node->rhs = rhs->node;
+    if(lkind == TY_INT && rkind == TY_INT) {
+      return return_expression(node, lhs->type);
+    }
+    error_at2(__FILE__, __LINE__, node->loc, "%sと%sの論理積はできません", type_kinds[lkind], type_kinds[rkind]);
+  }
+  case ND_LOR: {
+    node->local_label = local_label++;
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    NodeAndType* rhs = analyze(node->rhs);
+    TypeKind rkind = rhs->type->kind;
+    node->rhs = rhs->node;
+    if(lkind == TY_INT && rkind == TY_INT) {
+      return return_expression(node, lhs->type);
+    }
+    error_at2(__FILE__, __LINE__, node->loc, "%sと%sの論理和はできません", type_kinds[lkind], type_kinds[rkind]);
+  }
   case ND_ASSIGN: {
     NodeAndType* lhs = analyze(node->lhs);
     node->lhs = lhs->node;

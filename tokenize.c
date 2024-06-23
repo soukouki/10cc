@@ -65,26 +65,18 @@ Token* tokenize(char *p, char* file) {
     if(
       strncmp(p, ">=", 2) == 0 || strncmp(p, "<=", 2) == 0 ||
       strncmp(p, "==", 2) == 0 || strncmp(p, "!=", 2) == 0 ||
-      strncmp(p, "->", 2) == 0
+      strncmp(p, "->", 2) == 0 ||
+      strncmp(p, "++", 2) == 0 || strncmp(p, "--", 2) == 0 ||
+      strncmp(p, "&&", 2) == 0 || strncmp(p, "||", 2) == 0
     ) {
       cur = new_token(TK_SYMBOL, cur, p, 2, file, line);
       p += 2;
       continue;
     }
 
-    if(*p == '+' || *p == '-') {
-      if((*(p + 1) == '+' || *(p + 1) == '-') && *(p + 1) == *p) {
-        cur = new_token(TK_SYMBOL, cur, p, 2, file, line);
-        p += 2;
-      } else {
-        cur = new_token(TK_SYMBOL, cur, p++, 1, file, line);
-      }
-      continue;
-    }
-
     if(
       *p == '(' || *p == ')' || *p == '{' || *p == '}' || *p == '[' || *p == ']' ||
-      *p == '*' || *p == '/' || *p == '%' ||
+      *p == '*' || *p == '/' || *p == '%' || *p == '+' || *p == '-' ||
       *p == '>' || *p == '<' || *p == '=' ||
       *p == ';' || *p == ',' || *p == '.' || *p == '&' || *p == ':'
     ) {
