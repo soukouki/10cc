@@ -159,7 +159,7 @@ equality    = relational ("==" relational | "!=" relational)*
 relational  = add ("<" add | "<=" add | ">" add | ">=" add)*
 add         = mul ("+" mul | "-" mul)*
 mul         = unary ("*" unary | "/" unary | "%" unary)*
-unary       = ("+" | "-" | "*" | "&")? primary
+unary       = ("+" | "-" | "*" | "&" | "!")? primary
             | "sizeof" unary
             | "sizeof" "(" type ")"
             | "++" unary
@@ -745,6 +745,9 @@ static Node* unary() {
   }
   if(consume("&")) {
     return new_node_1branch(ND_ADDR, token->str, unary());
+  }
+  if(consume("!")) {
+    return new_node_1branch(ND_NOT, token->str, unary());
   }
   if(consume("sizeof")) {
     Token* origin = token;

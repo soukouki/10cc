@@ -125,6 +125,7 @@ int main(int argc, char **argv) {
     "ND_ASSIGN_MOD",
 
     "ND_SIZEOF",
+    "ND_NOT",
     "ND_ADDR",
     "ND_DEREF",
     "ND_DOT",

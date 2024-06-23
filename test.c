@@ -1254,6 +1254,14 @@ void compound_assignment() {
   // ビット演算・シフト演算は未対応
 }
 
+void unary_not() {
+  section("単項not演算子");
+  assert(1, !0, "!0");
+  assert(0, !1, "!1");
+  assert(1, !!1, "!!1");
+  assert(0, !!0, "!!0");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1312,6 +1320,7 @@ int main() {
   empty_returm();
   for_decl();
   compound_assignment();
+  unary_not();
 
   if(is_fall) {
     printf("FAILED\n");

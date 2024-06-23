@@ -489,6 +489,15 @@ static NodeAndType* analyze(Node* node) {
     Node* num = new_node_num(node->loc, size_of(nat->type));
     return return_expression(num, int_type());
   }
+  case ND_NOT: {
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    if(lkind != TY_INT) {
+      error_at1(__FILE__, __LINE__, node->loc, "intでない%sを否定しようとしました", type_kinds[lkind]);
+    }
+    return return_expression(node, int_type());
+  }
   case ND_DOT: {
     NodeAndType* lhs = analyze(node->lhs);
     TypeKind lkind = lhs->type->kind;

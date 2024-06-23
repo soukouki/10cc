@@ -97,6 +97,7 @@ typedef enum {
   ND_ASSIGN_MOD, // 剰余代入, lhs, rhsを持つ
   // 単項演算子(lhsを持つ)
   ND_SIZEOF, // sizeof演算子, lhsを持つ
+  ND_NOT,    // 単項not, lhsを持つ
   // ポインタ
   ND_ADDR,   // 単項&, lhsを持つ
   ND_DEREF,  // 単項*, lhsを持つ
