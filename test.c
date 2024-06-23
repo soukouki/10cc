@@ -1136,6 +1136,7 @@ int switch_case_enum() {
 }
 
 int void_pointer() {
+  section("voidポインタ");
   void* a;
   int b;
   a = &b;
@@ -1151,6 +1152,14 @@ int void_pointer() {
   e = a;
   assert(20, e->a, "e->a");
   assert(30, e->b, "e->b");
+}
+
+int ignore_const() {
+  section("const修飾子はすべて無視する");
+  const int a = 10;
+  int b;
+  b = a;
+  assert(10, b, "b");
 }
 
 int main() {
@@ -1205,6 +1214,7 @@ int main() {
   switch_case();
   switch_case_enum();
   void_pointer();
+  ignore_const();
 
   if(is_fall) {
     printf("FAILED\n");

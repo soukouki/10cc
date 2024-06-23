@@ -237,6 +237,10 @@ Token* tokenize(char *p, char* file) {
         cur = new_token(TK_SYMBOL, cur, start, 7, file, line);
         continue;
       }
+      if(p - start == 5 && !memcmp(start, "const", 5)) {
+        // constはすべて無視！！！www
+        continue;
+      }
       cur = new_token(TK_IDENT, cur, start, p - start, file, line);
       continue;
     }
