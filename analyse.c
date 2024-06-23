@@ -373,6 +373,39 @@ static NodeAndType* analyze(Node* node) {
     }
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの乗除算はできません", type_kinds[lkind], type_kinds[rkind]);
   }
+  case ND_MOD: {
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    NodeAndType* rhs = analyze(node->rhs);
+    TypeKind rkind = rhs->type->kind;
+    node->rhs = rhs->node;
+    if(lkind == TY_INT && rkind == TY_INT) {
+      return return_expression(node, lhs->type);
+    }
+    if(lkind == TY_CHAR && rkind == TY_CHAR) {
+      return return_expression(node, lhs->type);
+    }
+    error_at2(__FILE__, __LINE__, node->loc, "%sと%sの剰余算はできません", type_kinds[lkind], type_kinds[rkind]);
+  }
+  case ND_EQ:
+  case ND_NE:
+  case ND_LT:
+  case ND_LE: {
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    NodeAndType* rhs = analyze(node->rhs);
+    TypeKind rkind = rhs->type->kind;
+    node->rhs = rhs->node;
+    if(lkind == TY_INT && rkind == TY_INT) {
+      return return_expression(node, int_type());
+    }
+    if(lkind == TY_CHAR && rkind == TY_CHAR) {
+      return return_expression(node, int_type());
+    }
+    error_at2(__FILE__, __LINE__, node->loc, "%sと%sの比較はできません", type_kinds[lkind], type_kinds[rkind]);
+  }
   case ND_LAND: {
     node->local_label = local_label++;
     NodeAndType* lhs = analyze(node->lhs);
