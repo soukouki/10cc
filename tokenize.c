@@ -86,7 +86,7 @@ Token* tokenize(char *p, char* file) {
       *p == '(' || *p == ')' || *p == '{' || *p == '}' || *p == '[' || *p == ']' ||
       *p == '*' || *p == '/' || *p == '%' ||
       *p == '>' || *p == '<' || *p == '=' ||
-      *p == ';' || *p == ',' || *p == '.' || *p == '&'
+      *p == ';' || *p == ',' || *p == '.' || *p == '&' || *p == ':'
     ) {
       cur = new_token(TK_SYMBOL, cur, p++, 1, file, line);
       continue;
@@ -219,6 +219,18 @@ Token* tokenize(char *p, char* file) {
       }
       if(p - start == 8 && !memcmp(start, "continue", 8)) {
         cur = new_token(TK_SYMBOL, cur, start, 8, file, line);
+        continue;
+      }
+      if(p - start == 6 && !memcmp(start, "switch", 6)) {
+        cur = new_token(TK_SYMBOL, cur, start, 6, file, line);
+        continue;
+      }
+      if(p - start == 4 && !memcmp(start, "case", 4)) {
+        cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
+        continue;
+      }
+      if(p - start == 7 && !memcmp(start, "default", 7)) {
+        cur = new_token(TK_SYMBOL, cur, start, 7, file, line);
         continue;
       }
       cur = new_token(TK_IDENT, cur, start, p - start, file, line);

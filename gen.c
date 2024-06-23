@@ -161,6 +161,24 @@ void gen(Node* node) {
     printf(".Lend%d:\n", for_label);
     break;
   }
+  case ND_SWITCH: {
+    int switch_label = node->local_label;
+    gen(node->cond);
+    printf("  pop rax\n");
+    char** keys = (char**)map_keys(node->case_map);
+    for(int i = 0; keys[i]; i++) {\
+      printf("  cmp rax, %d\n", *(int*)map_get(node->case_map, keys[i]));
+      printf("  je %s\n", keys[i]);
+    }
+    if(node->has_default) {
+      printf("  jmp .Ldefault%d\n", switch_label);
+    } else {
+      printf("  jmp .Lend%d\n", switch_label);
+    }
+    gen(node->body);
+    printf(".Lend%d:\n", switch_label);
+    break;
+  }
   case ND_BLOCK: {
     for(int i = 0; node->stmts[i]; i++) {
       gen(node->stmts[i]);
@@ -319,6 +337,16 @@ void gen(Node* node) {
   }
   case ND_CONTINUE: {
     printf("  jmp %s\n", node->goto_label);
+    break;
+  }
+  case ND_CASE: {
+    printf("%s:\n", node->goto_label);
+    gen(node->lhs);
+    break;
+  }
+  case ND_DEFAULT: {
+    printf("%s:\n", node->goto_label);
+    gen(node->lhs);
     break;
   }
   default: {

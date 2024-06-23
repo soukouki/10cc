@@ -133,6 +133,7 @@ int main(int argc, char **argv) {
     "ND_IF",
     "ND_WHILE",
     "ND_FOR",
+    "ND_SWITCH",
     "ND_BLOCK",
     "ND_FUNCDEF",
     "ND_FUNCPROT",
@@ -141,6 +142,8 @@ int main(int argc, char **argv) {
     "ND_ENUM",
     "ND_BREAK",
     "ND_CONTINUE",
+    "ND_CASE",
+    "ND_DEFAULT",
 
     "ND_DECL",
     "ND_GDECL",

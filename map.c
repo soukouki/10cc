@@ -96,3 +96,14 @@ void** map_values(Map* map) {
   all[map->size] = NULL;
   return all;
 }
+
+char** map_keys(Map* map) {
+  char** all = malloc(sizeof(char*) * (map->size + 1));
+  MapEntry* entry = map->first;
+  for (int i = 0; i < map->size; i++) {
+    all[i] = entry->key;
+    entry = entry->next;
+  }
+  all[map->size] = NULL;
+  return all;
+}

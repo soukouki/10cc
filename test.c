@@ -1052,6 +1052,71 @@ int break_and_continue() {
     if(i == 20) break;
   }
   assert(20, i, "continue");
+  int j;
+  for(i = 0; i < 10; i = i + 1) {
+    for(j = 0; j < 10; j = j + 1) {
+      if(j == 2) break;
+    }
+    if(i == 4) break;
+  }
+  assert(4, i, "break-2-i");
+  assert(2, j, "break-2-j");
+}
+
+int switch_case() {
+  section("switch, case");
+  int a;
+  a = 1;
+  switch(a) {
+    case 1:
+      a = 10;
+      break;
+    case 2:
+      a = 20;
+      break;
+  }
+  assert(10, a, "normal");
+  a = 2;
+  switch(a) {
+    case 2:
+      a = 20;
+      break;
+    default:
+      a = 30;
+      break;
+  }
+  assert(20, a, "default");
+  a = 3;
+  switch(a) {
+    case 3:
+      a = 30;
+    case 4:
+      a = 40;
+      break;
+  }
+  assert(40, a, "non-break");
+  a = 4;
+  switch(a) {
+    case 4: {
+      while(1) {
+        a = a + 1;
+        if(a == 10) break;
+      }
+    }
+  }
+  assert(10, a, "switch-while-break");
+  a = 5;
+  int b = 0;
+  while(1) {
+    a = a + 1;
+    switch(a) {
+      case 10:
+        b = 10;
+        break;
+    }
+    if(b == 10) break;
+  }
+  assert(10, b, "while-switch-break");
 }
 
 int main() {
@@ -1103,6 +1168,7 @@ int main() {
   increment_and_decrement();
   file_and_line();
   break_and_continue();
+  switch_case();
 
   if(is_fall) {
     printf("FAILED\n");

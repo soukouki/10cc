@@ -138,9 +138,12 @@ stmt       = "return" expr ";"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+           | "switch" "(" expr ")" stmt
            | "{" block
            | "break" ";"
            | "continue" ";"
+           | "case" num ":" stmt
+           | "default" ":" stmt
            | decl ";"
            | expr ";"
 struc      = "struct" ident "{" (decl ";")* "}"
@@ -370,6 +373,16 @@ static Node* stmt() {
     f->body = body;
     return f;
   }
+  if(consume("switch")) {
+    expect("(");
+    Node* cond = expr();
+    expect(")");
+    Node* body = stmt();
+    Node* s = new_node(ND_SWITCH, token->str);
+    s->cond = cond;
+    s->body = body;
+    return s;
+  }
   if(consume("{")) {
     return block();
   }
@@ -380,6 +393,17 @@ static Node* stmt() {
   if(consume("continue")) {
     expect(";");
     return new_node(ND_CONTINUE, token->str);
+  }
+  if(consume("case")) {
+    int val = expect_number();
+    expect(":");
+    Node* c = new_node_1branch(ND_CASE, token->str, stmt());
+    c->int_val = val;
+    return c;
+  }
+  if(consume("default")) {
+    expect(":");
+    return new_node_1branch(ND_DEFAULT, token->str, stmt());
   }
   Node* dec = decl();
   if(dec != NULL) {

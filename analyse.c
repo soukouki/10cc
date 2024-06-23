@@ -24,9 +24,14 @@ int local_offset;
 
 int local_label = 0;
 
+Map* case_map;
+
 // NULLチェックをしてから使うこと
 char* break_label;
 char* continue_label;
+char* case_label; // 文字列中に%dを含み、その%dをcaseのint_valで置き換える
+char* default_label;
+bool  has_default;
 
 static Var* find_var(char* name) {
   return map_get(local_map, name);
@@ -166,8 +171,6 @@ static NodeAndType* analyze(Node* node) {
     constant_map = map_new();
     func_map = map_new();
     global_map = map_new();
-    break_label = NULL;
-    continue_label = NULL;
     for(int i = 0; node->funcs[i]; i++) {
       node->funcs[i] = analyze_semantics(node->funcs[i]);
     }
@@ -177,6 +180,12 @@ static NodeAndType* analyze(Node* node) {
   case ND_FUNCDEF: {
     local_map = map_new();
     local_offset = 0;
+    Map* case_map_save = case_map;
+    case_map = map_new();
+    break_label = NULL;
+    continue_label = NULL;
+    case_label = NULL;
+    has_default = false;
     
     printf("#   function %s\n", node->name);
 
@@ -194,6 +203,7 @@ static NodeAndType* analyze(Node* node) {
     node->body = analyze_semantics(node->body);
     node->offset = local_offset;
 
+    case_map = case_map_save;
     return return_statement(node);
   }
   case ND_FUNCPROT: {
@@ -433,19 +443,30 @@ static NodeAndType* analyze(Node* node) {
   }
   case ND_WHILE: {
     node->local_label = local_label++;
+
+    char* break_label_save = break_label;
     break_label = calloc(1, sizeof(char) * 12);
     sprintf(break_label, ".Lend%d", node->local_label);
+
+    char* continue_label_save = continue_label;
     continue_label = calloc(1, sizeof(char) * 12);
     sprintf(continue_label, ".Lbegin%d", node->local_label);
 
     node->cond = analyze_semantics(node->cond);
     node->body = analyze_semantics(node->body);
+
+    break_label = break_label_save;
+    continue_label = continue_label_save;
     return return_statement(node);
   }
   case ND_FOR: {
     node->local_label = local_label++;
+    
+    char* break_label_save = break_label;
     break_label = calloc(1, sizeof(char) * 12);
     sprintf(break_label, ".Lend%d", node->local_label);
+
+    char* continue_label_save = continue_label;
     continue_label = calloc(1, sizeof(char) * 12);
     sprintf(continue_label, ".Lbegin%d", node->local_label);
 
@@ -459,6 +480,41 @@ static NodeAndType* analyze(Node* node) {
       node->cond = analyze_semantics(node->cond);
     }
     node->body = analyze_semantics(node->body);
+
+    break_label = break_label_save;
+    continue_label = continue_label_save;
+    return return_statement(node);
+  }
+  case ND_SWITCH: {
+    node->local_label = local_label++;
+
+    char* break_label_save = break_label;
+    break_label = calloc(1, sizeof(char) * 12);
+    sprintf(break_label, ".Lend%d", node->local_label);
+
+    char* continue_label_save = continue_label;
+    case_label = calloc(1, sizeof(char) * 12);
+    sprintf(case_label, ".Lcase%d_%%d", node->local_label);
+
+    char* default_label_save = default_label;
+    default_label = calloc(1, sizeof(char) * 12);
+    sprintf(default_label, ".Ldefault%d", node->local_label);
+
+    bool has_default_save = has_default;
+
+    Map* case_map_save = case_map;
+    case_map = map_new();
+
+    node->cond = analyze_semantics(node->cond);
+    node->body = analyze_semantics(node->body);
+    node->case_map = case_map;
+    node->has_default = has_default;
+
+    break_label = break_label_save;
+    continue_label = continue_label_save;
+    default_label = default_label_save;
+    case_map = case_map_save;
+    has_default = has_default_save;
     return return_statement(node);
   }
   case ND_BREAK: {
@@ -473,6 +529,31 @@ static NodeAndType* analyze(Node* node) {
       error_at0(__FILE__, __LINE__, node->loc, "continueはループ内でのみ使えます");
     }
     node->goto_label = continue_label;
+    return return_statement(node);
+  }
+  case ND_CASE: {
+    if(!case_label) {
+      error_at0(__FILE__, __LINE__, node->loc, "caseはswitch内でのみ使えます");
+    }
+    node->goto_label = calloc(1, sizeof(char) * 12);
+    sprintf(node->goto_label, case_label, node->int_val);
+    int* case_val = calloc(1, sizeof(int));
+    *case_val = node->int_val;
+    map_put(case_map, node->goto_label, case_val);
+
+    node->lhs = analyze_semantics(node->lhs);
+
+    return return_statement(node);
+  }
+  case ND_DEFAULT: {
+    if(!default_label) {
+      error_at0(__FILE__, __LINE__, node->loc, "defaultはswitch内でのみ使えます");
+    }
+    node->goto_label = default_label;
+
+    node->lhs = analyze_semantics(node->lhs);
+    has_default = true;
+
     return return_statement(node);
   }
   default: {

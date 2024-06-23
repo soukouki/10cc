@@ -104,6 +104,7 @@ typedef enum {
   ND_IF,       // if文, cond, then, elsを持つ
   ND_WHILE,    // while文, cond, bodyを持つ
   ND_FOR,      // for文, init, cond, inc, bodyを持つ
+  ND_SWITCH,   // switch文, cond, bodyを持つ
   ND_BLOCK,    // ブロック, stmtsを持つ
   ND_FUNCDEF,  // 関数定義, name, args_name, args_type, ret_type, bodyを持つ
   ND_FUNCPROT, // 関数プロトタイプ, name, args_name, args_type, ret_typeを持つ
@@ -112,6 +113,8 @@ typedef enum {
   ND_ENUM,     // 列挙型, name, enum_membersを持つ
   ND_BREAK,    // break, goto_labelを持つ
   ND_CONTINUE, // continue, goto_labelを持つ
+  ND_CASE,     // case, int_val, goto_labelを持つ
+  ND_DEFAULT,  // default, goto_labelを持つ
 
   ND_DECL,         // 宣言, name, type, var, lhs, rhs(Nullable)を持つ 変数定義や関数の仮引数で使う
   ND_GDECL,        // グローバル変数宣言, name, type, var, lhs(Nullable)を持つ
@@ -125,24 +128,28 @@ typedef enum {
 
 typedef struct Node Node;
 
+typedef struct ValueAndLabel ValueAndLabel;
+
 struct Node {
   NodeKind kind;
   char*  loc;            // エラー表示用
   Node*  init;           // forで使う
   Node*  inc;            // forで使う
-  Node*  cond;           // if, while, forで使う
+  Node*  cond;           // if, while, for, switchで使う
   Node*  then;           // ifで使う
   Node*  els;            // ifで使う
-  Node*  body;           // while, forで使う
+  Node*  body;           // while, for, switchで使う
+  Map*   case_map;       // switchで使う ラベルをキーにして、caseの値を値にもつ
+  bool   has_default;    // switchで使う
   Node** stmts;          // ブロックで使う
   Node** args_call;      // 関数呼び出しで使う
   Node** funcs;          // プログラムで使う
   Node** strings;        // プログラムで使う
   Node** struct_members; // 構造体のメンバ, 中身はND_DECL
   Node** enum_members;   // 列挙型のメンバ, 中身はND_IDENT
-  Node*  lhs;            // 2項演算子, 代入(型), return, 単項&, 単項*, ポインタ型で使う
+  Node*  lhs;            // 2項演算子, 代入(型), return, 単項&, 単項*, ポインタ型, case, defaultで使う
   Node*  rhs;            // 2項演算子, 代入(値)で使う
-  int    int_val;        // 数値リテラルの場合に使う
+  int    int_val;        // 数値リテラル, caseで使う
   char*  str_val;        // 文字列リテラルの場合に使う
   int    str_key;        // 文字列リテラルの場合に使う
   char*  name;           // 関数の定義, 関数呼び出し, 変数の参照の場合に使う
@@ -151,7 +158,7 @@ struct Node {
   Node** args_node;      // 関数の定義で使う(パース->意味解析)
   Var**  args_var;       // 関数の定義で使う(意味解析->コード生成)
   int    offset;         // 関数の定義で使う(意味解析->コード生成)
-  char*  goto_label;     // break, continueで使う(意味解析->コード生成)
+  char*  goto_label;     // break, continue, case, defaultで使う(意味解析->コード生成)
   int    local_label;    // if, while, forで使う(意味解析->コード生成)
   StructMember* struct_member; // ND_DOTの場合に使う
 };
