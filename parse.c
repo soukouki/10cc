@@ -131,7 +131,7 @@ stmt       = "return" expr ";"
            | "{" block
            | "break" ";"
            | "continue" ";"
-           | "case" num ":" stmt
+           | "case" (num | ident) ":" stmt // identは列挙型のメンバ名のみ
            | "default" ":" stmt
            | decl ";"
            | expr ";"
@@ -384,11 +384,19 @@ static Node* stmt() {
     return new_node(ND_CONTINUE, token->str);
   }
   if(consume("case")) {
-    int val = expect_number();
-    expect(":");
-    Node* c = new_node_1branch(ND_CASE, token->str, stmt());
-    c->int_val = val;
-    return c;
+    if(token->kind == TK_NUM) {
+      int val = expect_number();
+      expect(":");
+      Node* c = new_node_1branch(ND_CASE, token->str, stmt());
+      c->int_val = val;
+      return c;
+    } else if(token->kind == TK_IDENT) {
+      char* ident = consume_ident();
+      expect(":");
+      Node* c = new_node_1branch(ND_CASE, token->str, stmt());
+      c->name = ident;
+      return c;
+    }
   }
   if(consume("default")) {
     expect(":");

@@ -1118,6 +1118,21 @@ int switch_case() {
   }
   assert(10, b, "while-switch-break");
 }
+int switch_case_enum() {
+  section("switch, case(enum)");
+  enum enum_definition_sample a;
+  a = ENUM_DEFINITION_SAMPLE_A;
+  int b;
+  switch(a) {
+    case ENUM_DEFINITION_SAMPLE_A:
+      b = 10;
+      break;
+    case ENUM_DEFINITION_SAMPLE_B:
+      b = 20;
+      break;
+  }
+  assert(10, b, "normal");
+}
 
 int main() {
   return_value();
@@ -1169,6 +1184,7 @@ int main() {
   file_and_line();
   break_and_continue();
   switch_case();
+  switch_case_enum();
 
   if(is_fall) {
     printf("FAILED\n");

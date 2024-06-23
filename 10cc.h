@@ -152,7 +152,7 @@ struct Node {
   int    int_val;        // 数値リテラル, caseで使う
   char*  str_val;        // 文字列リテラルの場合に使う
   int    str_key;        // 文字列リテラルの場合に使う
-  char*  name;           // 関数の定義, 関数呼び出し, 変数の参照の場合に使う
+  char*  name;           // 関数の定義, 関数呼び出し, 変数の参照, caseで使う
   Var*   var;            // ND_LVARの場合に使う
   Type*  type;           // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECLで使う
   Node** args_node;      // 関数の定義で使う(パース->意味解析)

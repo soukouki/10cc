@@ -24,6 +24,7 @@ int local_offset;
 
 int local_label = 0;
 
+// Map<name, *int>
 Map* case_map;
 
 // NULLチェックをしてから使うこと
@@ -536,10 +537,16 @@ static NodeAndType* analyze(Node* node) {
       error_at0(__FILE__, __LINE__, node->loc, "caseはswitch内でのみ使えます");
     }
     node->goto_label = calloc(1, sizeof(char) * 12);
-    sprintf(node->goto_label, case_label, node->int_val);
-    int* case_val = calloc(1, sizeof(int));
-    *case_val = node->int_val;
-    map_put(case_map, node->goto_label, case_val);
+    int case_val;
+    if(node->name) {
+      case_val = *(int*)map_get(constant_map, node->name);
+    } else {
+      case_val = node->int_val;
+    }
+    sprintf(node->goto_label, case_label, case_val);
+    int* case_val_pointer = calloc(1, sizeof(int));
+    *case_val_pointer = case_val;
+    map_put(case_map, node->goto_label, case_val_pointer);
 
     node->lhs = analyze_semantics(node->lhs);
 
