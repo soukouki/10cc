@@ -1201,6 +1201,16 @@ void empty_returm() {
   return;
 }
 
+void for_decl() {
+  section("for文の初期化に宣言を入れる");
+  for(int i = 0; i < 10; i = i + 1) {
+    if(i == 5) {
+      assert(5, i, "for_decl");
+      return i;
+    }
+  }
+}
+
 int main() {
   return_value();
   four_arithmetic();

@@ -126,7 +126,7 @@ block      = stmt* "}"
 stmt       = "return" expr? ";"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
-           | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+           | "for" "(" (decl | expr? ";") expr? ";" expr? ")" stmt
            | "switch" "(" expr ")" stmt
            | "{" block
            | "break" ";"
@@ -352,7 +352,11 @@ static Node* stmt() {
     Node* cond = NULL;
     Node* inc = NULL;
     if(!consume(";")) {
-      init = expr();
+      // decl | expr ";" という構文になっていて、先にdeclを試して、失敗したらバックトラックしてexprを試す
+      init = decl();
+      if(init == NULL) {
+        init = expr();
+      }
       expect(";");
     }
     if(!consume(";")) {
