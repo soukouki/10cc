@@ -404,6 +404,15 @@ static NodeAndType* analyze(Node* node) {
     if(lkind == TY_CHAR && rkind == TY_CHAR) {
       return return_expression(node, int_type());
     }
+    if(lkind == TY_PTR && rkind == TY_PTR) {
+      return return_expression(node, int_type());
+    }
+    if(lkind == TY_PTR && rkind == TY_INT) {
+      return return_expression(node, int_type());
+    }
+    if(lkind == TY_INT && rkind == TY_PTR) {
+      return return_expression(node, int_type());
+    }
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの比較はできません", type_kinds[lkind], type_kinds[rkind]);
   }
   case ND_LAND: {
@@ -439,6 +448,22 @@ static NodeAndType* analyze(Node* node) {
     node->rhs = rhs->node;
     // 型チェックはとりあえず置いとく
     return return_expression(node, lhs->type);
+  }
+  case ND_ASSIGN_ADD:
+  case ND_ASSIGN_SUB:
+  case ND_ASSIGN_MUL:
+  case ND_ASSIGN_DIV:
+  case ND_ASSIGN_MOD: {
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    NodeAndType* rhs = analyze(node->rhs);
+    TypeKind rkind = rhs->type->kind;
+    node->rhs = rhs->node;
+    if(lkind == TY_INT && rkind == TY_INT) {
+      return return_expression(node, lhs->type);
+    }
+    error_at2(__FILE__, __LINE__, node->loc, "%sと%sの複合代入演算はできません", type_kinds[lkind], type_kinds[rkind]);
   }
   case ND_DEREF: {
     NodeAndType* lhs = analyze(node->lhs);

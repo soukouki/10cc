@@ -79,11 +79,6 @@ void gen(Node* node) {
     printf("  push offset .LC%d # \"%s\"\n", node->str_key, escape(node->str_val));
     break;
   }
-  case ND_ASSIGN: {
-    printf("# ND_ASSIGN %s %s\n", node_kinds[node->lhs->kind], node_kinds[node->rhs->kind]);
-    gen_assign(node->lhs, node->rhs);
-    break;
-  }
   case ND_ADDR: {
     gen_ref(node->lhs);
     break;
@@ -140,6 +135,47 @@ void gen(Node* node) {
     printf("  push 1\n");
     printf(".Lend%d:\n", lor_label);
     break;
+  }
+  case ND_ASSIGN: {
+    printf("# ND_ASSIGN %s %s\n", node_kinds[node->lhs->kind], node_kinds[node->rhs->kind]);
+    gen_assign(node->lhs, node->rhs);
+    break;
+  }
+  case ND_ASSIGN_ADD: {
+    gen_ref(node->lhs);
+    gen(node->rhs);
+    printf("  pop rdi\n");
+    printf("  pop rax\n");
+    printf("  add [rax], rdi\n");
+    printf("  mov rdi, [rax]\n");
+    printf("  push rdi\n");
+    break;
+  }
+  case ND_ASSIGN_SUB: {
+    gen_ref(node->lhs);
+    gen(node->rhs);
+    printf("  pop rdi\n");
+    printf("  pop rax\n");
+    printf("  sub [rax], rdi\n");
+    printf("  mov rdi, [rax]\n");
+    printf("  push rdi\n");
+    break;
+  }
+  case ND_ASSIGN_MUL: {
+    gen_ref(node->lhs);
+    gen(node->rhs);
+    printf("  pop rdi\n");
+    printf("  pop rax\n");
+    printf("  imul [rax], rdi\n");
+    printf("  mov rdi, [rax]\n");
+    printf("  push rdi\n");
+    break;
+  }
+  case ND_ASSIGN_DIV: {
+    error0(__FILE__, __LINE__, "未実装");
+  }
+  case ND_ASSIGN_MOD: {
+    error0(__FILE__, __LINE__, "未実装");
   }
   case ND_RETURN: {
     gen(node->lhs);

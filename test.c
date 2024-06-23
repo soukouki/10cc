@@ -1211,6 +1211,38 @@ void for_decl() {
   }
 }
 
+void compound_assignment() {
+  section("複合代入演算子");
+  int a;
+  a = 1;
+  a += 2;
+  assert(3, a, "a += 2");
+  a -= 2;
+  assert(1, a, "a -= 2");
+  // 一度しか評価されていないことを確認する
+  int b[4];
+  b[0] = 1;
+  b[1] = 2;
+  b[2] = 3;
+  b[3] = 4;
+  int i;
+  i = 1;
+  b[i++] += 10;
+  assert(12, b[1], "b[1]");
+  assert(2, i, "i");
+  i = 1;
+  b[++i] += 10;
+  assert(13, b[2], "b[2]");
+  assert(2, i, "i");
+  i = 1;
+  b[i--] -= 10;
+  assert(2, b[1], "b[1]");
+  assert(0, i, "i");
+
+  // 掛け算・割り算・剰余演算は未対応
+  // ビット演算・シフト演算は未対応
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1267,6 +1299,8 @@ int main() {
   ignore_static();
   and_or_operator();
   empty_returm();
+  for_decl();
+  compound_assignment();
 
   if(is_fall) {
     printf("FAILED\n");

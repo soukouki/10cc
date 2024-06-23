@@ -151,7 +151,7 @@ specifier  = "int"
            | ident // ただしtypedefされたもののみ
 
 expr        = assign
-assign      = primary "=" assign
+assign      = primary ("=" | "+=" | "-=" | "*=" | "/=" | "%=") assign
             | logical_or
 logical_or  = logical_and ("||" logical_and)*
 logical_and = equality ("&&" equality)*
@@ -623,8 +623,25 @@ static Node* expr() {
 static Node* assign() {
   Token* origin = token;
   Node* prime = unary();
-  if(prime != NULL && consume("=")) {
-    return new_node_2branches(ND_ASSIGN, token->str, prime, expr());
+  if(prime != NULL) {
+    if(consume("=")) {
+      return new_node_2branches(ND_ASSIGN, token->str, prime, expr());
+    }
+    if(consume("+=")) {
+      return new_node_2branches(ND_ASSIGN_ADD, token->str, prime, expr());
+    }
+    if(consume("-=")) {
+      return new_node_2branches(ND_ASSIGN_SUB, token->str, prime, expr());
+    }
+    if(consume("*=")) {
+      return new_node_2branches(ND_ASSIGN_MUL, token->str, prime, expr());
+    }
+    if(consume("/=")) {
+      return new_node_2branches(ND_ASSIGN_DIV, token->str, prime, expr());
+    }
+    if(consume("%=")) {
+      return new_node_2branches(ND_ASSIGN_MOD, token->str, prime, expr());
+    }
   }
   token = origin;
   return logical_or();
@@ -743,6 +760,7 @@ static Node* unary() {
   }
   if(consume("++")) {
     // ++a は (a = a + 1) として処理する
+    // TODO: aに副作用があるとバグになる。後で直す
     Node* node = unary();
     return new_node_2branches(ND_ASSIGN, token->str, node, new_node_2branches(ND_ADD, token->str, node, new_node_num(token->str, 1)));
   }
@@ -798,6 +816,7 @@ static Node* primary() {
       prim = arrayref(prim);
     } else if(consume("++")) {
       // a++ は ( (a = a + 1) - 1) として処理する
+      // TODO: aに副作用があるとバグになる。後で直す
       Node* node = prim;
       Node* one = new_node_num(token->str, 1);
       prim = new_node_2branches(ND_SUB, token->str, new_node_2branches(ND_ASSIGN, token->str, node, new_node_2branches(ND_ADD, token->str, node, one)), one);

@@ -28,6 +28,7 @@ struct Token {
   int line;
 };
 
+// ここを書き換えたときには、main.cのtype_kindsも書き換えること！
 typedef enum {
   TY_CHAR,
   TY_INT,
@@ -71,6 +72,7 @@ struct Var {
   bool is_extern;
 };
 
+// ここを書き換えたときには、main.cのnode_kindsも書き換えること！
 typedef enum {
   // 2項演算子(lhs, rhsを持つ)
   ND_ADD,
@@ -86,6 +88,13 @@ typedef enum {
   // 論理演算子
   ND_LAND,
   ND_LOR,
+  // 代入演算子
+  ND_ASSIGN,     // 代入, lhs, rhsを持つ
+  ND_ASSIGN_ADD, // 加算代入, lhs, rhsを持つ
+  ND_ASSIGN_SUB, // 減算代入, lhs, rhsを持つ
+  ND_ASSIGN_MUL, // 乗算代入, lhs, rhsを持つ
+  ND_ASSIGN_DIV, // 除算代入, lhs, rhsを持つ
+  ND_ASSIGN_MOD, // 剰余代入, lhs, rhsを持つ
   // 単項演算子(lhsを持つ)
   ND_SIZEOF, // sizeof演算子, lhsを持つ
   // ポインタ
@@ -103,7 +112,6 @@ typedef enum {
   ND_GVARREF,  // グローバル変数の参照, name, varを持つ
   ND_ARRAYREF, // 配列の参照, lhs, rhsを持つ
   ND_CALL,     // 関数呼び出し, name, args_callを持つ
-  ND_ASSIGN,   // 代入, lhs, rhsを持つ
   ND_RETURN,   // return, lhsを持つ
   ND_IF,       // if文, cond, then, elsを持つ
   ND_WHILE,    // while文, cond, bodyを持つ

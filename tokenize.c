@@ -67,7 +67,10 @@ Token* tokenize(char *p, char* file) {
       strncmp(p, "==", 2) == 0 || strncmp(p, "!=", 2) == 0 ||
       strncmp(p, "->", 2) == 0 ||
       strncmp(p, "++", 2) == 0 || strncmp(p, "--", 2) == 0 ||
-      strncmp(p, "&&", 2) == 0 || strncmp(p, "||", 2) == 0
+      strncmp(p, "&&", 2) == 0 || strncmp(p, "||", 2) == 0 ||
+      strncmp(p, "+=", 2) == 0 || strncmp(p, "-=", 2) == 0 ||
+      strncmp(p, "*=", 2) == 0 || strncmp(p, "/=", 2) == 0 ||
+      strncmp(p, "%=", 2) == 0
     ) {
       cur = new_token(TK_SYMBOL, cur, p, 2, file, line);
       p += 2;
