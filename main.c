@@ -160,6 +160,7 @@ int main(int argc, char **argv) {
     "TY_PTR",
     "TY_ARR",
     "TY_STRUCT",
+    "TY_VOID",
   };
 
   user_input = read_file(argv[1]);

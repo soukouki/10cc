@@ -145,6 +145,7 @@ pointer    = "*"*
 param      = decl | type
 specifier  = "int"
            | "char"
+           | "void"
            | "struct" ident
            | "enum" ident
            | ident // ただしtypedefされたもののみ
@@ -549,6 +550,11 @@ static Node* specifier() {
   if(consume("int")) {
     Node* t = new_node(ND_TYPE, token->str);
     t->type = int_type();
+    return t;
+  }
+  if(consume("void")) {
+    Node* t = new_node(ND_TYPE, token->str);
+    t->type = void_type();
     return t;
   }
   if(consume("struct")) {

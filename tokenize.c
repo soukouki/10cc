@@ -197,6 +197,10 @@ Token* tokenize(char *p, char* file) {
         cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
         continue;
       }
+      if(p - start == 4 && !memcmp(start, "void", 4)) {
+        cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
+        continue;
+      }
       if(p - start == 6 && !memcmp(start, "struct", 6)) {
         cur = new_token(TK_SYMBOL, cur, start, 6, file, line);
         continue;

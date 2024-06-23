@@ -1118,6 +1118,7 @@ int switch_case() {
   }
   assert(10, b, "while-switch-break");
 }
+
 int switch_case_enum() {
   section("switch, case(enum)");
   enum enum_definition_sample a;
@@ -1132,6 +1133,24 @@ int switch_case_enum() {
       break;
   }
   assert(10, b, "normal");
+}
+
+int void_pointer() {
+  void* a;
+  int b;
+  a = &b;
+  b = 10;
+  int* c;
+  c = a;
+  assert(10, *c, "*c");
+  struct struct_definition_sample d;
+  a = &d;
+  d.a = 20;
+  d.b = 30;
+  struct struct_definition_sample* e;
+  e = a;
+  assert(20, e->a, "e->a");
+  assert(30, e->b, "e->b");
 }
 
 int main() {
@@ -1185,6 +1204,7 @@ int main() {
   break_and_continue();
   switch_case();
   switch_case_enum();
+  void_pointer();
 
   if(is_fall) {
     printf("FAILED\n");

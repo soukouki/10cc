@@ -99,6 +99,12 @@ Type* int_type() {
   return type;
 }
 
+Type* void_type() {
+  Type* type = calloc(1, sizeof(Type));
+  type->kind = TY_VOID;
+  return type;
+}
+
 Type* ptr_type(Type* type) {
   Type* p = calloc(1, sizeof(Type));
   p->kind = TY_PTR;
@@ -138,6 +144,8 @@ static int size_of(Type* type) {
     Struct* s = map_get(global_map, type->struct_name);
     return s->size;
   }
+  case TY_VOID:
+    return 0;
   }
   error0(__FILE__, __LINE__, "size_of: 未対応の型");
   return 0;

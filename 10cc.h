@@ -34,6 +34,7 @@ typedef enum {
   TY_PTR,
   TY_ARRAY,
   TY_STRUCT,
+  TY_VOID,
 } TypeKind;
 
 typedef struct Type Type;
@@ -182,6 +183,7 @@ Node* new_node_ident(NodeKind kind, char* loc, char* name);
 
 Type* int_type();
 Type* char_type();
+Type* void_type();
 Type* ptr_type(Type* ptr_to);
 Type* arr_type(Type* ptr_to, int array_size);
 Type* struct_type(char* name);
