@@ -1162,6 +1162,14 @@ int ignore_const() {
   assert(10, b, "b");
 }
 
+static int ignore_static() {
+  section("static修飾子はすべて無視する");
+  static int a = 10;
+  int b;
+  b = a;
+  assert(10, b, "b");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1215,6 +1223,7 @@ int main() {
   switch_case_enum();
   void_pointer();
   ignore_const();
+  ignore_static();
 
   if(is_fall) {
     printf("FAILED\n");

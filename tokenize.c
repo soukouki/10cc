@@ -241,6 +241,10 @@ Token* tokenize(char *p, char* file) {
         // constはすべて無視！！！www
         continue;
       }
+      if(p - start == 6 && !memcmp(start, "static", 6)) {
+        // staticはすべて無視！！！www
+        continue;
+      }
       cur = new_token(TK_IDENT, cur, start, p - start, file, line);
       continue;
     }
