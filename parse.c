@@ -123,7 +123,7 @@ Node* new_node_ident(NodeKind kind, char* loc, char* name) {
 program    = (func | extern? decl ";" | struct ";" | enum ";" | typedef ";")*
 func       = decl "(" (param ("," param)*)? ")" ("{" block | ";")
 block      = stmt* "}"
-stmt       = "return" expr ";"
+stmt       = "return" expr? ";"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
@@ -313,6 +313,10 @@ static Node* block() {
 
 static Node* stmt() {
   if(consume("return")) {
+    if(consume(";")) {
+      // 空のreturn文は42を返す
+      return new_node_1branch(ND_RETURN, token->str, new_node_num(token->str, 42));
+    }
     Node* e = expr();
     expect(";");
     return new_node_1branch(ND_RETURN, token->str, e);

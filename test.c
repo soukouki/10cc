@@ -1196,6 +1196,11 @@ int and_or_operator() {
   assert(0, a, "a");
 }
 
+void empty_returm() {
+  section("空のreturn文");
+  return;
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1251,6 +1256,7 @@ int main() {
   ignore_const();
   ignore_static();
   and_or_operator();
+  empty_returm();
 
   if(is_fall) {
     printf("FAILED\n");
