@@ -1211,6 +1211,11 @@ void for_decl() {
   }
 }
 
+int side_effect() {
+  global_variable_a++;
+  return global_variable_a;
+}
+
 void compound_assignment() {
   section("複合代入演算子");
   int a;
@@ -1225,6 +1230,12 @@ void compound_assignment() {
   b[1] = 2;
   b[2] = 3;
   b[3] = 4;
+  global_variable_a = 1;
+  b[side_effect()] += 10;
+  assert(13, b[2], "b[1]");
+  assert(2, global_variable_a, "global_variable_a");
+
+  // +=の中で+=を使ったら落ちたので保存
   int i;
   i = 1;
   b[i++] += 10;
@@ -1232,7 +1243,7 @@ void compound_assignment() {
   assert(2, i, "i");
   i = 1;
   b[++i] += 10;
-  assert(13, b[2], "b[2]");
+  assert(23, b[2], "b[2]");
   assert(2, i, "i");
   i = 1;
   b[i--] -= 10;
