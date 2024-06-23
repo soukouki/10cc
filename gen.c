@@ -4,8 +4,6 @@
 
 #include "10cc.h"
 
-int local_label = 0;
-
 char* escape(char*);
 
 void gen_ref(Node* node) {
@@ -121,8 +119,7 @@ void gen(Node* node) {
     gen(node->cond);
     printf("  pop rax\n");
     printf("  cmp rax, 0\n");
-    int if_label = local_label;
-    local_label++;
+    int if_label = node->local_label;
     if(node->els) {
       printf("  je  .Lelse%d\n", if_label);
       gen(node->then);
@@ -137,8 +134,7 @@ void gen(Node* node) {
     break;
   }
   case ND_WHILE: {
-    int while_label = local_label;
-    local_label++;
+    int while_label = node->local_label;
     printf(".Lbegin%d:\n", while_label);
     gen(node->cond);
     printf("  pop rax\n");
@@ -150,8 +146,7 @@ void gen(Node* node) {
     break;
   }
   case ND_FOR: {
-    int for_label = local_label;
-    local_label++;
+    int for_label = node->local_label;
     if(node->init) gen(node->init);
     printf(".Lbegin%d:\n", for_label);
     if(node->cond) {
@@ -164,7 +159,6 @@ void gen(Node* node) {
     if(node->inc) gen(node->inc);
     printf("  jmp .Lbegin%d\n", for_label);
     printf(".Lend%d:\n", for_label);
-    local_label++;
     break;
   }
   case ND_BLOCK: {
@@ -317,6 +311,14 @@ void gen(Node* node) {
     break;
   }
   case ND_GDECL_EXTERN: {
+    break;
+  }
+  case ND_BREAK: {
+    printf("  jmp %s\n", node->goto_label);
+    break;
+  }
+  case ND_CONTINUE: {
+    printf("  jmp %s\n", node->goto_label);
     break;
   }
   default: {

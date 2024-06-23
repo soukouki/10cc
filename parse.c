@@ -132,13 +132,15 @@ Node* new_node_ident(NodeKind kind, char* loc, char* name) {
 
 /*
 program    = (func | extern? decl ";" | struct ";" | enum ";" | typedef ";")*
-func       = decl "(" (param ("," param)*)? ")" (block | ";")
-block      = "{" stmt* "}"
+func       = decl "(" (param ("," param)*)? ")" ("{" block | ";")
+block      = stmt* "}"
 stmt       = "return" expr ";"
            | "if" "(" expr ")" stmt ("else" stmt)?
            | "while" "(" expr ")" stmt
            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
-           | block
+           | "{" block
+           | "break" ";"
+           | "continue" ";"
            | decl ";"
            | expr ";"
 struc      = "struct" ident "{" (decl ";")* "}"
@@ -370,6 +372,14 @@ static Node* stmt() {
   }
   if(consume("{")) {
     return block();
+  }
+  if(consume("break")) {
+    expect(";");
+    return new_node(ND_BREAK, token->str);
+  }
+  if(consume("continue")) {
+    expect(";");
+    return new_node(ND_CONTINUE, token->str);
   }
   Node* dec = decl();
   if(dec != NULL) {

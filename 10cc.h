@@ -110,6 +110,8 @@ typedef enum {
   ND_STRDEF,   // 文字列定義, name, str_valを持つ
   ND_STRUCT,   // 構造体, name, struct_membersを持つ
   ND_ENUM,     // 列挙型, name, enum_membersを持つ
+  ND_BREAK,    // break, goto_labelを持つ
+  ND_CONTINUE, // continue, goto_labelを持つ
 
   ND_DECL,         // 宣言, name, type, var, lhs, rhs(Nullable)を持つ 変数定義や関数の仮引数で使う
   ND_GDECL,        // グローバル変数宣言, name, type, var, lhs(Nullable)を持つ
@@ -149,6 +151,8 @@ struct Node {
   Node** args_node;      // 関数の定義で使う(パース->意味解析)
   Var**  args_var;       // 関数の定義で使う(意味解析->コード生成)
   int    offset;         // 関数の定義で使う(意味解析->コード生成)
+  char*  goto_label;     // break, continueで使う(意味解析->コード生成)
+  int    local_label;    // if, while, forで使う(意味解析->コード生成)
   StructMember* struct_member; // ND_DOTの場合に使う
 };
 
@@ -159,8 +163,6 @@ void error3(char* file, int line, char* fmt, char* arg1, char* arg2, char* arg3)
 void error_at0(char* file, int line, char* loc, char* fmt);
 void error_at1(char* file, int line, char* loc, char* fmt, char* arg1);
 void error_at2(char* file, int line, char* loc, char* fmt, char* arg1, char* arg2);
-
-void print_node(Node* node);
 
 extern char** node_kinds;
 extern char** type_kinds;

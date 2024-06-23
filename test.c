@@ -1025,7 +1025,8 @@ int increment_and_decrement() {
 }
 
 int file_and_line() {
-  assert(1028, __LINE__, "__LINE__");
+  section("__FILE__, __LINE__");
+  assert(1029, __LINE__, "__LINE__");
   assert('t', __FILE__[0], "__FILE__");
   assert('e', __FILE__[1], "__FILE__");
   assert('s', __FILE__[2], "__FILE__");
@@ -1033,6 +1034,24 @@ int file_and_line() {
   assert('.', __FILE__[4], "__FILE__");
   assert('c', __FILE__[5], "__FILE__");
   assert(0  , __FILE__[6], "__FILE__");
+}
+
+int break_and_continue() {
+  section("break, continue");
+  int i;
+  i = 0;
+  while(1) {
+    i = i + 1;
+    if(i == 10) break;
+  }
+  assert(10, i, "break");
+  i = 0;
+  while(1) {
+    i = i + 1;
+    if(i == 10) continue;
+    if(i == 20) break;
+  }
+  assert(20, i, "continue");
 }
 
 int main() {
@@ -1083,6 +1102,7 @@ int main() {
   assign_operator();
   increment_and_decrement();
   file_and_line();
+  break_and_continue();
 
   if(is_fall) {
     printf("FAILED\n");

@@ -22,6 +22,12 @@ Map* global_map;
 Map* local_map;
 int local_offset;
 
+int local_label = 0;
+
+// NULLチェックをしてから使うこと
+char* break_label;
+char* continue_label;
+
 static Var* find_var(char* name) {
   return map_get(local_map, name);
 }
@@ -160,6 +166,8 @@ static NodeAndType* analyze(Node* node) {
     constant_map = map_new();
     func_map = map_new();
     global_map = map_new();
+    break_label = NULL;
+    continue_label = NULL;
     for(int i = 0; node->funcs[i]; i++) {
       node->funcs[i] = analyze_semantics(node->funcs[i]);
     }
@@ -413,6 +421,59 @@ static NodeAndType* analyze(Node* node) {
     Node* deref = new_node_1branch(ND_DEREF, node->loc, add);
     NodeAndType* nat = analyze(deref);
     return return_expression(deref, nat->type);
+  }
+  case ND_IF: {
+    node->local_label = local_label++;
+    node->cond = analyze_semantics(node->cond);
+    node->then = analyze_semantics(node->then);
+    if(node->els) {
+      node->els = analyze_semantics(node->els);
+    }
+    return return_statement(node);
+  }
+  case ND_WHILE: {
+    node->local_label = local_label++;
+    break_label = calloc(1, sizeof(char) * 12);
+    sprintf(break_label, ".Lend%d", node->local_label);
+    continue_label = calloc(1, sizeof(char) * 12);
+    sprintf(continue_label, ".Lbegin%d", node->local_label);
+
+    node->cond = analyze_semantics(node->cond);
+    node->body = analyze_semantics(node->body);
+    return return_statement(node);
+  }
+  case ND_FOR: {
+    node->local_label = local_label++;
+    break_label = calloc(1, sizeof(char) * 12);
+    sprintf(break_label, ".Lend%d", node->local_label);
+    continue_label = calloc(1, sizeof(char) * 12);
+    sprintf(continue_label, ".Lbegin%d", node->local_label);
+
+    if(node->init) {
+      node->init = analyze_semantics(node->init);
+    }
+    if(node->inc) {
+      node->inc = analyze_semantics(node->inc);
+    }
+    if(node->cond) {
+      node->cond = analyze_semantics(node->cond);
+    }
+    node->body = analyze_semantics(node->body);
+    return return_statement(node);
+  }
+  case ND_BREAK: {
+    if(!break_label) {
+      error_at0(__FILE__, __LINE__, node->loc, "breakはループ内でのみ使えます");
+    }
+    node->goto_label = break_label;
+    return return_statement(node);
+  }
+  case ND_CONTINUE: {
+    if(!continue_label) {
+      error_at0(__FILE__, __LINE__, node->loc, "continueはループ内でのみ使えます");
+    }
+    node->goto_label = continue_label;
+    return return_statement(node);
   }
   default: {
     if(node->init) {

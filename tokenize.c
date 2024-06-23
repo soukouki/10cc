@@ -213,6 +213,14 @@ Token* tokenize(char *p, char* file) {
         cur = new_token(TK_SYMBOL, cur, start, 6, file, line);
         continue;
       }
+      if(p - start == 5 && !memcmp(start, "break", 5)) {
+        cur = new_token(TK_SYMBOL, cur, start, 5, file, line);
+        continue;
+      }
+      if(p - start == 8 && !memcmp(start, "continue", 8)) {
+        cur = new_token(TK_SYMBOL, cur, start, 8, file, line);
+        continue;
+      }
       cur = new_token(TK_IDENT, cur, start, p - start, file, line);
       continue;
     }

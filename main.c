@@ -139,6 +139,8 @@ int main(int argc, char **argv) {
     "ND_STRDEF",
     "ND_STRUCT",
     "ND_ENUM",
+    "ND_BREAK",
+    "ND_CONTINUE",
 
     "ND_DECL",
     "ND_GDECL",

@@ -4,7 +4,7 @@ SRCS=$(filter-out tmp.c, $(filter-out test.c, $(wildcard *.c)))
 OBJS=$(SRCS:.c=.o)
 
 10cc: $(OBJS)
-	$(CC) -o 10cc $(OBJS) $(LDFLAGS)
+	$(CC) -g -o 10cc $(OBJS) $(LDFLAGS)
 
 $(OBJS): 10cc.h map.h
 
