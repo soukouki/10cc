@@ -67,6 +67,7 @@ void error_at2(char* file_name, int file_line, char* loc, char* fmt, char* arg1,
   int pos = loc - line + indent;
   fprintf(stderr, "%*s", pos, ""); // pos個の空白を出力
   fprintf(stderr, "^ ");
+  fprintf(stderr, fmt, arg1, arg2);
   fprintf(stderr, "\nerror reported at %s:%d\n", file_name, file_line);
   exit(1);
 }
