@@ -166,8 +166,9 @@ void gen(Node* node) {
     gen(node->cond);
     printf("  pop rax\n");
     char** keys = (char**)map_keys(node->case_map);
-    for(int i = 0; keys[i]; i++) {\
-      printf("  cmp rax, %d\n", *(int*)map_get(node->case_map, keys[i]));
+    for(int i = 0; keys[i]; i++) {
+      int* val = (int*)map_get(node->case_map, keys[i]);
+      printf("  cmp rax, %d\n", *val);
       printf("  je %s\n", keys[i]);
     }
     if(node->has_default) {

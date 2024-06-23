@@ -183,7 +183,9 @@ static NodeAndType* analyze(Node* node) {
     for(int i = 0; node->funcs[i]; i++) {
       node->funcs[i] = analyze_semantics(node->funcs[i]);
     }
-    node->strings = (Node**)map_values(string_map);
+    void* values = map_values(string_map);
+    Node** strings = values;
+    node->strings = strings;
     return return_statement(node);
   }
   case ND_FUNCDEF: {
@@ -547,7 +549,8 @@ static NodeAndType* analyze(Node* node) {
     node->goto_label = calloc(1, sizeof(char) * 12);
     int case_val;
     if(node->name) {
-      case_val = *(int*)map_get(constant_map, node->name);
+      int* case_val_pointer = map_get(constant_map, node->name);
+      case_val = *case_val_pointer;
     } else {
       case_val = node->int_val;
     }
