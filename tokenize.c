@@ -111,6 +111,8 @@ Token* tokenize(char *p, char* file) {
             str[len++] = '\\';
           } else if(*p == '"') {
             str[len++] = '"';
+          } else if(*p == '0') {
+            str[len++] = '\0';
           } else {
             error_at0(__FILE__, __LINE__, p, "無効なエスケープシーケンスです");
           }
@@ -140,6 +142,9 @@ Token* tokenize(char *p, char* file) {
         } else if(*p == '\'') {
           cur = new_token(TK_NUM, cur, p, 1, file, line);
           cur->val = '\'';
+        } else if(*p == '0') {
+          cur = new_token(TK_NUM, cur, p, 1, file, line);
+          cur->val = '\0';
         } else {
           error_at0(__FILE__, __LINE__, p, "無効なエスケープシーケンスです");
         }

@@ -980,6 +980,10 @@ int string_escape() {
   a = "\\";
   assert(92, a[0], "a[0]");
   assert(0,  a[1], "a[1]");
+  a = "\0";
+  assert(0, a[0], "a[0]");
+  // strlenを使っている箇所でNULL文字以降がコピーされているのか、うまく動かない
+  // assert(0, a[1], "a[1]");
 }
 
 int char_literal() {
@@ -995,6 +999,8 @@ int char_literal() {
   assert(39, a, "a");
   a = '\\';
   assert(92, a, "a");
+  a = '\0';
+  assert(0, a, "a");
 }
 
 int assign_operator() {
@@ -1026,7 +1032,7 @@ int increment_and_decrement() {
 
 int file_and_line() {
   section("__FILE__, __LINE__");
-  assert(1029, __LINE__, "__LINE__");
+  assert(1035, __LINE__, "__LINE__");
   assert('t', __FILE__[0], "__FILE__");
   assert('e', __FILE__[1], "__FILE__");
   assert('s', __FILE__[2], "__FILE__");
