@@ -66,17 +66,6 @@ static bool is_next(char* op) {
   return true;
 }
 
-// 次の次のトークンが期待している記号のときには真を返す
-static bool is_after_next(char* op) {
-  if(token->next == NULL) return false;
-  if(token->next->kind != TK_SYMBOL) return false;
-  if(
-    strlen(op) != token->next->len ||
-    memcmp(token->next->str, op, token->next->len) != 0
-  ) return false;
-  return true;
-}
-
 static bool at_eof() {
   return token->kind == TK_EOF;
 }
@@ -598,6 +587,7 @@ static Node* param() {
     return decl;
   }
   error_at0(__FILE__, __LINE__, token->str, "引数が不正です");
+  return NULL;
 }
 
 static Node* expr() {
@@ -719,7 +709,7 @@ static Node* primary() {
   if(consume("(")) {
     prim = expr();
     expect(")");
-  } else if (ident = consume_ident()) {
+  } else if ((ident = consume_ident())) {
     if(is_next("(")) {
       prim = call(ident);
     } else {

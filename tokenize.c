@@ -160,9 +160,9 @@ Token* tokenize(char *p, char* file) {
       continue;
     }
 
-    if('a' <= *p && *p <= 'z' || 'A' <= *p && *p <= 'Z' || *p == '_') {
+    if(('a' <= *p && *p <= 'z') ||( 'A' <= *p && *p <= 'Z') || *p == '_') {
       char* start = p;
-      while('a' <= *p && *p <= 'z' || 'A' <= *p && *p <= 'Z' || *p == '_' || '0' <= *p && *p <= '9') {
+      while(('a' <= *p && *p <= 'z') || ('A' <= *p && *p <= 'Z') || *p == '_' || ('0' <= *p && *p <= '9')) {
         p++;
       }
       if(p - start == 6 && !memcmp(start, "return", 6)) {

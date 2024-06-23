@@ -137,9 +137,9 @@ static int size_of(Type* type) {
     Struct* s = map_get(global_map, type->struct_name);
     return s->size;
   }
-  default:
-    error0(__FILE__, __LINE__, "size_of: 未対応の型");
   }
+  error0(__FILE__, __LINE__, "size_of: 未対応の型");
+  return 0;
 }
 
 typedef struct NodeAndType NodeAndType;
@@ -413,8 +413,8 @@ static NodeAndType* analyze(Node* node) {
     return return_expression(node, int_type());
   }
   case ND_STR: {
-    Node* exists_str;
-    if(exists_str = map_get(string_map, node->str_val)) {
+    Node* exists_str = map_get(string_map, node->str_val);
+    if(exists_str) {
       node->str_key = exists_str->str_key;
       return return_expression(node, ptr_type(char_type()));
     }
