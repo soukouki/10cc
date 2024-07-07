@@ -1268,6 +1268,65 @@ void unary_not() {
   assert(0, !!0, "!!0");
 }
 
+void long_type() {
+  section("long型");
+  long a = 1;
+  assert(1, a, "a");
+  long* b;
+  b = &a;
+  assert(1, *b, "*b");
+  *b = 2;
+  assert(2, a, "a");
+  a = 3;
+  assert(3, *b, "*b");
+  assert(8, sizeof(long), "sizeof(long)");
+  assert(8, sizeof(long*), "sizeof(long*)");
+  assert(8, sizeof(a), "sizeof(a)");
+  assert(8, sizeof(b), "sizeof(b)");
+}
+
+void variable_size(){
+  section("変数のサイズ");
+  char c1;
+  char c2;
+  c1 = 255;
+  c2 = -1;
+  assert(1, c1 == c2, "c1 == c2 1");
+  c1 = 256;
+  c2 = 0;
+  assert(1, c1 == c2, "c1 == c2 2");
+  c1 = 257;
+  c2 = 1;
+  assert(1, c1 == c2, "c1 == c2 3");
+  int i1;
+  int i2;
+  i1 = 2147483647 * 2 + 1;
+  i2 = -1;
+  assert(1, i1 == i2, "i1 == i2 1");
+  i1 = 2147483647 * 2 + 2;
+  i2 = 0;
+  assert(1, i1 == i2, "i1 == i2 2");
+  i1 = 2147483647 * 2 + 3;
+  i2 = 1;
+  assert(1, i1 == i2, "i1 == i2 3");
+  long l1;
+  long l2;
+  // TokenとNodeがlong型に対応していないので、とりあえず計算してテストする
+  l1 = (2147483647 * 2 + 2) * (2147483647 * 2 + 2) - 1;
+  l2 = -1;
+  assert(1, l1 == l2, "l1 == l2 1");
+  l1 = (2147483647 * 2 + 2) * (2147483647 * 2 + 2);
+  l2 = 0;
+  assert(1, l1 == l2, "l1 == l2 2");
+  l1 = (2147483647 * 2 + 2) * (2147483647 * 2 + 2) + 1;
+  l2 = 1;
+  assert(1, l1 == l2, "l1 == l2 3");
+  // int型より大きいことも確認しておく
+  l1 = 2147483647 * 2 + 2;
+  l2 = 0;
+  assert(1, l1 != l2, "l1 != l2");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1327,6 +1386,8 @@ int main() {
   for_decl();
   compound_assignment();
   unary_not();
+  long_type();
+  variable_size();
 
   if(is_fall) {
     printf("FAILED\n");

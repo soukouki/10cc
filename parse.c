@@ -145,6 +145,7 @@ pointer    = "*"*
 param      = decl | type
 specifier  = "int"
            | "char"
+           | "long"
            | "void"
            | "struct" ident
            | "enum" ident
@@ -398,7 +399,7 @@ static Node* stmt() {
   }
   if(consume("case")) {
     if(token->kind == TK_NUM) {
-      int val = expect_number();
+      long val = expect_number();
       expect(":");
       Node* c = new_node_1branch(ND_CASE, token->str, stmt());
       c->int_val = val;
@@ -562,6 +563,11 @@ static Node* specifier() {
   if(consume("int")) {
     Node* t = new_node(ND_TYPE, token->str);
     t->type = int_type();
+    return t;
+  }
+  if(consume("long")) {
+    Node* t = new_node(ND_TYPE, token->str);
+    t->type = long_type();
     return t;
   }
   if(consume("void")) {

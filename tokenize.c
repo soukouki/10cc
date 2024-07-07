@@ -238,11 +238,15 @@ Token* tokenize(char *p, char* file) {
         continue;
       }
       if(p - start == 5 && !memcmp(start, "const", 5)) {
-        // constはすべて無視！！！www
+        // constはすべて無視！
         continue;
       }
       if(p - start == 6 && !memcmp(start, "static", 6)) {
-        // staticはすべて無視！！！www
+        // staticはすべて無視！
+        continue;
+      }
+      if(p - start == 4 && !memcmp(start, "long", 4)) {
+        cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
         continue;
       }
       cur = new_token(TK_IDENT, cur, start, p - start, file, line);

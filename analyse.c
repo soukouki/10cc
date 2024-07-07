@@ -99,6 +99,12 @@ Type* int_type() {
   return type;
 }
 
+Type* long_type() {
+  Type* type = calloc(1, sizeof(Type));
+  type->kind = TY_LONG;
+  return type;
+}
+
 Type* void_type() {
   Type* type = calloc(1, sizeof(Type));
   type->kind = TY_VOID;
@@ -136,6 +142,8 @@ static int size_of(Type* type) {
     return 1;
   case TY_INT:
     return 4;
+  case TY_LONG:
+    return 8;
   case TY_PTR:
     return 8;
   case TY_ARRAY:
@@ -336,10 +344,13 @@ static NodeAndType* analyze(Node* node) {
     if(rkind == TY_ARRAY) {
       rkind = TY_PTR;
     }
+    if(lkind == TY_CHAR && rkind == TY_CHAR) {
+      return return_expression(node, lhs->type);
+    }
     if(lkind == TY_INT && rkind == TY_INT) {
       return return_expression(node, lhs->type);
     }
-    if(lkind == TY_CHAR && rkind == TY_CHAR) {
+    if(lkind == TY_LONG && rkind == TY_LONG) {
       return return_expression(node, lhs->type);
     }
     if(lkind == TY_PTR && rkind == TY_PTR) {
@@ -365,10 +376,13 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* rhs = analyze(node->rhs);
     TypeKind rkind = rhs->type->kind;
     node->rhs = rhs->node;
+    if(lkind == TY_CHAR && rkind == TY_CHAR) {
+      return return_expression(node, lhs->type);
+    }
     if(lkind == TY_INT && rkind == TY_INT) {
       return return_expression(node, lhs->type);
     }
-    if(lkind == TY_CHAR && rkind == TY_CHAR) {
+    if(lkind == TY_LONG && rkind == TY_LONG) {
       return return_expression(node, lhs->type);
     }
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの乗除算はできません", type_kinds[lkind], type_kinds[rkind]);
@@ -380,10 +394,13 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* rhs = analyze(node->rhs);
     TypeKind rkind = rhs->type->kind;
     node->rhs = rhs->node;
+    if(lkind == TY_CHAR && rkind == TY_CHAR) {
+      return return_expression(node, lhs->type);
+    }
     if(lkind == TY_INT && rkind == TY_INT) {
       return return_expression(node, lhs->type);
     }
-    if(lkind == TY_CHAR && rkind == TY_CHAR) {
+    if(lkind == TY_LONG && rkind == TY_LONG) {
       return return_expression(node, lhs->type);
     }
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの剰余算はできません", type_kinds[lkind], type_kinds[rkind]);
@@ -398,10 +415,13 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* rhs = analyze(node->rhs);
     TypeKind rkind = rhs->type->kind;
     node->rhs = rhs->node;
+    if(lkind == TY_CHAR && rkind == TY_CHAR) {
+      return return_expression(node, int_type());
+    }
     if(lkind == TY_INT && rkind == TY_INT) {
       return return_expression(node, int_type());
     }
-    if(lkind == TY_CHAR && rkind == TY_CHAR) {
+    if(lkind == TY_LONG && rkind == TY_LONG) {
       return return_expression(node, int_type());
     }
     if(lkind == TY_PTR && rkind == TY_PTR) {

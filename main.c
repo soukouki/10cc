@@ -165,6 +165,7 @@ int main(int argc, char **argv) {
   type_kinds = (char*[]){
     "TY_CHAR",
     "TY_INT",
+    "TY_LONG",
     "TY_PTR",
     "TY_ARR",
     "TY_STRUCT",

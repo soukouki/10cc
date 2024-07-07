@@ -32,6 +32,7 @@ struct Token {
 typedef enum {
   TY_CHAR,
   TY_INT,
+  TY_LONG,
   TY_PTR,
   TY_ARRAY,
   TY_STRUCT,
@@ -193,8 +194,9 @@ Node* new_node_2branches(NodeKind kind, char* loc, Node* lhs, Node* rhs);
 Node* new_node_num(char* loc, int val);
 Node* new_node_ident(NodeKind kind, char* loc, char* name);
 
-Type* int_type();
 Type* char_type();
+Type* int_type();
+Type* long_type();
 Type* void_type();
 Type* ptr_type(Type* ptr_to);
 Type* arr_type(Type* ptr_to, int array_size);
