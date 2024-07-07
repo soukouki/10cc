@@ -8,17 +8,17 @@
 #define MAX_STRUCT_MEMBERS 100
 #define MAX_ENUM_MEMBERS 100
 
-typedef enum {
+typedef enum TokenKind TokenKind;
+enum TokenKind {
   TK_SYMBOL,
   TK_IDENT,
   TK_NUM,
   TK_STR,
   TK_CHAR,
   TK_EOF,
-} TokenKind;
+};
 
 typedef struct Token Token;
-
 struct Token {
   TokenKind kind;
   Token* next;
@@ -30,7 +30,8 @@ struct Token {
 };
 
 // ここを書き換えたときには、main.cのtype_kindsも書き換えること！
-typedef enum {
+typedef enum TypeKind TypeKind;
+enum TypeKind {
   TY_CHAR,
   TY_INT,
   TY_LONG,
@@ -38,10 +39,9 @@ typedef enum {
   TY_ARRAY,
   TY_STRUCT,
   TY_VOID,
-} TypeKind;
+};
 
 typedef struct Type Type;
-
 struct Type {
   TypeKind kind;
   Type* ptr_to;
@@ -50,14 +50,12 @@ struct Type {
 };
 
 typedef struct StructMember StructMember;
-
 struct StructMember {
   Type* type;
   int offset;
 };
 
 typedef struct Struct Struct;
-
 struct Struct {
   char* name;
   Map* members;
@@ -65,7 +63,6 @@ struct Struct {
 };
 
 typedef struct Var Var;
-
 struct Var {
   char* name;
   int offset; // 意味解析時に計算される, ローカル変数の場合のみ
@@ -74,8 +71,9 @@ struct Var {
   bool is_extern;
 };
 
+typedef enum NodeKind NodeKind;
 // ここを書き換えたときには、main.cのnode_kindsも書き換えること！
-typedef enum {
+enum NodeKind {
   // 2項演算子(lhs, rhsを持つ)
   ND_ADD,
   ND_SUB,
@@ -140,12 +138,9 @@ typedef enum {
 
   // その他
   ND_PROGRAM, // プログラム全体, funcs, stringsを持つ
-} NodeKind;
+};
 
 typedef struct Node Node;
-
-typedef struct ValueAndLabel ValueAndLabel;
-
 struct Node {
   NodeKind kind;
   char*  loc;            // エラー表示用
