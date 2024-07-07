@@ -13,11 +13,6 @@ int strncpy();
 int memcmp();
 int strlen();
 
-int MAX_FUNCS = 1000;
-int MAX_BLOCK_STMTS = 100;
-int MAX_STRUCT_MEMBERS = 100;
-int MAX_ENUM_MEMBERS = 100;
-
 typedef struct Map Map;
 
 Map* map_new();
@@ -437,7 +432,7 @@ Node* parse() {
 static Node* program() {
   typedef_map = map_new();
   int i = 0;
-  Node* p[MAX_FUNCS];
+  Node* p[1000];
   while(!at_eof()) {
     if(is_next("struct")) {
       p[i++] = struc();
@@ -521,7 +516,7 @@ static Node* func() {
 
 static Node* block() {
   int i = 0;
-  Node* b[MAX_BLOCK_STMTS];
+  Node* b[1000];
   while(!consume("}")) {
     b[i++] = stmt();
   }
@@ -657,7 +652,7 @@ static Node* struc() {
   Node* str = new_node_ident(ND_STRUCT, token->str, name);
   expect("{");
   int i = 0;
-  Node* s[MAX_STRUCT_MEMBERS];
+  Node* s[1000];
   while(!consume("}")) {
     Node* mem = decl();
     if(mem == NULL) {
@@ -683,7 +678,7 @@ static Node* enu() {
   Node* en = new_node_ident(ND_ENUM, token->str, name);
   expect("{");
   int i = 0;
-  Node* e[MAX_ENUM_MEMBERS];
+  Node* e[1000];
   while(!consume("}")) {
     char* ident = consume_ident();
     if(ident == NULL) {
