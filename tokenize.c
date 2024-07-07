@@ -1,12 +1,51 @@
 
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+// ここから#includeの代わりに展開した部分
 
-#include "10cc.h"
+extern void* NULL;
+int MAX_STRING_LENGTH = 1000;
+void* calloc();
+int isspace();
+int isdigit();
+int strncmp();
+int memcmp();
+int strlen();
+long strtol();
 
-#define MAX_STRING_LENGTH 1000
+typedef enum TokenKind TokenKind;
+enum TokenKind {
+  TK_SYMBOL,
+  TK_IDENT,
+  TK_NUM,
+  TK_STR,
+  TK_CHAR,
+  TK_EOF,
+};
+typedef struct Token Token;
+struct Token {
+  TokenKind kind;
+  Token* next;
+  int val;
+  char* str;
+  int len;
+  char* file;
+  int line;
+};
+void error0(char* file, int line, char* fmt);
+void error1(char* file, int line, char* fmt, char* arg1);
+void error2(char* file, int line, char* fmt, char* arg1, char* arg2);
+void error3(char* file, int line, char* fmt, char* arg1, char* arg2, char* arg3);
+void error_at0(char* file, int line, char* loc, char* fmt);
+void error_at1(char* file, int line, char* loc, char* fmt, char* arg1);
+void error_at2(char* file, int line, char* loc, char* fmt, char* arg1, char* arg2);
+
+
+// ここまで#includeの代わりに展開した部分
+
+// #include <ctype.h>
+// #include <stdlib.h>
+// #include <string.h>
+// #include <stdio.h>
+// #include "10cc.h"
 
 // 新しいトークンを作成してcurにつなげる·
 static Token* new_token(TokenKind kind, Token *cur, char *str, int len, char* file, int line) {
@@ -74,12 +113,6 @@ Token* tokenize(char *p, char* file) {
     ) {
       cur = new_token(TK_SYMBOL, cur, p, 2, file, line);
       p += 2;
-      continue;
-    }
-
-    // ", ..."は無視
-    if(strncmp(p, ", ...", 5) == 0) {
-      p += 5;
       continue;
     }
 
@@ -253,10 +286,6 @@ Token* tokenize(char *p, char* file) {
       }
       // staticは無視
       if(p - start == 6 && !memcmp(start, "static", 6)) {
-        continue;
-      }
-      // restrictは無視
-      if(p - start == 8 && !memcmp(start, "restrict", 8)) {
         continue;
       }
       cur = new_token(TK_IDENT, cur, start, p - start, file, line);

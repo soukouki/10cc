@@ -1,15 +1,6 @@
 
 // ここから#includeの代わりに展開した部分
 
-typedef struct Map Map;
-
-Map* map_new();
-void* map_get (Map* map, const char* key);
-void map_put (Map* map, const char* key, void* value); // 同じキーがある場合はうまく動作しない
-void map_delete(Map* map, const char* key);
-void** map_values(Map* map);
-char** map_keys(Map* map);
-
 void* NULL = 0;
 
 void* malloc();
@@ -18,16 +9,19 @@ int strlen();
 void* memcmp();
 void memcpy();
 
-// ここまで#includeの代わりに展開した部分
+typedef struct Map Map;
+Map* map_new();
+void* map_get (Map* map, const char* key);
+void map_put (Map* map, const char* key, void* value); // 同じキーがある場合はうまく動作しない
+void map_delete(Map* map, const char* key);
+void** map_values(Map* map);
+char** map_keys(Map* map);
 
-// ここから#include
+// ここまで#includeの代わりに展開した部分
 
 // #include <stdlib.h>
 // #include <string.h>
-
 // #include "map.h"
-
-// ここまで#include
 
 typedef struct MapEntry MapEntry;
 

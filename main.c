@@ -3,10 +3,10 @@
 
 typedef long size_t; // 多分intじゃサイズが足りないので、どこかしらでバグる気がする
 
-void exit(int status);
-void* calloc(size_t nmemb, size_t size);
+void exit();
+void* calloc();
 int errno = 0;
-char* strerror(int errnum);
+char* strerror();
 
 // stdio.h
 struct _IO_FILE {};
@@ -17,13 +17,13 @@ extern FILE *stderr;
 int SEEK_SET = 0;
 int SEEK_CUR = 1;
 int SEEK_END = 2;
-int fprintf(FILE * restrict stream, const char * restrict format, ...);
-int printf(const char * restrict format, ...);
-FILE* fopen(const char* filename, const char* mode);
-int fseek(FILE* stream, long offset, int whence);
-size_t ftell(FILE* stream);
-size_t fread(void* ptr, size_t size, size_t nmemb, FILE* stream);
-int fclose(FILE* stream);
+int fprintf();
+int printf();
+FILE* fopen();
+int fseek();
+size_t ftell();
+size_t fread();
+int fclose();
 
 typedef struct Token Token;
 typedef struct Node Node;
@@ -38,7 +38,6 @@ void gen(Node* node);
 // #include <stdlib.h>
 // #include <string.h>
 // #include <errno.h>
-
 // #include "10cc.h"
 
 // 現在着目しているトークン
@@ -141,6 +140,7 @@ char *read_file(char *path) {
 int main(int argc, char **argv) {
   node_kinds = calloc(1, sizeof(char*) * 100);
   int i = 0;
+
   node_kinds[i++] = "ND_ADD";
   node_kinds[i++] = "ND_SUB";
   node_kinds[i++] = "ND_MUL";
@@ -199,6 +199,7 @@ int main(int argc, char **argv) {
 
   i = 0;
   type_kinds = calloc(1, sizeof(char*) * 10);
+  
   type_kinds[i++] = "TY_CHAR";
   type_kinds[i++] = "TY_INT";
   type_kinds[i++] = "TY_LONG";
