@@ -1,5 +1,6 @@
 *~
 *.o
+*.s
 tmp*
 a.out
 10cc
