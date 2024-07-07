@@ -111,6 +111,14 @@ Node* new_node_str(char* loc, char* str) {
   return node;
 }
 
+Node* new_node_char(char* loc, int val) {
+  Node* node = calloc(1, sizeof(Node));
+  node->kind = ND_CHAR;
+  node->loc = loc;
+  node->int_val = val;
+  return node;
+}
+
 Node* new_node_ident(NodeKind kind, char* loc, char* name) {
   Node* node = calloc(1, sizeof(Node));
   node->kind = kind;
@@ -167,6 +175,7 @@ unary       = ("+" | "-" | "*" | "&" | "!")? primary
             | "--" unary
 primary     = num
             | str
+            | char
             | "(" expr ")"
             | ident
             | ident call
@@ -399,7 +408,7 @@ static Node* stmt() {
   }
   if(consume("case")) {
     if(token->kind == TK_NUM) {
-      long val = expect_number();
+      int val = expect_number();
       expect(":");
       Node* c = new_node_1branch(ND_CASE, token->str, stmt());
       c->int_val = val;
@@ -802,6 +811,9 @@ static Node* primary() {
     prim = new_node_num(token->str, expect_number());
   } else if (token->kind == TK_STR) {
     prim = new_node_str(token->str, token->str);
+    token = token->next;
+  } else if (token->kind == TK_CHAR) {
+    prim = new_node_char(token->str, token->val);
     token = token->next;
   } else {
     error_at0(__FILE__, __LINE__, token->str, "不正な式です");

@@ -1001,6 +1001,8 @@ int char_literal() {
   assert(92, a, "a");
   a = '\0';
   assert(0, a, "a");
+  a = 'a';
+  assert(1, 'a' == a, "'a' == 97");
 }
 
 int assign_operator() {
@@ -1032,7 +1034,7 @@ int increment_and_decrement() {
 
 int file_and_line() {
   section("__FILE__, __LINE__");
-  assert(1035, __LINE__, "__LINE__");
+  assert(1037, __LINE__, "__LINE__");
   assert('t', __FILE__[0], "__FILE__");
   assert('e', __FILE__[1], "__FILE__");
   assert('s', __FILE__[2], "__FILE__");

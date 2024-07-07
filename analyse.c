@@ -133,6 +133,25 @@ Type* struct_type(char* name) {
   return type;
 }
 
+// もし数値以外の型が来た場合はNULLを返す
+Type* max_type(Type* left, Type* right) {
+  TypeKind lkind = left->kind;
+  TypeKind rkind = right->kind;
+  if(lkind != TY_CHAR && lkind != TY_INT && lkind != TY_LONG) {
+    return NULL;
+  }
+  if(rkind != TY_CHAR && rkind != TY_INT && rkind != TY_LONG) {
+    return NULL;
+  }
+  if(lkind == TY_LONG || rkind == TY_LONG) {
+    return long_type();
+  }
+  if(lkind == TY_INT || rkind == TY_INT) {
+    return int_type();
+  }
+  return char_type();
+}
+
 static int size_of(Type* type) {
   if(!type) {
     error0(__FILE__, __LINE__, "size_of: typeがNULL");
@@ -338,23 +357,22 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* rhs = analyze(node->rhs);
     TypeKind rkind = rhs->type->kind;
     node->rhs = rhs->node;
+
     if(lkind == TY_ARRAY) {
       lkind = TY_PTR;
     }
     if(rkind == TY_ARRAY) {
       rkind = TY_PTR;
     }
-    if(lkind == TY_CHAR && rkind == TY_CHAR) {
+    Type* max = max_type(lhs->type, rhs->type);
+    if(max) {
+      return return_expression(node, max);
+    }
+    if(lkind == TY_PTR && rkind == TY_PTR && node->kind == ND_ADD) {
       return return_expression(node, lhs->type);
     }
-    if(lkind == TY_INT && rkind == TY_INT) {
-      return return_expression(node, lhs->type);
-    }
-    if(lkind == TY_LONG && rkind == TY_LONG) {
-      return return_expression(node, lhs->type);
-    }
-    if(lkind == TY_PTR && rkind == TY_PTR) {
-      error_at0(__FILE__, __LINE__, node->loc, "ポインタ同士の加減算はできません");
+    if(lkind == TY_PTR && rkind == TY_PTR && node->kind == ND_ADD) {
+      error_at0(__FILE__, __LINE__, node->loc, "ポインタ同士の加算はできません");
     }
     if(lkind == TY_PTR) {
       Node* size = new_node_num(node->loc, size_of(lhs->type->ptr_to));
@@ -376,14 +394,10 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* rhs = analyze(node->rhs);
     TypeKind rkind = rhs->type->kind;
     node->rhs = rhs->node;
-    if(lkind == TY_CHAR && rkind == TY_CHAR) {
-      return return_expression(node, lhs->type);
-    }
-    if(lkind == TY_INT && rkind == TY_INT) {
-      return return_expression(node, lhs->type);
-    }
-    if(lkind == TY_LONG && rkind == TY_LONG) {
-      return return_expression(node, lhs->type);
+
+    Type* max = max_type(lhs->type, rhs->type);
+    if(max) {
+      return return_expression(node, max);
     }
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの乗除算はできません", type_kinds[lkind], type_kinds[rkind]);
   }
@@ -394,14 +408,10 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* rhs = analyze(node->rhs);
     TypeKind rkind = rhs->type->kind;
     node->rhs = rhs->node;
-    if(lkind == TY_CHAR && rkind == TY_CHAR) {
-      return return_expression(node, lhs->type);
-    }
-    if(lkind == TY_INT && rkind == TY_INT) {
-      return return_expression(node, lhs->type);
-    }
-    if(lkind == TY_LONG && rkind == TY_LONG) {
-      return return_expression(node, lhs->type);
+
+    Type* max = max_type(lhs->type, rhs->type);
+    if(max) {
+      return return_expression(node, max);
     }
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの剰余算はできません", type_kinds[lkind], type_kinds[rkind]);
   }
@@ -415,13 +425,9 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* rhs = analyze(node->rhs);
     TypeKind rkind = rhs->type->kind;
     node->rhs = rhs->node;
-    if(lkind == TY_CHAR && rkind == TY_CHAR) {
-      return return_expression(node, int_type());
-    }
-    if(lkind == TY_INT && rkind == TY_INT) {
-      return return_expression(node, int_type());
-    }
-    if(lkind == TY_LONG && rkind == TY_LONG) {
+
+    Type* max = max_type(lhs->type, rhs->type);
+    if(max) {
       return return_expression(node, int_type());
     }
     if(lkind == TY_PTR && rkind == TY_PTR) {
@@ -443,9 +449,12 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* rhs = analyze(node->rhs);
     TypeKind rkind = rhs->type->kind;
     node->rhs = rhs->node;
-    if(lkind == TY_INT && rkind == TY_INT) {
-      return return_expression(node, lhs->type);
+
+    Type* max = max_type(lhs->type, rhs->type);
+    if(max) {
+      return return_expression(node, max);
     }
+
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの論理積はできません", type_kinds[lkind], type_kinds[rkind]);
   }
   case ND_LOR: {
@@ -456,9 +465,12 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* rhs = analyze(node->rhs);
     TypeKind rkind = rhs->type->kind;
     node->rhs = rhs->node;
-    if(lkind == TY_INT && rkind == TY_INT) {
-      return return_expression(node, lhs->type);
+
+    Type* max = max_type(lhs->type, rhs->type);
+    if(max) {
+      return return_expression(node, max);
     }
+    
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの論理和はできません", type_kinds[lkind], type_kinds[rkind]);
   }
   case ND_ASSIGN: {
@@ -480,7 +492,15 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* rhs = analyze(node->rhs);
     TypeKind rkind = rhs->type->kind;
     node->rhs = rhs->node;
-    if(lkind == TY_INT && rkind == TY_INT) {
+
+    Type* max = max_type(lhs->type, rhs->type);
+    if(max) {
+      return return_expression(node, max);
+    }
+    if(lkind == TY_PTR && rkind == TY_INT && (node->kind == ND_ASSIGN_ADD || node->kind == ND_ASSIGN_SUB)) {
+      return return_expression(node, lhs->type);
+    }
+    if(lkind == TY_INT && rkind == TY_PTR && node->kind == ND_ASSIGN_ADD) {
       return return_expression(node, lhs->type);
     }
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの複合代入演算はできません", type_kinds[lkind], type_kinds[rkind]);
@@ -513,9 +533,6 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* lhs = analyze(node->lhs);
     TypeKind lkind = lhs->type->kind;
     node->lhs = lhs->node;
-    if(lkind != TY_INT) {
-      error_at1(__FILE__, __LINE__, node->loc, "intでない%sを否定しようとしました", type_kinds[lkind]);
-    }
     return return_expression(node, int_type());
   }
   case ND_DOT: {
@@ -549,6 +566,11 @@ static NodeAndType* analyze(Node* node) {
     map_put(string_map, node->str_val, str_def);
     string_count++;
     return return_expression(node, ptr_type(char_type()));
+  }
+  case ND_CHAR: {
+    // genはND_NUMで処理する
+    node->kind = ND_NUM;
+    return return_expression(node, char_type());
   }
   case ND_ARRAYREF: {
     Node* add = new_node_2branches(ND_ADD, node->loc, node->lhs, node->rhs);

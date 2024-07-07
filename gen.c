@@ -497,9 +497,9 @@ char* escape(char* str) {
     } else if(str[i] == '\t') {
       buf[j++] = '\\';
       buf[j] = 't';
-    } else if(str[i] == '\"') {
+    } else if(str[i] == '"') {
       buf[j++] = '\\';
-      buf[j] = '\"';
+      buf[j] = '"';
     } else if(str[i] == '\\') {
       buf[j++] = '\\';
       buf[j] = '\\';

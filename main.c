@@ -1,12 +1,45 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
 
-#include "10cc.h"
+// ここから#includeの代わりに展開した部分
 
-// 入力ファイル名
-char *filename;
+typedef long size_t; // 多分intじゃサイズが足りないので、どこかしらでバグる気がする
+
+void exit(int status);
+void* calloc(size_t nmemb, size_t size);
+int errno = 0;
+char* strerror(int errnum);
+
+// stdio.h
+struct _IO_FILE {};
+typedef struct _IO_FILE FILE;
+extern FILE *stdin;
+extern FILE *stdout;
+extern FILE *stderr;
+int SEEK_SET = 0;
+int SEEK_CUR = 1;
+int SEEK_END = 2;
+int fprintf(FILE * restrict stream, const char * restrict format, ...);
+int printf(const char * restrict format, ...);
+FILE* fopen(const char* filename, const char* mode);
+int fseek(FILE* stream, long offset, int whence);
+size_t ftell(FILE* stream);
+size_t fread(void* ptr, size_t size, size_t nmemb, FILE* stream);
+int fclose(FILE* stream);
+
+typedef struct Token Token;
+typedef struct Node Node;
+Token* tokenize(char *p, char* file);
+Node* parse();
+Node* analyze_semantics(Node* node);
+void gen(Node* node);
+
+// ここまで#includeの代わりに展開した部分
+
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <string.h>
+// #include <errno.h>
+
+// #include "10cc.h"
 
 // 現在着目しているトークン
 Token* token;
@@ -61,7 +94,8 @@ void error_at2(char* file_name, int file_line, char* loc, char* fmt, char* arg1,
 
   // 見つかった行を、ファイル名と行番号と一緒に表示
   int indent = fprintf(stderr, "%s:%d: ", filename, line_num);
-  fprintf(stderr, "%.*s\n", (int)(end - line), line);
+  int space_len = end - line;
+  fprintf(stderr, "%.*s\n", space_len, line);
 
   // エラー箇所を"^"で指し示して、エラーメッセージを表示
   int pos = loc - line + indent;
@@ -105,72 +139,73 @@ char *read_file(char *path) {
 }
 
 int main(int argc, char **argv) {
-  node_kinds = (char*[]){
-    "ND_ADD",
-    "ND_SUB",
-    "ND_MUL",
-    "ND_DIV",
-    "ND_MOD",
-    "ND_EQ",
-    "ND_NE",
-    "ND_LT",
-    "ND_LE",
-    "ND_LAND",
-    "ND_LOR",
-    "ND_ASSIGN",
-    "ND_ASSIGN_ADD",
-    "ND_ASSIGN_SUB",
-    "ND_ASSIGN_MUL",
-    "ND_ASSIGN_DIV",
-    "ND_ASSIGN_MOD",
+  node_kinds = calloc(1, sizeof(char*) * 100);
+  int i = 0;
+  node_kinds[i++] = "ND_ADD";
+  node_kinds[i++] = "ND_SUB";
+  node_kinds[i++] = "ND_MUL";
+  node_kinds[i++] = "ND_DIV";
+  node_kinds[i++] = "ND_MOD";
+  node_kinds[i++] = "ND_EQ";
+  node_kinds[i++] = "ND_NE";
+  node_kinds[i++] = "ND_LT";
+  node_kinds[i++] = "ND_LE";
+  node_kinds[i++] = "ND_LAND";
+  node_kinds[i++] = "ND_LOR";
+  node_kinds[i++] = "ND_ASSIGN";
+  node_kinds[i++] = "ND_ASSIGN_ADD";
+  node_kinds[i++] = "ND_ASSIGN_SUB";
+  node_kinds[i++] = "ND_ASSIGN_MUL";
+  node_kinds[i++] = "ND_ASSIGN_DIV";
+  node_kinds[i++] = "ND_ASSIGN_MOD";
 
-    "ND_SIZEOF",
-    "ND_NOT",
-    "ND_ADDR",
-    "ND_DEREF",
-    "ND_DOT",
+  node_kinds[i++] = "ND_SIZEOF";
+  node_kinds[i++] = "ND_NOT";
+  node_kinds[i++] = "ND_ADDR";
+  node_kinds[i++] = "ND_DEREF";
+  node_kinds[i++] = "ND_DOT";
 
-    "ND_NUM",
-    "ND_STR",
+  node_kinds[i++] = "ND_NUM";
+  node_kinds[i++] = "ND_STR";
+  node_kinds[i++] = "ND_CHAR";
 
-    "ND_VARREF",
-    "ND_GVARREF",
-    "ND_ARRAYREF",
-    "ND_CALL",
-    "ND_RETURN",
-    "ND_IF",
-    "ND_WHILE",
-    "ND_FOR",
-    "ND_SWITCH",
-    "ND_BLOCK",
-    "ND_FUNCDEF",
-    "ND_FUNCPROT",
-    "ND_STRDEF",
-    "ND_STRUCT",
-    "ND_ENUM",
-    "ND_BREAK",
-    "ND_CONTINUE",
-    "ND_CASE",
-    "ND_DEFAULT",
+  node_kinds[i++] = "ND_VARREF";
+  node_kinds[i++] = "ND_GVARREF";
+  node_kinds[i++] = "ND_ARRAYREF";
+  node_kinds[i++] = "ND_CALL";
+  node_kinds[i++] = "ND_RETURN";
+  node_kinds[i++] = "ND_IF";
+  node_kinds[i++] = "ND_WHILE";
+  node_kinds[i++] = "ND_FOR";
+  node_kinds[i++] = "ND_SWITCH";
+  node_kinds[i++] = "ND_BLOCK";
+  node_kinds[i++] = "ND_FUNCDEF";
+  node_kinds[i++] = "ND_FUNCPROT";
+  node_kinds[i++] = "ND_STRDEF";
+  node_kinds[i++] = "ND_STRUCT";
+  node_kinds[i++] = "ND_ENUM";
+  node_kinds[i++] = "ND_BREAK";
+  node_kinds[i++] = "ND_CONTINUE";
+  node_kinds[i++] = "ND_CASE";
+  node_kinds[i++] = "ND_DEFAULT";
 
-    "ND_DECL",
-    "ND_GDECL",
-    "ND_GDECL_EXTERN",
-    "ND_TYPE",
-    "ND_IDENT",
+  node_kinds[i++] = "ND_DECL";
+  node_kinds[i++] = "ND_GDECL";
+  node_kinds[i++] = "ND_GDECL_EXTERN";
+  node_kinds[i++] = "ND_TYPE";
+  node_kinds[i++] = "ND_IDENT";
 
-    "ND_PROGRAM",
-  };
+  node_kinds[i++] = "ND_PROGRAM";
 
-  type_kinds = (char*[]){
-    "TY_CHAR",
-    "TY_INT",
-    "TY_LONG",
-    "TY_PTR",
-    "TY_ARR",
-    "TY_STRUCT",
-    "TY_VOID",
-  };
+  i = 0;
+  type_kinds = calloc(1, sizeof(char*) * 10);
+  type_kinds[i++] = "TY_CHAR";
+  type_kinds[i++] = "TY_INT";
+  type_kinds[i++] = "TY_LONG";
+  type_kinds[i++] = "TY_PTR";
+  type_kinds[i++] = "TY_ARR";
+  type_kinds[i++] = "TY_STRUCT";
+  type_kinds[i++] = "TY_VOID";
 
   user_input = read_file(argv[1]);
   filename = argv[1];

@@ -13,6 +13,7 @@ typedef enum {
   TK_IDENT,
   TK_NUM,
   TK_STR,
+  TK_CHAR,
   TK_EOF,
 } TokenKind;
 
@@ -108,6 +109,7 @@ typedef enum {
   // リテラル
   ND_NUM, // valを持つ
   ND_STR, // valを持つ
+  ND_CHAR,// valを持つ(意味解析時にND_NUMに置き換える)
 
   // 構文
   ND_VARREF,   // 変数の参照, name, varを持つ

@@ -77,6 +77,12 @@ Token* tokenize(char *p, char* file) {
       continue;
     }
 
+    // ", ..."は無視
+    if(strncmp(p, ", ...", 5) == 0) {
+      p += 5;
+      continue;
+    }
+
     if(
       *p == '(' || *p == ')' || *p == '{' || *p == '}' || *p == '[' || *p == ']' ||
       *p == '*' || *p == '/' || *p == '%' || *p == '+' || *p == '-' ||
@@ -131,25 +137,25 @@ Token* tokenize(char *p, char* file) {
       if(*p == '\\') {
         p++;
         if(*p == 'n') {
-          cur = new_token(TK_NUM, cur, p, 1, file, line);
+          cur = new_token(TK_CHAR, cur, p, 1, file, line);
           cur->val = '\n';
         } else if(*p == 't') {
-          cur = new_token(TK_NUM, cur, p, 1, file, line);
+          cur = new_token(TK_CHAR, cur, p, 1, file, line);
           cur->val = '\t';
         } else if(*p == '\\') {
-          cur = new_token(TK_NUM, cur, p, 1, file, line);
+          cur = new_token(TK_CHAR, cur, p, 1, file, line);
           cur->val = '\\';
         } else if(*p == '\'') {
-          cur = new_token(TK_NUM, cur, p, 1, file, line);
+          cur = new_token(TK_CHAR, cur, p, 1, file, line);
           cur->val = '\'';
         } else if(*p == '0') {
-          cur = new_token(TK_NUM, cur, p, 1, file, line);
+          cur = new_token(TK_CHAR, cur, p, 1, file, line);
           cur->val = '\0';
         } else {
           error_at0(__FILE__, __LINE__, p, "無効なエスケープシーケンスです");
         }
       } else {
-        cur = new_token(TK_NUM, cur, p, 1, file, line);
+        cur = new_token(TK_CHAR, cur, p, 1, file, line);
         cur->val = *p;
       }
       p++;
@@ -237,16 +243,20 @@ Token* tokenize(char *p, char* file) {
         cur = new_token(TK_SYMBOL, cur, start, 7, file, line);
         continue;
       }
-      if(p - start == 5 && !memcmp(start, "const", 5)) {
-        // constはすべて無視！
-        continue;
-      }
-      if(p - start == 6 && !memcmp(start, "static", 6)) {
-        // staticはすべて無視！
-        continue;
-      }
       if(p - start == 4 && !memcmp(start, "long", 4)) {
         cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
+        continue;
+      }
+      // constは無視
+      if(p - start == 5 && !memcmp(start, "const", 5)) {
+        continue;
+      }
+      // staticは無視
+      if(p - start == 6 && !memcmp(start, "static", 6)) {
+        continue;
+      }
+      // restrictは無視
+      if(p - start == 8 && !memcmp(start, "restrict", 8)) {
         continue;
       }
       cur = new_token(TK_IDENT, cur, start, p - start, file, line);

@@ -20,6 +20,15 @@ void memcpy();
 
 // ここまで#includeの代わりに展開した部分
 
+// ここから#include
+
+// #include <stdlib.h>
+// #include <string.h>
+
+// #include "map.h"
+
+// ここまで#include
+
 typedef struct MapEntry MapEntry;
 
 struct MapEntry {
