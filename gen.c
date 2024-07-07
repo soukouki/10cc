@@ -422,9 +422,9 @@ void gen(Node* node) {
     int switch_label = node->local_label;
     gen(node->cond);
     printf("  pop rax\n");
-    char** keys = (char**)map_keys(node->case_map);
+    char** keys = map_keys(node->case_map);
     for(int i = 0; keys[i]; i++) {
-      int* val = (int*)map_get(node->case_map, keys[i]);
+      int* val = map_get(node->case_map, keys[i]);
       printf("  cmp rax, %d\n", *val);
       printf("  je %s\n", keys[i]);
     }
@@ -668,7 +668,9 @@ void gen(Node* node) {
 char* escape(char* str) {
   int len = strlen(str);
   char* buf = calloc(len * 2 + 1, sizeof(char));
-  for(int i = 0, j = 0; i < len; i++, j++) {
+  int i = 0;
+  int j = 0;
+  for(; i < len;) {
     if(str[i] == '\n') {
       buf[j++] = '\\';
       buf[j] = 'n';
@@ -684,6 +686,8 @@ char* escape(char* str) {
     } else {
       buf[j] = str[i];
     }
+    i++;
+    j++;
   }
   return buf;
 }
