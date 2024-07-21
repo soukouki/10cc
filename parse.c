@@ -3,8 +3,8 @@
 
 extern void* NULL;
 typedef char bool;
-extern char true = 1;
-extern char false = 0;
+extern char true;
+extern char false;
 int strcmp();
 int printf();
 int strncmp();

@@ -481,12 +481,13 @@ void gen(Node* node) {
       printf("  pop rdi\n");
     }
     printf("  mov al, 0\n"); // 浮動小数点数の数をALに入れる必要があるが、今は扱わないので0を入れておく
-    printf("  call %s\n", node->name);
+    printf("  call %s@PLT\n", node->name);
     printf("  push rax\n");
     break;
   }
   case ND_FUNCDEF: {
-    printf(".text\n");
+    printf("  .text\n");
+    printf("  .globl %s\n", node->name);
     printf("%s:\n", node->name);
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
@@ -555,7 +556,7 @@ void gen(Node* node) {
     break;
   }
   case ND_STRDEF: {
-    printf(".data\n");
+    printf("  .data\n");
     printf(".LC%d:\n", node->str_key);
     printf("  .string \"%s\"\n", escape(node->str_val));
     break;
@@ -581,7 +582,8 @@ void gen(Node* node) {
     break;
   }
   case ND_GDECL: {
-    printf(".data\n");
+    printf("  .data\n");
+    printf("  .globl %s\n", node->name);
     printf("%s:\n", node->name);
     printf("  .zero %d\n", node->var->size);
     break;

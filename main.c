@@ -5,7 +5,6 @@ typedef long size_t; // 多分intじゃサイズが足りないので、どこ�
 
 void exit();
 void* calloc();
-int errno = 0;
 char* strerror();
 
 // stdio.h
@@ -32,12 +31,14 @@ Node* parse();
 Node* analyze_semantics(Node* node);
 void gen(Node* node);
 
+char true = 1;
+char false = 0;
+
 // ここまで#includeの代わりに展開した部分
 
 // #include <stdio.h>
 // #include <stdlib.h>
 // #include <string.h>
-// #include <errno.h>
 // #include "10cc.h"
 
 // 現在着目しているトークン
@@ -116,14 +117,14 @@ char *read_file(char *path) {
   // ファイルを開く
   FILE *fp = fopen(path, "r");
   if (!fp)
-    error2(__FILE__, __LINE__, "cannot open %s: %s", path, strerror(errno));
+    error1(__FILE__, __LINE__, "cannot open %s", path);
 
   // ファイルの長さを調べる
   if (fseek(fp, 0, SEEK_END) == -1)
-    error2(__FILE__, __LINE__, "%s: fseek: %s", path, strerror(errno));
+    error1(__FILE__, __LINE__, "%s: fseek", path);
   size_t size = ftell(fp);
   if (fseek(fp, 0, SEEK_SET) == -1)
-    error2(__FILE__, __LINE__, "%s: fseek: %s", path, strerror(errno));
+    error1(__FILE__, __LINE__, "%s: fseek", path);
 
   // ファイル内容を読み込む
   char *buf = calloc(1, size + 2);
