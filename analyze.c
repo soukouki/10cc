@@ -594,7 +594,39 @@ static NodeAndType* analyze(Node* node) {
     }
     error_at1(__FILE__, __LINE__, node->loc, "変数%sは定義されていません", node->name);
   }
-  case ND_ADD:
+  case ND_ADD: {
+    NodeAndType* lhs = analyze(node->lhs);
+    TypeKind lkind = lhs->type->kind;
+    node->lhs = lhs->node;
+    NodeAndType* rhs = analyze(node->rhs);
+    TypeKind rkind = rhs->type->kind;
+    node->rhs = rhs->node;
+
+    if(lkind == TY_ARRAY) {
+      lkind = TY_PTR;
+    }
+    if(rkind == TY_ARRAY) {
+      rkind = TY_PTR;
+    }
+    Type* max = max_type(lhs->type, rhs->type);
+    if(max) {
+      return return_expression(node, max);
+    }
+    if(lkind == TY_PTR && rkind == TY_PTR) {
+      error_at0(__FILE__, __LINE__, node->loc, "ポインタ同士の加算はできません");
+    }
+    if(lkind == TY_PTR) {
+      Node* size = new_node_num(node->loc, size_of(lhs->type->ptr_to));
+      Node* mul = new_node_2branches(ND_MUL, node->loc, node->rhs, size);
+      return return_expression(new_node_2branches(node->kind, node->loc, node->lhs, mul), lhs->type);
+    }
+    if(rkind == TY_PTR) {
+      Node* size = new_node_num(node->loc, size_of(rhs->type->ptr_to));
+      Node* mul = new_node_2branches(ND_MUL, node->loc, node->lhs, size);
+      return return_expression(new_node_2branches(node->kind, node->loc, mul, node->rhs), rhs->type);
+    }
+    error_at2(__FILE__, __LINE__, node->loc, "%sと%sの加減算はできません", type_kinds[lkind], type_kinds[rkind]);
+  }
   case ND_SUB: {
     NodeAndType* lhs = analyze(node->lhs);
     TypeKind lkind = lhs->type->kind;
@@ -613,11 +645,14 @@ static NodeAndType* analyze(Node* node) {
     if(max) {
       return return_expression(node, max);
     }
-    if(lkind == TY_PTR && rkind == TY_PTR && node->kind == ND_ADD) {
-      return return_expression(node, lhs->type);
-    }
-    if(lkind == TY_PTR && rkind == TY_PTR && node->kind == ND_ADD) {
-      error_at0(__FILE__, __LINE__, node->loc, "ポインタ同士の加算はできません");
+    if((lkind == TY_PTR || lkind == TY_ARRAY) && (rkind == TY_PTR || rkind == TY_ARRAY)) {
+      if(size_of(lhs->type->ptr_to) != size_of(rhs->type->ptr_to)) {
+        error_at0(__FILE__, __LINE__, node->loc, "ポインタ同士の引き算は同じ型同士でないといけません(仕様ではさらにcompatibleであることが求められています)");
+      }
+      // ポインタの先の型によって割ってあげないといけない
+      Node* size = new_node_num(node->loc, size_of(lhs->type->ptr_to));
+      Node* sub = new_node_2branches(ND_SUB, node->loc, node->lhs, node->rhs);
+      return return_expression(new_node_2branches(ND_DIV, node->loc, sub, size), int_type());
     }
     if(lkind == TY_PTR) {
       Node* size = new_node_num(node->loc, size_of(lhs->type->ptr_to));

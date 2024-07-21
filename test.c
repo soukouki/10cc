@@ -1436,6 +1436,48 @@ void struct_offsetof() {
   assert(8,  __builtin_offsetof(struct struct_alignment_sample13, b), "__builtin_offsetof(struct struct_alignment_sample13, b)");
 }
 
+void sub_pointer() {
+  section("ポインタの減算");
+  int a[3];
+  int* p;
+  p = a;
+  assert(0, p - a, "p - a");
+  assert(1, (p + 1) - a, "(p + 1) - a");
+  assert(2, (p + 2) - a, "(p + 2) - a");
+  assert(0, a - p, "a - p");
+  assert(-1, a - (p + 1), "a - (p + 1)");
+  assert(-2, a - (p + 2), "a - (p + 2)");
+  p = a + 2;
+  assert(2, p - a, "p - a");
+  assert(-2, a - p, "a - p");
+
+  char b[3];
+  char* q;
+  q = b;
+  assert(0, q - b, "q - b");
+  assert(1, (q + 1) - b, "(q + 1) - b");
+  assert(2, (q + 2) - b, "(q + 2) - b");
+  assert(0, b - q, "b - q");
+  assert(-1, b - (q + 1), "b - (q + 1)");
+  assert(-2, b - (q + 2), "b - (q + 2)");
+  q = b + 2;
+  assert(2, q - b, "q - b");
+  assert(-2, b - q, "b - q");
+
+  struct struct_alignment_sample1 c[3];
+  struct struct_alignment_sample1* r;
+  r = c;
+  assert(0, r - c, "r - c");
+  assert(1, (r + 1) - c, "(r + 1) - c");
+  assert(2, (r + 2) - c, "(r + 2) - c");
+  assert(0, c - r, "c - r");
+  assert(-1, c - (r + 1), "c - (r + 1)");
+  assert(-2, c - (r + 2), "c - (r + 2)");
+  r = c + 2;
+  assert(2, r - c, "r - c");
+  assert(-2, c - r, "c - r");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1499,6 +1541,7 @@ int main() {
   variable_size();
   struct_alignment();
   struct_offsetof();
+  sub_pointer();
 
   if(is_fall) {
     printf("FAILED\n");
