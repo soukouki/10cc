@@ -23,7 +23,6 @@ int fseek();
 size_t ftell();
 size_t fread();
 int fclose();
-int feof();
 
 typedef struct Token Token;
 typedef struct Node Node;
@@ -114,15 +113,26 @@ void error_at1(char* file_name, int file_line, char *loc, char* fmt, char* arg1)
 }
 
 // 指定されたファイルの内容を返す
-// とりあえず100万文字のファイルまで耐えられるようにする
-char* read_file(char *path) {
+char *read_file(char *path) {
+  // ファイルを開く
   FILE *fp = fopen(path, "r");
   if (!fp)
     error1(__FILE__, __LINE__, "cannot open %s", path);
-  char* buf = calloc(1, 1000000);
-  int size = fread(buf, 1, 1000000 - 2, fp);
-  if (!feof(fp))
-    error0(__FILE__, __LINE__, "input too large");
+
+  // ファイルの長さを調べる
+  if (fseek(fp, 0, SEEK_END) == -1)
+    error1(__FILE__, __LINE__, "%s: fseek", path);
+  size_t size = ftell(fp);
+  if (fseek(fp, 0, SEEK_SET) == -1)
+    error1(__FILE__, __LINE__, "%s: fseek", path);
+
+  // ファイル内容を読み込む
+  char *buf = calloc(1, size + 2);
+  fread(buf, size, 1, fp);
+
+  // ファイルが必ず"\n\0"で終わっているようにする
+  if (size == 0 || buf[size - 1] != '\n')
+    buf[size++] = '\n';
   buf[size] = '\0';
   fclose(fp);
   return buf;
