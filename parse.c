@@ -110,7 +110,6 @@ enum NodeKind {
   ND_ASSIGN_DIV, // 除算代入, lhs, rhsを持つ
   ND_ASSIGN_MOD, // 剰余代入, lhs, rhsを持つ
   // 単項演算子(lhsを持つ)
-  ND_SIZEOF, // sizeof演算子, lhsを持つ
   ND_NOT,    // 単項not, lhsを持つ
   // ポインタ
   ND_ADDR,   // 単項&, lhsを持つ
@@ -123,11 +122,15 @@ enum NodeKind {
   ND_STR, // valを持つ
   ND_CHAR,// valを持つ(意味解析時にND_NUMに置き換える)
 
+  // 関数・コンパイラマジック
+  ND_CALL,     // 関数呼び出し, name, args_callを持つ
+  ND_SIZEOF,   // sizeof, lhsを持つ
+  ND_OFFSETOF, // offsetof, lhs, nameを持つ
+
   // 構文
   ND_VARREF,   // 変数の参照, name, varを持つ
   ND_GVARREF,  // グローバル変数の参照, name, varを持つ
   ND_ARRAYREF, // 配列の参照, lhs, rhsを持つ
-  ND_CALL,     // 関数呼び出し, name, args_callを持つ
   ND_RETURN,   // return, lhsを持つ
   ND_IF,       // if文, cond, then, elsを持つ
   ND_WHILE,    // while文, cond, bodyを持つ
@@ -379,6 +382,7 @@ mul         = unary ("*" unary | "/" unary | "%" unary)*
 unary       = ("+" | "-" | "*" | "&" | "!")? primary
             | "sizeof" unary
             | "sizeof" "(" type ")"
+            | "__builtin_offsetof" "(" type "," ident ")"
             | "++" unary
             | "--" unary
 primary     = num
@@ -983,6 +987,22 @@ static Node* unary() {
     }
     token = origin;
     return new_node_1branch(ND_SIZEOF, token->str, unary());
+  }
+  if(consume("__builtin_offsetof")) {
+    expect("(");
+    Node* t = type();
+    if(t == NULL) {
+      error_at0(__FILE__, __LINE__, token->str, "型がありません");
+    }
+    expect(",");
+    char* ident = consume_ident();
+    if(ident == NULL) {
+      error_at0(__FILE__, __LINE__, token->str, "メンバ名がありません");
+    }
+    expect(")");
+    Node* offsetof = new_node_1branch(ND_OFFSETOF, token->str, t);
+    offsetof->name = ident;
+    return offsetof;
   }
   if(consume("++")) {
     // ++a は (a += 1) として処理する

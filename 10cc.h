@@ -97,7 +97,6 @@ enum NodeKind {
   ND_ASSIGN_DIV, // 除算代入, lhs, rhsを持つ
   ND_ASSIGN_MOD, // 剰余代入, lhs, rhsを持つ
   // 単項演算子(lhsを持つ)
-  ND_SIZEOF, // sizeof演算子, lhsを持つ
   ND_NOT,    // 単項not, lhsを持つ
   // ポインタ
   ND_ADDR,   // 単項&, lhsを持つ
@@ -110,11 +109,15 @@ enum NodeKind {
   ND_STR, // valを持つ
   ND_CHAR,// valを持つ(意味解析時にND_NUMに置き換える)
 
+  // 関数・コンパイラマジック
+  ND_CALL,     // 関数呼び出し, name, args_callを持つ
+  ND_SIZEOF,   // sizeof, lhsを持つ
+  ND_OFFSETOF, // offsetof, lhs, nameを持つ
+
   // 構文
   ND_VARREF,   // 変数の参照, name, varを持つ
   ND_GVARREF,  // グローバル変数の参照, name, varを持つ
   ND_ARRAYREF, // 配列の参照, lhs, rhsを持つ
-  ND_CALL,     // 関数呼び出し, name, args_callを持つ
   ND_RETURN,   // return, lhsを持つ
   ND_IF,       // if文, cond, then, elsを持つ
   ND_WHILE,    // while文, cond, bodyを持つ
@@ -165,7 +168,7 @@ struct Node {
   int    int_val;        // 数値リテラル, caseで使う
   char*  str_val;        // 文字列リテラルの場合に使う
   int    str_key;        // 文字列リテラルの場合に使う
-  char*  name;           // 関数の定義, 関数呼び出し, 変数の参照, caseで使う
+  char*  name;           // 関数の定義, 関数呼び出し, 変数の参照, case, offsetofで使う
   Var*   var;            // ND_LVARの場合に使う
   Type*  type;           // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECLで使う
   Node** args_node;      // 関数の定義で使う(パース->意味解析)

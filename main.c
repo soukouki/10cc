@@ -160,7 +160,6 @@ int main(int argc, char **argv) {
   node_kinds[i++] = "ND_ASSIGN_DIV";
   node_kinds[i++] = "ND_ASSIGN_MOD";
 
-  node_kinds[i++] = "ND_SIZEOF";
   node_kinds[i++] = "ND_NOT";
   node_kinds[i++] = "ND_ADDR";
   node_kinds[i++] = "ND_DEREF";
@@ -170,10 +169,13 @@ int main(int argc, char **argv) {
   node_kinds[i++] = "ND_STR";
   node_kinds[i++] = "ND_CHAR";
 
+  node_kinds[i++] = "ND_CALL";
+  node_kinds[i++] = "ND_SIZEOF";
+  node_kinds[i++] = "ND_OFFSETOF";
+
   node_kinds[i++] = "ND_VARREF";
   node_kinds[i++] = "ND_GVARREF";
   node_kinds[i++] = "ND_ARRAYREF";
-  node_kinds[i++] = "ND_CALL";
   node_kinds[i++] = "ND_RETURN";
   node_kinds[i++] = "ND_IF";
   node_kinds[i++] = "ND_WHILE";

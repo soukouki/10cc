@@ -1370,8 +1370,8 @@ struct struct_alignment_sample8 {
 };
 
 struct struct_alignment_sample9 {
-  long b;
-  int a[5];
+  long a;
+  int b[5];
 };
 
 struct struct_alignment_sample10 {
@@ -1406,6 +1406,34 @@ void struct_alignment() {
   assert(0,  sizeof(struct struct_alignment_sample11), "sizeof(struct struct_alignment_sample11)");
   assert(0,  sizeof(struct struct_alignment_sample12), "sizeof(struct struct_alignment_sample12)");
   assert(32, sizeof(struct struct_alignment_sample13), "sizeof(struct struct_alignment_sample13)");
+}
+
+void struct_offsetof() {
+  section("offsetofコンパイラマジック");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample1, a), "__builtin_offsetof(struct struct_alignment_sample1, a)");
+  assert(4,  __builtin_offsetof(struct struct_alignment_sample1, b), "__builtin_offsetof(struct struct_alignment_sample1, b)");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample2, a), "__builtin_offsetof(struct struct_alignment_sample2, a)");
+  assert(4,  __builtin_offsetof(struct struct_alignment_sample2, b), "__builtin_offsetof(struct struct_alignment_sample2, b)");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample3, a), "__builtin_offsetof(struct struct_alignment_sample3, a)");
+  assert(1,  __builtin_offsetof(struct struct_alignment_sample3, b), "__builtin_offsetof(struct struct_alignment_sample3, b)");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample4, a), "__builtin_offsetof(struct struct_alignment_sample4, a)");
+  assert(8,  __builtin_offsetof(struct struct_alignment_sample4, b), "__builtin_offsetof(struct struct_alignment_sample4, b)");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample5, a), "__builtin_offsetof(struct struct_alignment_sample5, a)");
+  assert(8,  __builtin_offsetof(struct struct_alignment_sample5, b), "__builtin_offsetof(struct struct_alignment_sample5, b)");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample6, a), "__builtin_offsetof(struct struct_alignment_sample6, a)");
+  assert(8,  __builtin_offsetof(struct struct_alignment_sample6, b), "__builtin_offsetof(struct struct_alignment_sample6, b)");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample7, a), "__builtin_offsetof(struct struct_alignment_sample7, a)");
+  assert(4,  __builtin_offsetof(struct struct_alignment_sample7, b), "__builtin_offsetof(struct struct_alignment_sample7, b)");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample8, a), "__builtin_offsetof(struct struct_alignment_sample8, a)");
+  assert(16, __builtin_offsetof(struct struct_alignment_sample8, b), "__builtin_offsetof(struct struct_alignment_sample8, b)");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample9, a), "__builtin_offsetof(struct struct_alignment_sample9, a)");
+  assert(8,  __builtin_offsetof(struct struct_alignment_sample9, b), "__builtin_offsetof(struct struct_alignment_sample9, b)");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample10, a), "__builtin_offsetof(struct struct_alignment_sample10, a)");
+  assert(4,  __builtin_offsetof(struct struct_alignment_sample10, b), "__builtin_offsetof(struct struct_alignment_sample10, b)");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample12, a), "__builtin_offsetof(struct struct_alignment_sample13, a)");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample12, b), "__builtin_offsetof(struct struct_alignment_sample13, b)");
+  assert(0,  __builtin_offsetof(struct struct_alignment_sample13, a), "__builtin_offsetof(struct struct_alignment_sample13, a)");
+  assert(8,  __builtin_offsetof(struct struct_alignment_sample13, b), "__builtin_offsetof(struct struct_alignment_sample13, b)");
 }
 
 int main() {
@@ -1470,6 +1498,7 @@ int main() {
   long_type();
   variable_size();
   struct_alignment();
+  struct_offsetof();
 
   if(is_fall) {
     printf("FAILED\n");

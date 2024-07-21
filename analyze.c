@@ -86,7 +86,6 @@ enum NodeKind {
   ND_ASSIGN_DIV, // 除算代入, lhs, rhsを持つ
   ND_ASSIGN_MOD, // 剰余代入, lhs, rhsを持つ
   // 単項演算子(lhsを持つ)
-  ND_SIZEOF, // sizeof演算子, lhsを持つ
   ND_NOT,    // 単項not, lhsを持つ
   // ポインタ
   ND_ADDR,   // 単項&, lhsを持つ
@@ -99,11 +98,15 @@ enum NodeKind {
   ND_STR, // valを持つ
   ND_CHAR,// valを持つ(意味解析時にND_NUMに置き換える)
 
+  // 関数・コンパイラマジック
+  ND_CALL,     // 関数呼び出し, name, args_callを持つ
+  ND_SIZEOF,   // sizeof, lhsを持つ
+  ND_OFFSETOF, // offsetof, lhs, nameを持つ
+
   // 構文
   ND_VARREF,   // 変数の参照, name, varを持つ
   ND_GVARREF,  // グローバル変数の参照, name, varを持つ
   ND_ARRAYREF, // 配列の参照, lhs, rhsを持つ
-  ND_CALL,     // 関数呼び出し, name, args_callを持つ
   ND_RETURN,   // return, lhsを持つ
   ND_IF,       // if文, cond, then, elsを持つ
   ND_WHILE,    // while文, cond, bodyを持つ
@@ -494,18 +497,18 @@ static NodeAndType* analyze(Node* node) {
       Node* member = node->struct_members[i];
       StructMember* sm = calloc(1, sizeof(StructMember));
       sm->type = member->type;
-      sm->offset = offset;
 
       offset += get_padding(offset, member->type);
       if(alignment(alignment_max) < alignment(member->type)) {
         alignment_max = member->type;
       }
+      sm->offset = offset;
 
       offset += size_of(member->type);
       map_put(s->members, member->name, sm);
       i++;
     }
-    
+
     offset += get_padding(offset, alignment_max);
     s->size = offset;
     map_put(global_map, node->name, s);
@@ -763,12 +766,24 @@ static NodeAndType* analyze(Node* node) {
   }
   case ND_SIZEOF: {
     if(node->lhs->kind == ND_TYPE) {
+      // sizeof(型)の場合
       Node* type = node->lhs;
       Node* num = new_node_num(node->loc, size_of(type->type));
       return return_expression(num, int_type());
     }
+    // sizeof(式)の場合
     NodeAndType *nat = analyze(node->lhs);
     Node* num = new_node_num(node->loc, size_of(nat->type));
+    return return_expression(num, int_type());
+  }
+  case ND_OFFSETOF: {
+    Type* type = node->lhs->type;
+    if(type->kind != TY_STRUCT) {
+      error_at0(__FILE__, __LINE__, node->loc, "offsetofの対象が構造体ではありません");
+    }
+    Struct* s = map_get(global_map, type->struct_name);
+    StructMember* sm = map_get(s->members, node->name);
+    Node* num = new_node_num(node->loc, sm->offset);
     return return_expression(num, int_type());
   }
   case ND_NOT: {

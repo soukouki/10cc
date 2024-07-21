@@ -288,6 +288,10 @@ Token* tokenize(char *p, char* file) {
       if(p - start == 6 && !memcmp(start, "static", 6)) {
         continue;
       }
+      if(p - start == 18 && !memcmp(start, "__builtin_offsetof", 18)) {
+        cur = new_token(TK_SYMBOL, cur, start, 18, file, line);
+        continue;
+      }
       cur = new_token(TK_IDENT, cur, start, p - start, file, line);
       continue;
     }
