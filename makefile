@@ -26,6 +26,66 @@ self2: 10cc *.c
 	./10cc gen.c > gen.s
 	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
 
+selftest1: 10cc *.c
+	./10cc map.c > map.s
+	$(CC) main.c -S
+	$(CC) tokenize.c -S
+	$(CC) parse.c -S
+	$(CC) analyze.c -S
+	$(CC) gen.c -S
+	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
+	./10cc-2 tmp.c # 成功
+
+selftest2: 10cc *.c
+	$(CC) map.c -S
+	./10cc main.c > main.s
+	$(CC) tokenize.c -S
+	$(CC) parse.c -S
+	$(CC) analyze.c -S
+	$(CC) gen.c -S
+	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -g -no-pie
+	./10cc-2 tmp.c # 失敗(関数の戻り値の型がありません)
+
+selftest4: 10cc *.c
+	$(CC) map.c -S
+	$(CC) main.c -S
+	./10cc tokenize.c > tokenize.s
+	$(CC) parse.c -S
+	$(CC) analyze.c -S
+	$(CC) gen.c -S
+	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -g -no-pie
+	./10cc-2 tmp.c # 失敗(セグフォ)
+
+selftest5: 10cc *.c
+	$(CC) map.c -S
+	$(CC) main.c -S
+	$(CC) tokenize.c -S
+	./10cc parse.c > parse.s
+	$(CC) analyze.c -S
+	$(CC) gen.c -S
+	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
+	./10cc-2 tmp.c # 成功
+
+selftest6: 10cc *.c
+	$(CC) map.c -S
+	$(CC) main.c -S
+	$(CC) tokenize.c -S
+	$(CC) parse.c -S
+	./10cc analyze.c > analyze.s
+	$(CC) gen.c -S
+	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
+	./10cc-2 tmp.c # 成功
+
+selftest7: 10cc *.c
+	$(CC) map.c -S
+	$(CC) main.c -S
+	$(CC) tokenize.c -S
+	$(CC) parse.c -S
+	$(CC) analyze.c -S
+	./10cc gen.c > gen.s
+	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
+	./10cc-2 tmp.c # 成功
+
 clean:
 	rm -f 10cc *.o *~ tmp* test.s
 

@@ -2,6 +2,7 @@
 *.o
 *.s
 tmp*
+!tmp.c
 a.out
 10cc
 10cc-*
