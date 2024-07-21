@@ -328,7 +328,7 @@ void gen(Node* node) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
     printf("  add [rax], rdi\n");
-    printf("  mov edi, [rax]\n");
+    printf("  mov rdi, [rax]\n");
     printf("  push rdi\n");
     break;
   }
@@ -338,7 +338,7 @@ void gen(Node* node) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
     printf("  sub [rax], rdi\n");
-    printf("  mov edi, [rax]\n");
+    printf("  mov rdi, [rax]\n");
     printf("  push rdi\n");
     break;
   }
@@ -348,7 +348,7 @@ void gen(Node* node) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
     printf("  imul [rax], rdi\n");
-    printf("  mov edi, [rax]\n");
+    printf("  mov rdi, [rax]\n");
     printf("  push rdi\n");
     break;
   }

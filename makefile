@@ -1,6 +1,6 @@
 CFLAGS=-std=c11 -g -static -Wall -Wno-unused-variable
 # tmp.cを除く全ての.cファイルをコンパイルする
-SRCS=$(filter-out tmp.c, $(filter-out test.c, $(wildcard *.c)))
+SRCS=$(filter-out tmp.c tmp2.c, $(filter-out test.c, $(wildcard *.c)))
 OBJS=$(SRCS:.c=.o)
 
 10cc: $(OBJS)
