@@ -1329,6 +1329,85 @@ void variable_size(){
   assert(1, l1 != l2, "l1 != l2");
 }
 
+struct struct_alignment_sample1 {
+  char a;
+  int b;
+};
+
+struct struct_alignment_sample2 {
+  int a;
+  char b;
+};
+
+struct struct_alignment_sample3 {
+  char a;
+  char b;
+};
+
+struct struct_alignment_sample4 {
+  int a;
+  long b;
+};
+
+struct struct_alignment_sample5 {
+  long a;
+  int b;
+};
+
+struct struct_alignment_sample6 {
+  char a[5];
+  int b;
+};
+
+struct struct_alignment_sample7 {
+  int a;
+  char b[5];
+};
+
+struct struct_alignment_sample8 {
+  int a[3];
+  long b;
+};
+
+struct struct_alignment_sample9 {
+  long b;
+  int a[5];
+};
+
+struct struct_alignment_sample10 {
+  struct struct_alignment_sample3 a;
+  int b;
+};
+
+struct struct_alignment_sample11 {};
+
+struct struct_alignment_sample12 {
+  struct struct_alignment_sample11 a;
+  struct struct_alignment_sample11 b[1000];
+};
+
+struct struct_alignment_sample13 {
+  long a;
+  struct struct_alignment_sample8 b;
+};
+
+void struct_alignment() {
+  section("構造体のアライメント");
+  assert(8,  sizeof(struct struct_alignment_sample1), "sizeof(struct struct_alignment_sample1)");
+  assert(8,  sizeof(struct struct_alignment_sample2), "sizeof(struct struct_alignment_sample2)");
+  assert(2,  sizeof(struct struct_alignment_sample3), "sizeof(struct struct_alignment_sample3)");
+  assert(16, sizeof(struct struct_alignment_sample4), "sizeof(struct struct_alignment_sample4)");
+  assert(16, sizeof(struct struct_alignment_sample5), "sizeof(struct struct_alignment_sample5)");
+  assert(12, sizeof(struct struct_alignment_sample6), "sizeof(struct struct_alignment_sample6)");
+  assert(12, sizeof(struct struct_alignment_sample7), "sizeof(struct struct_alignment_sample7)");
+  assert(24, sizeof(struct struct_alignment_sample8), "sizeof(struct struct_alignment_sample8)");
+  assert(32, sizeof(struct struct_alignment_sample9), "sizeof(struct struct_alignment_sample9)");
+  assert(8,  sizeof(struct struct_alignment_sample10), "sizeof(struct struct_alignment_sample10)");
+  assert(0,  sizeof(struct struct_alignment_sample11), "sizeof(struct struct_alignment_sample11)");
+  assert(0,  sizeof(struct struct_alignment_sample12), "sizeof(struct struct_alignment_sample12)");
+  assert(32, sizeof(struct struct_alignment_sample13), "sizeof(struct struct_alignment_sample13)");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1390,6 +1469,7 @@ int main() {
   unary_not();
   long_type();
   variable_size();
+  struct_alignment();
 
   if(is_fall) {
     printf("FAILED\n");

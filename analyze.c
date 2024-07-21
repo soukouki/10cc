@@ -190,26 +190,26 @@ Node* analyze_semantics(Node* node);
 // #include <stdio.h>
 // #include "10cc.h"
 
-// Map<name, Node(ND_STRDEF)>
+// Map<char*, Node(ND_STRDEF)>
 Map* string_map;
 int  string_count = 0;
 
-// Map<name, *int>
+// Map<char*, *int>
 Map* constant_map; // enumの定数用
 
-// Map<name, Node(ND_FUNCDEF|ND_FUNCPROT)>
+// Map<char*, Node(ND_FUNCDEF|ND_FUNCPROT)>
 Map* func_map;
 
-// Map<name, Var>
+// Map<char*, Var>
 Map* global_map;
 
-// Map<name, Var>
+// Map<char*, Var>
 Map* local_map;
 int local_offset;
 
 int local_label = 0;
 
-// Map<name, *int>
+// Map<char*, *int>
 Map* case_map;
 
 // NULLチェックをしてから使うこと
@@ -363,6 +363,53 @@ static int size_of(Type* type) {
   return 0;
 }
 
+static int alignment(Type* type) {
+  if(!type) {
+    error0(__FILE__, __LINE__, "alignment: typeがNULL");
+  }
+  switch(type->kind) {
+  case TY_CHAR:
+    return 1;
+  case TY_INT:
+    return 4;
+  case TY_LONG:
+    return 8;
+  case TY_PTR:
+    return 8;
+  case TY_ARRAY:
+    return alignment(type->ptr_to);
+  case TY_STRUCT: {
+    Struct* s = map_get(global_map, type->struct_name);
+    int max = 0;
+    void* values_tmp = map_values(s->members);
+    StructMember** values = values_tmp;
+    for(int i = 0; values[i]; i++) {
+      StructMember* sm = values[i];
+      int a = alignment(sm->type);
+      if(a > max) {
+        max = a;
+      }
+    }
+    return max;
+  }
+  case TY_VOID:
+    return 0;
+  }
+  error0(__FILE__, __LINE__, "alignment: 未対応の型");
+  return 0;
+}
+
+static int get_padding(int offset, Type* type) {
+  int align = alignment(type);
+  // 規格書では
+  // > A structure type describes a sequentially allocated nonempty set of member objects
+  // となっているが、ここでは空の構造体も考慮して進める
+  if(align == 0) {
+    return 0;
+  }
+  return (align - (offset % align)) % align;
+}
+
 typedef struct NodeAndType NodeAndType;
 
 struct NodeAndType {
@@ -441,15 +488,25 @@ static NodeAndType* analyze(Node* node) {
     s->members = map_new();
     int i = 0;
     int offset = 0;
+    Type* alignment_max = void_type();
+
     while(node->struct_members[i]) {
       Node* member = node->struct_members[i];
       StructMember* sm = calloc(1, sizeof(StructMember));
       sm->type = member->type;
       sm->offset = offset;
+
+      offset += get_padding(offset, member->type);
+      if(alignment(alignment_max) < alignment(member->type)) {
+        alignment_max = member->type;
+      }
+
       offset += size_of(member->type);
       map_put(s->members, member->name, sm);
       i++;
     }
+    
+    offset += get_padding(offset, alignment_max);
     s->size = offset;
     map_put(global_map, node->name, s);
     return return_statement(node);

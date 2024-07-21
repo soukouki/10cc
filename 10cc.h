@@ -58,6 +58,7 @@ struct StructMember {
 typedef struct Struct Struct;
 struct Struct {
   char* name;
+  // Map<name, StructMember>
   Map* members;
   int size;
 };
@@ -150,6 +151,7 @@ struct Node {
   Node*  then;           // ifで使う
   Node*  els;            // ifで使う
   Node*  body;           // while, for, switchで使う
+  // Map<char*, int>
   Map*   case_map;       // switchで使う ラベルをキーにして、caseの値を値にもつ
   bool   has_default;    // switchで使う
   Node** stmts;          // ブロックで使う
