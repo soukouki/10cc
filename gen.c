@@ -328,7 +328,17 @@ void gen(Node* node) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
     printf("  add [rax], rdi\n");
-    printf("  mov rdi, [rax]\n");
+    switch(node->lhs->type->kind) {
+    case TY_INT:
+      printf("  mov edi, [rax]\n");
+      break;
+    case TY_CHAR:
+      printf("  movzx edi, BYTE PTR [rax]\n");
+      break;
+    default:
+      printf("  mov rdi, [rax]\n");
+      break;
+    }
     printf("  push rdi\n");
     break;
   }
@@ -338,7 +348,17 @@ void gen(Node* node) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
     printf("  sub [rax], rdi\n");
-    printf("  mov rdi, [rax]\n");
+    switch(node->lhs->type->kind) {
+    case TY_INT:
+      printf("  mov edi, [rax]\n");
+      break;
+    case TY_CHAR:
+      printf("  movzx edi, BYTE PTR [rax]\n");
+      break;
+    default:
+      printf("  mov rdi, [rax]\n");
+      break;
+    }
     printf("  push rdi\n");
     break;
   }
@@ -348,15 +368,25 @@ void gen(Node* node) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
     printf("  imul [rax], rdi\n");
-    printf("  mov rdi, [rax]\n");
+    switch(node->lhs->type->kind) {
+    case TY_INT:
+      printf("  mov edi, [rax]\n");
+      break;
+    case TY_CHAR:
+      printf("  movzx edi, BYTE PTR [rax]\n");
+      break;
+    default:
+      printf("  mov rdi, [rax]\n");
+      break;
+    }
     printf("  push rdi\n");
     break;
   }
   case ND_ASSIGN_DIV: {
-    error0(__FILE__, __LINE__, "未実装");
+    error0(__FILE__, __LINE__, "除算代入は未実装");
   }
   case ND_ASSIGN_MOD: {
-    error0(__FILE__, __LINE__, "未実装");
+    error0(__FILE__, __LINE__, "剰余算代入は未実装");
   }
   case ND_NOT: {
     gen(node->lhs);
