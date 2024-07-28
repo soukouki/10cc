@@ -4,7 +4,7 @@ if [ $? != 0 ]; then
   echo "Failed to compile test.c by 10cc"
   exit
 fi
-cc -o tmp.o tmp.s test_mock.s
+cc -static -o tmp.o tmp.s test_mock.s
 if [ $? != 0 ]; then
   echo "Failed to compile tmp.s by cc"
   exit

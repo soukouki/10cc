@@ -44,7 +44,7 @@ selftest2: 10cc *.c
 	$(CC) analyze.c -S
 	$(CC) gen.c -S
 	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -g -no-pie
-	./10cc-2 tmp.c # 失敗(なぜか変数も関数も出力されない)
+	./10cc-2 tmp.c # 成功
 
 selftest4: 10cc *.c
 	$(CC) map.c -S

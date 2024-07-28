@@ -1478,6 +1478,19 @@ void sub_pointer() {
   assert(-2, c - r, "c - r");
 }
 
+int global_variable_initialize_a = 12;
+char global_variable_initialize_b = 34;
+long global_variable_initialize_c = 56;
+int* global_variable_initialize_d = 78;
+
+void global_variable_initialize() {
+  section("グローバル変数の初期化");
+  assert(12, global_variable_initialize_a, "global_variable_initialize_a");
+  assert(34, global_variable_initialize_b, "global_variable_initialize_b");
+  assert(56, global_variable_initialize_c, "global_variable_initialize_c");
+  assert(78, global_variable_initialize_d, "global_variable_initialize_d");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1542,6 +1555,7 @@ int main() {
   struct_alignment();
   struct_offsetof();
   sub_pointer();
+  global_variable_initialize();
 
   if(is_fall) {
     printf("FAILED\n");

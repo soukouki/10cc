@@ -175,6 +175,7 @@ void error_at1(char* file, int line, char* loc, char* fmt, char* arg1);
 void error_at2(char* file, int line, char* loc, char* fmt, char* arg1, char* arg2);
 
 extern char** node_kinds;
+extern char** type_kinds;
 
 void gen(Node* node);
 
@@ -225,8 +226,10 @@ void gen_ref_push(Node* node) {
     printf("  mov eax, [rax]\n");
   } else if(node->type->kind == TY_CHAR) {
     printf("  movzx eax, BYTE PTR [rax]\n");
-  } else {
+  } else if(node->type->kind == TY_LONG || node->type->kind == TY_PTR) {
     printf("  mov rax, [rax]\n");
+  } else {
+    error1(__FILE__, __LINE__, "%sの参照は未実装", type_kinds[node->type->kind]);
   }
   printf("  push rax\n");
 }
@@ -240,8 +243,10 @@ void gen_assign(Node* lval, Node* rval) {
     printf("  mov [rax], edi\n");
   } else if(lval->type->kind == TY_CHAR) {
     printf("  mov [rax], dil\n");
-  } else {
+  } else if(lval->type->kind == TY_LONG || lval->type->kind == TY_PTR) {
     printf("  mov [rax], rdi\n");
+  } else {
+    error1(__FILE__, __LINE__, "%sへの代入は未実装", type_kinds[lval->type->kind]);
   }
   printf("  push rdi\n");
 }
@@ -335,9 +340,12 @@ void gen(Node* node) {
     case TY_CHAR:
       printf("  movzx edi, BYTE PTR [rax]\n");
       break;
-    default:
+    case TY_LONG:
+    case TY_PTR:
       printf("  mov rdi, [rax]\n");
       break;
+    default:
+      error1(__FILE__, __LINE__, "%sの加算代入は未実装", type_kinds[node->lhs->type->kind]);
     }
     printf("  push rdi\n");
     break;
@@ -355,9 +363,12 @@ void gen(Node* node) {
     case TY_CHAR:
       printf("  movzx edi, BYTE PTR [rax]\n");
       break;
-    default:
+    case TY_LONG:
+    case TY_PTR:
       printf("  mov rdi, [rax]\n");
       break;
+    default:
+      error1(__FILE__, __LINE__, "%sの減算代入は未実装", type_kinds[node->lhs->type->kind]);
     }
     printf("  push rdi\n");
     break;
@@ -375,9 +386,11 @@ void gen(Node* node) {
     case TY_CHAR:
       printf("  movzx edi, BYTE PTR [rax]\n");
       break;
-    default:
+    case TY_LONG:
       printf("  mov rdi, [rax]\n");
       break;
+    default:
+      error1(__FILE__, __LINE__, "%sの乗算代入は未実装", type_kinds[node->lhs->type->kind]);
     }
     printf("  push rdi\n");
     break;
@@ -618,7 +631,35 @@ void gen(Node* node) {
     printf("  .data\n");
     printf("  .globl %s\n", node->name);
     printf("%s:\n", node->name);
-    printf("  .zero %d\n", node->var->size);
+    if(!node->rhs) {
+      printf("  .zero %d\n", node->var->size);
+      break;
+    }
+    switch(node->rhs->kind) {
+    case ND_NUM:
+      switch(node->var->type->kind) {
+      case TY_INT:
+        printf("  .long %d\n", node->rhs->int_val);
+        break;
+      case TY_CHAR:
+        printf("  .byte %d\n", node->rhs->int_val);
+        break;
+      case TY_LONG:
+      case TY_PTR:
+        printf("  .quad %d\n", node->rhs->int_val);
+        break;
+      default:
+        error1(__FILE__, __LINE__, "%sのグローバル変数の初期化式は未実装", type_kinds[node->rhs->type->kind]);
+        break;
+      }
+      break;
+    case ND_STR:
+      printf("  .quad .LC%d\n", node->rhs->str_key);
+      break;
+    default:
+      error1(__FILE__, __LINE__, "%sのグローバル変数の初期化式は未実装", node_kinds[node->rhs->kind]);
+      break;
+    }
     break;
   }
   case ND_GDECL_EXTERN: {

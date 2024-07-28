@@ -67,7 +67,7 @@ typedef struct Var Var;
 struct Var {
   char* name;
   int offset; // 意味解析時に計算される, ローカル変数の場合のみ
-  Type* type; // 意味解析時でのみ使う
+  Type* type;
   int size;
   bool is_extern;
 };
