@@ -1,7 +1,5 @@
 
-int a;
-
 int main() {
-  a = 1;
+  while(0) return 12;
   return 0;
 }

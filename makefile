@@ -31,7 +31,7 @@ self2-all: 10cc *.c
 	./10cc parse.c > parse.s
 	./10cc analyze.c > analyze.s
 	./10cc gen.c > gen.s
-	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
+	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
 	./10cc-2 tmp.c # 成功
 
 self2-map: 10cc *.c
@@ -41,7 +41,7 @@ self2-map: 10cc *.c
 	$(CC) parse.c -S
 	$(CC) analyze.c -S
 	$(CC) gen.c -S
-	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
+	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
 	./10cc-2 tmp.c # 成功
 
 self2-main: 10cc *.c
@@ -51,7 +51,7 @@ self2-main: 10cc *.c
 	$(CC) parse.c -S
 	$(CC) analyze.c -S
 	$(CC) gen.c -S
-	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -g -no-pie
+	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -g -no-pie
 	./10cc-2 tmp.c # 成功
 
 self2-tokenize: 10cc *.c
@@ -61,7 +61,7 @@ self2-tokenize: 10cc *.c
 	$(CC) parse.c -S
 	$(CC) analyze.c -S
 	$(CC) gen.c -S
-	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -g -no-pie
+	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -g -no-pie
 	./10cc-2 tmp.c # 成功
 
 self2-parse: 10cc *.c
@@ -71,7 +71,7 @@ self2-parse: 10cc *.c
 	./10cc parse.c > parse.s
 	$(CC) analyze.c -S
 	$(CC) gen.c -S
-	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
+	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
 	./10cc-2 tmp.c # 成功
 
 self2-analyze: 10cc *.c
@@ -81,7 +81,7 @@ self2-analyze: 10cc *.c
 	$(CC) parse.c -S
 	./10cc analyze.c > analyze.s
 	$(CC) gen.c -S
-	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
+	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
 	./10cc-2 tmp.c # 成功
 
 self2-gen: 10cc *.c
@@ -91,7 +91,7 @@ self2-gen: 10cc *.c
 	$(CC) parse.c -S
 	$(CC) analyze.c -S
 	./10cc gen.c > gen.s
-	gcc -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
+	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
 	./10cc-2 tmp.c # 成功
 
 clean:

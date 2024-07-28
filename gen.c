@@ -188,6 +188,8 @@ void gen(Node* node);
 
 char* escape(char*);
 
+int push_alignment = 0; // pushしたら1足す。popしたら1引く。
+
 void gen_ref(Node* node) {
   printf("# gen_ref %s\n", node_kinds[node->kind]);
   switch(node->kind) {
@@ -198,9 +200,11 @@ void gen_ref(Node* node) {
     printf("  mov rax, rbp\n");
     printf("  sub rax, %d\n", node->var->offset);
     printf("  push rax\n");
+    push_alignment++;
     break;
   case ND_GVARREF:
     printf("  push offset %s\n", node->name);
+    push_alignment++;
     break;
   case ND_DOT: {
     Type* type = node->lhs->type;
@@ -210,8 +214,10 @@ void gen_ref(Node* node) {
     StructMember* member = node->struct_member;
     gen_ref(node->lhs);
     printf("  pop rax\n");
+    push_alignment--;
     printf("  add rax, %d\n", member->offset);
     printf("  push rax\n");
+    push_alignment++;
     break;
   }
   default:
@@ -222,6 +228,7 @@ void gen_ref(Node* node) {
 
 void gen_ref_push(Node* node) {
   printf("  pop rax\n");
+  push_alignment--;
   if(node->type->kind == TY_INT) {
     printf("  mov eax, [rax]\n");
   } else if(node->type->kind == TY_CHAR) {
@@ -232,13 +239,16 @@ void gen_ref_push(Node* node) {
     error1(__FILE__, __LINE__, "%sの参照は未実装", type_kinds[node->type->kind]);
   }
   printf("  push rax\n");
+  push_alignment++;
 }
 
 void gen_assign(Node* lval, Node* rval) {
   gen_ref(lval);
   gen(rval);
   printf("  pop rdi\n");
+  push_alignment--;
   printf("  pop rax\n");
+  push_alignment--;
   if(lval->type->kind == TY_INT) {
     printf("  mov [rax], edi\n");
   } else if(lval->type->kind == TY_CHAR) {
@@ -249,6 +259,7 @@ void gen_assign(Node* lval, Node* rval) {
     error1(__FILE__, __LINE__, "%sへの代入は未実装", type_kinds[lval->type->kind]);
   }
   printf("  push rdi\n");
+  push_alignment++;
 }
 
 void gen(Node* node) {
@@ -259,10 +270,12 @@ void gen(Node* node) {
   switch (node->kind) {
   case ND_NUM: {
     printf("  push %d\n", node->int_val);
+    push_alignment++;
     break;
   }
   case ND_STR: {
     printf("  push offset .LC%d # \"%s\"\n", node->str_key, escape(node->str_val));
+    push_alignment++;
     break;
   }
   case ND_ADDR: {
@@ -292,16 +305,20 @@ void gen(Node* node) {
     int land_label = node->local_label;
     gen(node->lhs);
     printf("  pop rax\n");
+    push_alignment--;
     printf("  cmp rax, 0\n");
     printf("  je  .Lfalse%d\n", land_label);
     gen(node->rhs);
     printf("  pop rax\n");
+    push_alignment--;
     printf("  cmp rax, 0\n");
     printf("  je  .Lfalse%d\n", land_label);
     printf("  push 1\n");
+    push_alignment++;
     printf("  jmp .Lend%d\n", land_label);
     printf(".Lfalse%d:\n", land_label);
     printf("  push 0\n");
+    push_alignment++;
     printf(".Lend%d:\n", land_label);
     break;
   }
@@ -309,16 +326,20 @@ void gen(Node* node) {
     int lor_label = node->local_label;
     gen(node->lhs);
     printf("  pop rax\n");
+    push_alignment--;
     printf("  cmp rax, 0\n");
     printf("  jne .Ltrue%d\n", lor_label);
     gen(node->rhs);
     printf("  pop rax\n");
+    push_alignment--;
     printf("  cmp rax, 0\n");
     printf("  jne .Ltrue%d\n", lor_label);
     printf("  push 0\n");
+    push_alignment++;
     printf("  jmp .Lend%d\n", lor_label);
     printf(".Ltrue%d:\n", lor_label);
     printf("  push 1\n");
+    push_alignment++;
     printf(".Lend%d:\n", lor_label);
     break;
   }
@@ -331,7 +352,9 @@ void gen(Node* node) {
     gen_ref(node->lhs);
     gen(node->rhs);
     printf("  pop rdi\n");
+    push_alignment--;
     printf("  pop rax\n");
+    push_alignment--;
     printf("  add [rax], rdi\n");
     switch(node->lhs->type->kind) {
     case TY_INT:
@@ -348,13 +371,16 @@ void gen(Node* node) {
       error1(__FILE__, __LINE__, "%sの加算代入は未実装", type_kinds[node->lhs->type->kind]);
     }
     printf("  push rdi\n");
+    push_alignment++;
     break;
   }
   case ND_ASSIGN_SUB: {
     gen_ref(node->lhs);
     gen(node->rhs);
     printf("  pop rdi\n");
+    push_alignment--;
     printf("  pop rax\n");
+    push_alignment--;
     printf("  sub [rax], rdi\n");
     switch(node->lhs->type->kind) {
     case TY_INT:
@@ -371,13 +397,16 @@ void gen(Node* node) {
       error1(__FILE__, __LINE__, "%sの減算代入は未実装", type_kinds[node->lhs->type->kind]);
     }
     printf("  push rdi\n");
+    push_alignment++;
     break;
   }
   case ND_ASSIGN_MUL: {
     gen_ref(node->lhs);
     gen(node->rhs);
     printf("  pop rdi\n");
+    push_alignment--;
     printf("  pop rax\n");
+    push_alignment--;
     printf("  imul [rax], rdi\n");
     switch(node->lhs->type->kind) {
     case TY_INT:
@@ -393,6 +422,7 @@ void gen(Node* node) {
       error1(__FILE__, __LINE__, "%sの乗算代入は未実装", type_kinds[node->lhs->type->kind]);
     }
     printf("  push rdi\n");
+    push_alignment++;
     break;
   }
   case ND_ASSIGN_DIV: {
@@ -404,23 +434,28 @@ void gen(Node* node) {
   case ND_NOT: {
     gen(node->lhs);
     printf("  pop rax\n");
+    push_alignment--;
     printf("  cmp rax, 0\n");
     printf("  sete al\n");
     printf("  movzb rax, al\n");
     printf("  push rax\n");
+    push_alignment++;
     break;
   }
   case ND_RETURN: {
     gen(node->lhs);
     printf("  pop rax\n");
+    push_alignment--;
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
+    push_alignment--;
     printf("  ret\n");
     break;
   }
   case ND_IF: {
     gen(node->cond);
     printf("  pop rax\n");
+    push_alignment--;
     printf("  cmp rax, 0\n");
     int if_label = node->local_label;
     if(node->els) {
@@ -441,6 +476,7 @@ void gen(Node* node) {
     printf(".Lbegin%d:\n", while_label);
     gen(node->cond);
     printf("  pop rax\n");
+    push_alignment--;
     printf("  cmp rax, 0\n");
     printf("  je  .Lend%d\n", while_label);
     gen(node->body);
@@ -455,6 +491,7 @@ void gen(Node* node) {
     if(node->cond) {
       gen(node->cond);
       printf("  pop rax\n");
+      push_alignment--;
       printf("  cmp rax, 0\n");
       printf("  je  .Lend%d\n", for_label);
     }
@@ -468,6 +505,7 @@ void gen(Node* node) {
     int switch_label = node->local_label;
     gen(node->cond);
     printf("  pop rax\n");
+    push_alignment--;
     char** keys = map_keys(node->case_map);
     for(int i = 0; keys[i]; i++) {
       int* val = map_get(node->case_map, keys[i]);
@@ -510,25 +548,40 @@ void gen(Node* node) {
     }
     if(node->args_call[5]) {
       printf("  pop r9\n");
+      push_alignment--;
     }
     if(node->args_call[4]) {
       printf("  pop r8\n");
+      push_alignment--;
     }
     if(node->args_call[3]) {
       printf("  pop rcx\n");
+      push_alignment--;
     }
     if(node->args_call[2]) {
       printf("  pop rdx\n");
+      push_alignment--;
     }
     if(node->args_call[1]) {
       printf("  pop rsi\n");
+      push_alignment--;
     }
     if(node->args_call[0]) {
       printf("  pop rdi\n");
+      push_alignment--;
     }
     printf("  mov al, 0\n"); // 浮動小数点数の数をALに入れる必要があるが、今は扱わないので0を入れておく
+    bool need_fix_alignment = push_alignment % 2 == 1;
+    printf("# push_alignment: %d\n", push_alignment);
+    if(need_fix_alignment) {
+      printf("  push rax\n");
+    }
     printf("  call %s@PLT\n", node->name);
+    if(need_fix_alignment) {
+      printf("  pop rdi\n");
+    }
     printf("  push rax\n");
+    push_alignment++;
     break;
   }
   case ND_FUNCDEF: {
@@ -537,6 +590,7 @@ void gen(Node* node) {
     printf("%s:\n", node->name);
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
+    push_alignment = 0;
     printf("  sub rsp, %d\n", node->offset);
     if(node->args_var[0]) {
       if(node->args_var[0]->type->kind == TY_INT) {
@@ -595,6 +649,7 @@ void gen(Node* node) {
     gen(node->body);
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
+    push_alignment--;
     printf("  ret\n");
     break;
   }
@@ -688,7 +743,9 @@ void gen(Node* node) {
     gen(node->rhs);
 
     printf("  pop rdi\n");
+    push_alignment--;
     printf("  pop rax\n");
+    push_alignment--;
 
     switch(node->kind) {
       case ND_ADD:
@@ -734,6 +791,7 @@ void gen(Node* node) {
         break;
     }
     printf("  push rax\n");
+    push_alignment++;
     break;
   }
   }
