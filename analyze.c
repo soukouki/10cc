@@ -881,7 +881,6 @@ static NodeAndType* analyze(Node* node) {
   }
   case ND_WHILE: {
     node->local_label = local_label++;
-
     char* break_label_save = break_label;
     break_label = calloc(1, sizeof(char) * 12);
     sprintf(break_label, ".Lend%d", node->local_label);
