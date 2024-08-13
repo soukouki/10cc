@@ -532,10 +532,10 @@ void gen(Node* node) {
     }
     printf("  mov al, 0\n"); // 浮動小数点数の数をALに入れる必要があるが、今は扱わないので0を入れておく
     // rspをr15に退避し、rspを16バイトアライメントにする
-    printf("  mov r15, rsp\n");
+    printf("  mov [rbp-8], rsp\n");
     printf("  and rsp, -16\n");
     printf("  call %s\n", node->name);
-    printf("  mov rsp, r15\n");
+    printf("  mov rsp, [rbp-8]\n");
     printf("  push rax\n");
     break;
   }
@@ -600,11 +600,7 @@ void gen(Node* node) {
         printf("  mov [rbp-%d], r9\n", node->args_var[5]->offset + 8);
       }
     }
-    // r15をrbp+0に退避する。r15は関数呼び出し時のrspを退避するために使う
-    printf("  mov [rbp-8], r15\n");
     gen(node->body);
-    // r15をrbp+0から復元する
-    printf("  mov r15, [rbp-8]\n");
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
     printf("  ret\n");
