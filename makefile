@@ -13,8 +13,13 @@ self1-test: 10cc test_mock.s
 	cc -static -o tmp.o tmp.s test_mock.s
 	./tmp.o
 
-self2-all-test: self2-all
+self2-all-test: self2-all test_mock.s
 	./10cc-2 test.c > tmp.s
+	cc -static -o tmp.o tmp.s test_mock.s
+	./tmp.o
+
+self3-all-test: self3-all test_mock.s
+	./10cc-3 test.c > tmp.s
 	cc -static -o tmp.o tmp.s test_mock.s
 	./tmp.o
 
