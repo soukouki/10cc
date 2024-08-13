@@ -576,7 +576,7 @@ void gen(Node* node) {
     if(need_fix_alignment) {
       printf("  push rax\n");
     }
-    printf("  call %s@PLT\n", node->name);
+    printf("  call %s\n", node->name);
     if(need_fix_alignment) {
       printf("  pop rdi\n");
     }
@@ -590,8 +590,10 @@ void gen(Node* node) {
     printf("%s:\n", node->name);
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
-    push_alignment = 0;
-    printf("  sub rsp, %d\n", node->offset);
+    int offset_alignment = 7 - node->offset % 8;
+    push_alignment = ((node->offset + offset_alignment) % 16) != 0;
+    printf("# offset: %d, push_alignment: %d\n", node->offset, push_alignment);
+    printf("  sub rsp, %d\n", node->offset + offset_alignment);
     if(node->args_var[0]) {
       if(node->args_var[0]->type->kind == TY_INT) {
         printf("  mov [rbp-%d], edi\n", node->args_var[0]->offset);

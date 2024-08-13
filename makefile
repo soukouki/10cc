@@ -32,7 +32,7 @@ self2-all: 10cc *.c
 	./10cc analyze.c > analyze.s
 	./10cc gen.c > gen.s
 	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
-	./10cc-2 tmp.c # 成功
+	./10cc-2 tmp.c # while文で失敗
 
 self2-map: 10cc *.c
 	./10cc map.c > map.s
@@ -95,6 +95,7 @@ self2-gen: 10cc *.c
 	./10cc-2 tmp.c # 成功
 
 clean:
-	rm -f 10cc *.o *~ tmp* test.s
+	rm 10cc *.o *~ test.s
+	rm tmp*.s tmp*.o
 
 .PHONY: test clean
