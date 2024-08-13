@@ -25,13 +25,13 @@ test_mock.s: test_mock.c
 	gcc -S -o test_mock.s test_mock.c
 
 self2-all: 10cc *.c
-	./10cc map.c > map.s
-	./10cc main.c > main.s
-	./10cc tokenize.c > tokenize.s
-	./10cc parse.c > parse.s
-	./10cc analyze.c > analyze.s
-	./10cc gen.c > gen.s
-	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
+	./10cc map.c > map2.s
+	./10cc main.c > main2.s
+	./10cc tokenize.c > tokenize2.s
+	./10cc parse.c > parse2.s
+	./10cc analyze.c > analyze2.s
+	./10cc gen.c > gen2.s
+	gcc -g -o 10cc-2 map2.s main2.s tokenize2.s parse2.s analyze2.s gen2.s -no-pie
 	./10cc-2 tmp.c # while文で失敗
 
 self2-map: 10cc *.c
@@ -42,7 +42,7 @@ self2-map: 10cc *.c
 	$(CC) analyze.c -S
 	$(CC) gen.c -S
 	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
-	./10cc-2 tmp.c # while文で失敗
+	./10cc-2 tmp.c # 成功
 
 self2-main: 10cc *.c
 	$(CC) map.c -S
@@ -62,7 +62,7 @@ self2-tokenize: 10cc *.c
 	$(CC) analyze.c -S
 	$(CC) gen.c -S
 	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -g -no-pie
-	./10cc-2 tmp.c # while文で失敗
+	./10cc-2 tmp.c # 成功
 
 self2-parse: 10cc *.c
 	$(CC) map.c -S
@@ -72,7 +72,7 @@ self2-parse: 10cc *.c
 	$(CC) analyze.c -S
 	$(CC) gen.c -S
 	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
-	./10cc-2 tmp.c # while文で失敗
+	./10cc-2 tmp.c # 成功
 
 self2-analyze: 10cc *.c
 	$(CC) map.c -S
@@ -82,7 +82,7 @@ self2-analyze: 10cc *.c
 	./10cc analyze.c > analyze.s
 	$(CC) gen.c -S
 	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
-	./10cc-2 tmp.c # while文で失敗
+	./10cc-2 tmp.c # 成功
 
 self2-gen: 10cc *.c
 	$(CC) map.c -S
@@ -93,6 +93,22 @@ self2-gen: 10cc *.c
 	./10cc gen.c > gen.s
 	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
 	./10cc-2 tmp.c # 成功
+
+self3-all: self2-all *.c
+	./10cc-2 map.c > map3.s
+	./10cc-2 main.c > main3.s
+	./10cc-2 tokenize.c > tokenize3.s
+	./10cc-2 parse.c > parse3.s
+	./10cc-2 analyze.c > analyze3.s
+	./10cc-2 gen.c > gen3.s
+	gcc -g -o 10cc-3 map3.s main3.s tokenize3.s parse3.s analyze3.s gen3.s -no-pie
+	./10cc-3 tmp.c
+	diff map2.s map3.s
+	diff main2.s main3.s
+	diff tokenize2.s tokenize3.s
+	diff parse2.s parse3.s
+	diff analyze2.s analyze3.s
+	diff gen2.s gen3.s
 
 clean:
 	rm 10cc *.o *.s
