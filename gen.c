@@ -590,10 +590,10 @@ void gen(Node* node) {
     printf("%s:\n", node->name);
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
-    int offset_alignment = 7 - node->offset % 8;
-    push_alignment = ((node->offset + offset_alignment) % 16) != 0;
+    int offset_alignment_pudding = (8 - node->offset) % 8;
+    push_alignment = ((node->offset + offset_alignment_pudding) % 16) != 0;
     printf("# offset: %d, push_alignment: %d\n", node->offset, push_alignment);
-    printf("  sub rsp, %d\n", node->offset + offset_alignment);
+    printf("  sub rsp, %d\n", node->offset + offset_alignment_pudding);
     if(node->args_var[0]) {
       if(node->args_var[0]->type->kind == TY_INT) {
         printf("  mov [rbp-%d], edi\n", node->args_var[0]->offset);

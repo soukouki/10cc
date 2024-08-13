@@ -42,7 +42,7 @@ self2-map: 10cc *.c
 	$(CC) analyze.c -S
 	$(CC) gen.c -S
 	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
-	./10cc-2 tmp.c # 成功
+	./10cc-2 tmp.c # while文で失敗
 
 self2-main: 10cc *.c
 	$(CC) map.c -S
@@ -62,7 +62,7 @@ self2-tokenize: 10cc *.c
 	$(CC) analyze.c -S
 	$(CC) gen.c -S
 	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -g -no-pie
-	./10cc-2 tmp.c # 成功
+	./10cc-2 tmp.c # while文で失敗
 
 self2-parse: 10cc *.c
 	$(CC) map.c -S
@@ -72,7 +72,7 @@ self2-parse: 10cc *.c
 	$(CC) analyze.c -S
 	$(CC) gen.c -S
 	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
-	./10cc-2 tmp.c # 成功
+	./10cc-2 tmp.c # while文で失敗
 
 self2-analyze: 10cc *.c
 	$(CC) map.c -S
@@ -82,7 +82,7 @@ self2-analyze: 10cc *.c
 	./10cc analyze.c > analyze.s
 	$(CC) gen.c -S
 	gcc -g -o 10cc-2 map.s main.s tokenize.s parse.s analyze.s gen.s -no-pie
-	./10cc-2 tmp.c # 成功
+	./10cc-2 tmp.c # while文で失敗
 
 self2-gen: 10cc *.c
 	$(CC) map.c -S
@@ -95,7 +95,7 @@ self2-gen: 10cc *.c
 	./10cc-2 tmp.c # 成功
 
 clean:
-	rm 10cc *.o *~ test.s
+	rm 10cc *.o *.s
 	rm tmp*.s tmp*.o
 
 .PHONY: test clean
