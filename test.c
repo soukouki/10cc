@@ -1214,7 +1214,7 @@ void for_decl() {
   for(int i = 0; i < 10; i = i + 1) {
     if(i == 5) {
       assert(5, i, "for_decl");
-      return i;
+      return;
     }
   }
 }
@@ -1324,7 +1324,9 @@ void variable_size(){
   l2 = 1;
   assert(1, l1 == l2, "l1 == l2 3");
   // int型より大きいことも確認しておく
-  l1 = 2147483647 * 2 + 2;
+  long l0;
+  l0 = 2147483647;
+  l1 = l0 * 2 + 2;
   l2 = 0;
   assert(1, l1 != l2, "l1 != l2");
 }
@@ -1498,18 +1500,21 @@ void negative_division() {
   assert(100, a / -2, "a / -2");
   assert(-5, 500 / -100, "500 / -100");
   assert(5, -500 / -100, "-500 / -100");
-  assert(8, 8 * a / 100, "8 * a / 100");
+  assert(-16, 8 * a / 100, "8 * a / 100");
   assert(8, (1000 + a) / 100, "(1000 + a) / 100");
 }
+
+void backtrace(){}
 
 void sign_extension() {
   section("整数拡張");
   char a = 30;
   char b = (a * a) / 25; // a*aは整数拡張によってint型に変換される
   assert(36, b, "(a * a) / 25");
+  backtrace();
   char c = a * a;
-  char d = b / 25; // char型に変換されるため、切り捨てられる
-  assert(-4, d, "b / 25");
+  char d = c / 25; // char型に変換されるため、切り捨てられる
+  assert(-4, d, "c / 25");
   assert(1, sizeof(a), "sizeof(a)");
   assert(4, sizeof(+a), "sizeof(+a)");
   assert(4, sizeof(-a), "sizeof(-a)");

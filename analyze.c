@@ -226,6 +226,9 @@ char* case_label; // 文字列中に%dを含み、その%dをcaseのint_valで�
 char* default_label;
 bool  has_default;
 
+// 関数の戻り値の型。return時に使う
+Type* return_type;
+
 static Var* find_var(char* name) {
   return map_get(local_map, name);
 }
@@ -325,7 +328,7 @@ Type* struct_type(char* name) {
   return type;
 }
 
-Node* sign_extend(Node* node, Type* new_type) {
+Node* int_convert(Node* node, Type* new_type) {
   Node* sign_extend = new_node(ND_CONVERT, node->loc);
   sign_extend->lhs = node;
   sign_extend->old_type = node->type;
@@ -471,6 +474,7 @@ static NodeAndType* analyze(Node* node) {
     continue_label = NULL;
     case_label = NULL;
     has_default = false;
+    return_type = node->type;
     
     printf("#   function %s\n", node->name);
 
@@ -571,6 +575,11 @@ static NodeAndType* analyze(Node* node) {
   }
   case ND_RETURN: {
     node->lhs = analyze_semantics(node->lhs);
+    TypeKind lkind = node->lhs->type->kind;
+    // もし戻り値の型と違うならば、変換する
+    if((lkind == TY_CHAR || lkind == TY_INT || lkind == TY_LONG) && return_type->kind != lkind) {
+      node->lhs = int_convert(node->lhs, return_type);
+    }
     return return_statement(node);
   }
   case ND_CALL: {
@@ -624,10 +633,10 @@ static NodeAndType* analyze(Node* node) {
     if(max) max = max_type(max, int_type());
     if(max) {
       if(max->kind != lkind) {
-        node->lhs = sign_extend(lhs->node, max);
+        node->lhs = int_convert(lhs->node, max);
       }
       if(max->kind != rkind) {
-        node->rhs = sign_extend(rhs->node, max);
+        node->rhs = int_convert(rhs->node, max);
       }
       return return_expression(node, max);
     }
@@ -664,10 +673,10 @@ static NodeAndType* analyze(Node* node) {
     if(max) max = max_type(max, int_type());
     if(max) {
       if(max->kind != lkind) {
-        node->lhs = sign_extend(lhs->node, max);
+        node->lhs = int_convert(lhs->node, max);
       }
       if(max->kind != rkind) {
-        node->rhs = sign_extend(rhs->node, max);
+        node->rhs = int_convert(rhs->node, max);
       }
       return return_expression(node, max);
     }
@@ -705,10 +714,10 @@ static NodeAndType* analyze(Node* node) {
     if(max) max = max_type(max, int_type());
     if(max) {
       if(max->kind != lkind) {
-        node->lhs = sign_extend(lhs->node, max);
+        node->lhs = int_convert(lhs->node, max);
       }
       if(max->kind != rkind) {
-        node->rhs = sign_extend(rhs->node, max);
+        node->rhs = int_convert(rhs->node, max);
       }
       return return_expression(node, max);
     }
@@ -726,10 +735,10 @@ static NodeAndType* analyze(Node* node) {
     if(max) max = max_type(max, int_type());
     if(max) {
       if(max->kind != lkind) {
-        node->lhs = sign_extend(lhs->node, max);
+        node->lhs = int_convert(lhs->node, max);
       }
       if(max->kind != rkind) {
-        node->rhs = sign_extend(rhs->node, max);
+        node->rhs = int_convert(rhs->node, max);
       }
       return return_expression(node, max);
     }
@@ -750,10 +759,10 @@ static NodeAndType* analyze(Node* node) {
     if(max) max = max_type(max, int_type());
     if(max) {
       if(max->kind != lkind) {
-        node->lhs = sign_extend(lhs->node, max);
+        node->lhs = int_convert(lhs->node, max);
       }
       if(max->kind != rkind) {
-        node->rhs = sign_extend(rhs->node, max);
+        node->rhs = int_convert(rhs->node, max);
       }
       return return_expression(node, max);
     }
@@ -781,10 +790,10 @@ static NodeAndType* analyze(Node* node) {
     if(max) max = max_type(max, int_type());
     if(max) {
       if(max->kind != lkind) {
-        node->lhs = sign_extend(lhs->node, max);
+        node->lhs = int_convert(lhs->node, max);
       }
       if(max->kind != rkind) {
-        node->rhs = sign_extend(rhs->node, max);
+        node->rhs = int_convert(rhs->node, max);
       }
       return return_expression(node, max);
     }
@@ -804,10 +813,10 @@ static NodeAndType* analyze(Node* node) {
     if(max) max = max_type(max, int_type());
     if(max) {
       if(max->kind != lkind) {
-        node->lhs = sign_extend(lhs->node, max);
+        node->lhs = int_convert(lhs->node, max);
       }
       if(max->kind != rkind) {
-        node->rhs = sign_extend(rhs->node, max);
+        node->rhs = int_convert(rhs->node, max);
       }
       return return_expression(node, max);
     }
@@ -819,7 +828,9 @@ static NodeAndType* analyze(Node* node) {
     node->lhs = lhs->node;
     NodeAndType* rhs = analyze(node->rhs);
     node->rhs = rhs->node;
-    // 型チェックはとりあえず置いとく
+    if(lhs->type->kind != rhs->type->kind && (lhs->type->kind == TY_CHAR || lhs->type->kind == TY_INT || lhs->type->kind == TY_LONG)) {
+      node->rhs = int_convert(rhs->node, lhs->type);
+    }
     return return_expression(node, lhs->type);
   }
   case ND_ASSIGN_ADD:
@@ -838,10 +849,10 @@ static NodeAndType* analyze(Node* node) {
     if(max) max = max_type(max, int_type());
     if(max) {
       if(max->kind != lkind) {
-        node->lhs = sign_extend(lhs->node, max);
+        node->lhs = int_convert(lhs->node, max);
       }
       if(max->kind != rkind) {
-        node->rhs = sign_extend(rhs->node, max);
+        node->rhs = int_convert(rhs->node, max);
       }
       return return_expression(node, max);
     }
@@ -897,7 +908,7 @@ static NodeAndType* analyze(Node* node) {
     if(max) max = max_type(max, int_type());
     if(max) {
       if(max->kind != lkind) {
-        node->lhs = sign_extend(lhs->node, max);
+        node->lhs = int_convert(lhs->node, max);
       }
       return return_expression(node, max);
     }

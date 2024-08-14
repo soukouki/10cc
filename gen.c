@@ -231,7 +231,7 @@ void gen_ref_push(Node* node) {
   if(node->type->kind == TY_INT) {
     printf("  mov eax, [rax]\n");
   } else if(node->type->kind == TY_CHAR) {
-    printf("  movzx eax, BYTE PTR [rax]\n");
+    printf("  movsx eax, BYTE PTR [rax]\n");
   } else if(node->type->kind == TY_LONG || node->type->kind == TY_PTR) {
     printf("  mov rax, [rax]\n");
   } else {
@@ -700,6 +700,14 @@ void gen(Node* node) {
     printf("  pop rax\n");
     if(node->old_type->kind == TY_CHAR && node->new_type->kind == TY_INT) {
       printf("  movsx rax, al\n");
+    } else if (node->old_type->kind == TY_INT && node->new_type->kind == TY_CHAR) {
+      printf("  mov dil, al\n");
+      printf("  movsx rax, dil\n");
+    } else if (node->old_type->kind == TY_INT && node->new_type->kind == TY_LONG) {
+      printf("# 問題の箇所\n");
+      printf("  movsxd rax, eax\n");
+    } else if(node->old_type->kind == TY_INT && node->new_type->kind == TY_VOID) {
+      // return文では仮に42を入れるようにしているので、とりあえず無視する
     } else {
       error2(__FILE__, __LINE__, "%sから%sへの変換は未実装", type_kinds[node->old_type->kind], type_kinds[node->new_type->kind]);
     }
