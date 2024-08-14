@@ -333,6 +333,7 @@ Node* int_convert(Node* node, Type* new_type) {
   sign_extend->lhs = node;
   sign_extend->old_type = node->type;
   sign_extend->new_type = new_type;
+  sign_extend->type = new_type;
   return sign_extend;
 }
 
@@ -475,7 +476,7 @@ static NodeAndType* analyze(Node* node) {
     case_label = NULL;
     has_default = false;
     return_type = node->type;
-    
+
     printf("#   function %s\n", node->name);
 
     map_put(func_map, node->name, node);
@@ -604,6 +605,7 @@ static NodeAndType* analyze(Node* node) {
       Node* local_var_ref = new_node(ND_VARREF, node->loc);
       local_var_ref->var = local_var;
       local_var_ref->name = node->name;
+      local_var_ref->type = local_var->type;
       return return_expression(local_var_ref, local_var->type);
     }
     Var* global_var = map_get(global_map, node->name);
@@ -611,11 +613,13 @@ static NodeAndType* analyze(Node* node) {
       Node* global_var_ref = new_node(ND_GVARREF, node->loc);
       global_var_ref->var = global_var;
       global_var_ref->name = node->name;
+      global_var_ref->type = global_var->type;
       return return_expression(global_var_ref, global_var->type);
     }
     int* constant_num = map_get(constant_map, node->name);
     if(constant_num) {
       Node* num = new_node_num(node->loc, *constant_num);
+      num->type = int_type();
       return return_expression(num, int_type());
     }
     error_at1(__FILE__, __LINE__, node->loc, "変数%sは定義されていません", node->name);
@@ -650,12 +654,16 @@ static NodeAndType* analyze(Node* node) {
     }
     if(lkind == TY_PTR) {
       Node* size = new_node_num(node->loc, size_of(lhs->type->ptr_to));
+      size->type = int_type();
       Node* mul = new_node_2branches(ND_MUL, node->loc, node->rhs, size);
+      mul->type = lhs->type;
       return return_expression(new_node_2branches(node->kind, node->loc, node->lhs, mul), lhs->type);
     }
     if(rkind == TY_PTR) {
       Node* size = new_node_num(node->loc, size_of(rhs->type->ptr_to));
+      size->type = int_type();
       Node* mul = new_node_2branches(ND_MUL, node->loc, node->lhs, size);
+      mul->type = rhs->type;
       return return_expression(new_node_2branches(node->kind, node->loc, mul, node->rhs), rhs->type);
     }
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの加減算はできません", type_kinds[lkind], type_kinds[rkind]);
@@ -691,17 +699,23 @@ static NodeAndType* analyze(Node* node) {
       }
       // ポインタの先の型によって割ってあげないといけない
       Node* size = new_node_num(node->loc, size_of(lhs->type->ptr_to));
+      size->type = int_type();
       Node* sub = new_node_2branches(ND_SUB, node->loc, node->lhs, node->rhs);
+      sub->type = lhs->type;
       return return_expression(new_node_2branches(ND_DIV, node->loc, sub, size), int_type());
     }
     if(lkind == TY_PTR) {
       Node* size = new_node_num(node->loc, size_of(lhs->type->ptr_to));
+      size->type = int_type();
       Node* mul = new_node_2branches(ND_MUL, node->loc, node->rhs, size);
+      mul->type = lhs->type;
       return return_expression(new_node_2branches(node->kind, node->loc, node->lhs, mul), lhs->type);
     }
     if(rkind == TY_PTR) {
       Node* size = new_node_num(node->loc, size_of(rhs->type->ptr_to));
+      size->type = int_type();
       Node* mul = new_node_2branches(ND_MUL, node->loc, node->lhs, size);
+      mul->type = rhs->type;
       return return_expression(new_node_2branches(node->kind, node->loc, mul, node->rhs), rhs->type);
     }
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの加減算はできません", type_kinds[lkind], type_kinds[rkind]);
@@ -888,11 +902,13 @@ static NodeAndType* analyze(Node* node) {
       // sizeof(型)の場合
       Node* type = node->lhs;
       Node* num = new_node_num(node->loc, size_of(type->type));
+      num->type = int_type();
       return return_expression(num, int_type());
     }
     // sizeof(式)の場合
     NodeAndType *nat = analyze(node->lhs);
     Node* num = new_node_num(node->loc, size_of(nat->type));
+    num->type = int_type();
     return return_expression(num, int_type());
   }
   case ND_OFFSETOF: {
@@ -903,6 +919,7 @@ static NodeAndType* analyze(Node* node) {
     Struct* s = map_get(global_map, type->struct_name);
     StructMember* sm = map_get(s->members, node->name);
     Node* num = new_node_num(node->loc, sm->offset);
+    num->type = int_type();
     return return_expression(num, int_type());
   }
   case ND_NOT: {
@@ -947,6 +964,7 @@ static NodeAndType* analyze(Node* node) {
     Node* str_def = new_node(ND_STRDEF, node->loc);
     str_def->str_val = node->str_val;
     str_def->str_key = string_count;
+    str_def->type = ptr_type(char_type());
     map_put(string_map, node->str_val, str_def);
     string_count++;
     return return_expression(node, ptr_type(char_type()));
@@ -958,6 +976,7 @@ static NodeAndType* analyze(Node* node) {
   }
   case ND_ARRAYREF: {
     Node* add = new_node_2branches(ND_ADD, node->loc, node->lhs, node->rhs);
+    add->type = node->lhs->type;
     Node* deref = new_node_1branch(ND_DEREF, node->loc, add);
     NodeAndType* nat = analyze(deref);
     return return_expression(deref, nat->type);
@@ -1123,5 +1142,7 @@ static NodeAndType* analyze(Node* node) {
 }
 
 Node* analyze_semantics(Node* node) {
-  return analyze(node)->node;
+  NodeAndType* nat = analyze(node);
+  if(nat->type) nat->node->type = nat->type;
+  return nat->node;
 }

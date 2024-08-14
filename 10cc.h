@@ -171,7 +171,7 @@ struct Node {
   int    str_key;        // 文字列リテラルの場合に使う
   char*  name;           // 関数の定義, 関数呼び出し, 変数の参照, case, offsetofで使う
   Var*   var;            // ND_LVARの場合に使う
-  Type*  type;           // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECLで使う
+  Type*  type;           // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECL, 各種値で使う
   Type*  old_type;       // ND_CONVERTで使う
   Type*  new_type;       // ND_CONVERTで使う
   Node** args_node;      // 関数の定義で使う(パース->意味解析)

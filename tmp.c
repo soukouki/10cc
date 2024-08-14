@@ -20,8 +20,6 @@ void update2(FloatTimes10000 *cos, FloatTimes10000 *sin, FloatTimes10000 cos_del
   *sin = new_sin;
 }
 
-void breakpoint() {}
-
 int main() {
   FloatTimes10000 zTimes10000[1760];
   char b[1760];
@@ -50,18 +48,16 @@ int main() {
         int _c = mul(sinthetaTimes10000, cosATimes10000);
         int _d = mul(mul(cosphiTimes10000, sinBTimes10000), costhetaTimes10000);
         int N = 8 * (_a - _b - _c - _d) / 10000;
-        printf("N: %d, _a: %d, _b: %d, _c: %d, _d: %d\n", N, _a, _b, _c, _d);
-        if(N != 0) exit(1);
         if (22 > y && y > 0 && x > 0 && 80 > x && DTimes10000 > zTimes10000[o]) {
           zTimes10000[o] = DTimes10000;
           char bo;
           if (N >= 1) {
-            breakpoint();
             bo = ".,-~:;=!*#$@"[N];
           } else {
             bo = '.';
           }
           b[o] = bo;
+        } else {
         }
         phi_times_50++;
         update2(&cosphiTimes10000, &sinphiTimes10000, 9998, 200);

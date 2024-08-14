@@ -1524,6 +1524,9 @@ void sign_extension() {
   long l2;
   l2 = 2147483647 * 2 + 2;
   assert(1, l2 == 0, "l2 == 0");
+
+  int i1 = -1;
+  assert(0, i1 > 0, "i1 > 0");
 }
 
 char return_small_value_test() {
@@ -1531,7 +1534,7 @@ char return_small_value_test() {
 }
 
 void return_large_value() {
-  section("return文で値を返すときにキャストされる");
+  section("return時の整数の変換");
   assert(1, return_small_value_test(), "return_small_value_test");
 }
 
@@ -1616,5 +1619,4 @@ int main() {
 TODO
 - 多次元配列
 - 配列のポインタ
-- 暗黙の型変換(char -> int)
 */

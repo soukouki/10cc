@@ -721,43 +721,70 @@ void gen(Node* node) {
     printf("  pop rdi\n");
     printf("  pop rax\n");
 
+    char* reg1;
+    char* reg2;
+    switch(node->type->kind) {
+    case TY_INT:
+      reg1 = "eax";
+      reg2 = "edi";
+      break;
+    case TY_CHAR:
+      reg1 = "al";
+      reg2 = "dil";
+      break;
+    case TY_LONG:
+    case TY_PTR:
+    case TY_ARRAY:
+      reg1 = "rax";
+      reg2 = "rdi";
+      break;
+    default:
+      error1(__FILE__, __LINE__, "%sの演算は未実装", type_kinds[node->type->kind]);
+      break;
+    }
+
     switch(node->kind) {
       case ND_ADD:
-        printf("  add rax, rdi\n");
+        printf("  add %s, %s\n", reg1, reg2);
         break;
       case ND_SUB:
-        printf("  sub rax, rdi\n");
+        printf("  sub %s, %s\n", reg1, reg2);
         break;
       case ND_MUL:
-        printf("  imul rax, rdi\n");
+        printf("  imul %s, %s\n", reg1, reg2);
         break;
       case ND_DIV:
-        printf("  cdqe\n"); // 64ビットの割り算ができなくなるが、一旦これでいく
+        if(node->type->kind != TY_INT) {
+          error1(__FILE__, __LINE__, "%sの除算は未実装", type_kinds[node->type->kind]);
+        }
         printf("  cdq\n");
         printf("  idiv edi\n");
         break;
       case ND_MOD:
-        printf("  cqo\n");
+        if(node->type->kind != TY_INT) {
+          error1(__FILE__, __LINE__, "%sの剰余算は未実装", type_kinds[node->type->kind]);
+        }
+        printf("  cdq\n");
         printf("  idiv rdi\n");
         printf("  mov rax, rdx\n");
         break;
       case ND_EQ:
-        printf("  cmp rax, rdi\n");
+        printf("  cmp %s, %s\n", reg1, reg2);
         printf("  sete al\n");
         printf("  movzb rax, al\n");
         break;
       case ND_NE:
-        printf("  cmp rax, rdi\n");
+        printf("  cmp %s, %s\n", reg1, reg2);
         printf("  setne al\n");
         printf("  movzb rax, al\n");
         break;
       case ND_LT:
-        printf("  cmp rax, rdi\n");
+        printf("  cmp %s, %s\n", reg1, reg2);
         printf("  setl al\n");
         printf("  movzb rax, al\n");
         break;
       case ND_LE:
-        printf("  cmp rax, rdi\n");
+        printf("  cmp %s, %s\n", reg1, reg2);
         printf("  setle al\n");
         printf("  movzb rax, al\n");
         break;
