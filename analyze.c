@@ -570,6 +570,11 @@ static NodeAndType* analyze(Node* node) {
     if(node->rhs) {
       NodeAndType* nat = analyze(node->rhs);
       node->rhs = nat->node;
+      TypeKind lkind = node->lhs->type->kind;
+      TypeKind rkind = nat->type->kind;
+      if(lkind != rkind) {
+        node->rhs = int_convert(node->rhs, node->lhs->type);
+      }
     }
     return return_statement(node);
   }

@@ -1518,6 +1518,12 @@ void sign_extension() {
   assert(1, sizeof(a), "sizeof(a)");
   assert(4, sizeof(+a), "sizeof(+a)");
   assert(4, sizeof(-a), "sizeof(-a)");
+
+  long l1 = 2147483647 * 2 + 2;
+  assert(1, l1 == 0, "l1 == 0");
+  long l2;
+  l2 = 2147483647 * 2 + 2;
+  assert(1, l2 == 0, "l2 == 0");
 }
 
 char return_small_value_test() {
