@@ -127,6 +127,7 @@ enum NodeKind {
   ND_GDECL_EXTERN, // グローバル変数宣言(外部参照), name, typeを持つ
   ND_TYPE,         // 型, typeを持つ
   ND_IDENT,        // 識別子(意味解析時に置き換える), nameを持つ
+  ND_CONVERT,  // 符号拡張, lhs, old_type, new_typeを持つ
 
   // その他
   ND_PROGRAM, // プログラム全体, funcs, stringsを持つ
@@ -142,6 +143,7 @@ struct Node {
   Node*  then;           // ifで使う
   Node*  els;            // ifで使う
   Node*  body;           // while, for, switchで使う
+  // Map<char*, int>
   Map*   case_map;       // switchで使う ラベルをキーにして、caseの値を値にもつ
   bool   has_default;    // switchで使う
   Node** stmts;          // ブロックで使う
@@ -155,9 +157,11 @@ struct Node {
   int    int_val;        // 数値リテラル, caseで使う
   char*  str_val;        // 文字列リテラルの場合に使う
   int    str_key;        // 文字列リテラルの場合に使う
-  char*  name;           // 関数の定義, 関数呼び出し, 変数の参照, caseで使う
+  char*  name;           // 関数の定義, 関数呼び出し, 変数の参照, case, offsetofで使う
   Var*   var;            // ND_LVARの場合に使う
   Type*  type;           // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECLで使う
+  Type*  old_type;       // ND_CONVERTで使う
+  Type*  new_type;       // ND_CONVERTで使う
   Node** args_node;      // 関数の定義で使う(パース->意味解析)
   Var**  args_var;       // 関数の定義で使う(意味解析->コード生成)
   int    offset;         // 関数の定義で使う(意味解析->コード生成)
@@ -691,6 +695,17 @@ void gen(Node* node) {
     gen(node->lhs);
     break;
   }
+  case ND_CONVERT: {
+    gen(node->lhs);
+    printf("  pop rax\n");
+    if(node->old_type->kind == TY_CHAR && node->new_type->kind == TY_INT) {
+      printf("  movsx rax, al\n");
+    } else {
+      error2(__FILE__, __LINE__, "%sから%sへの変換は未実装", type_kinds[node->old_type->kind], type_kinds[node->new_type->kind]);
+    }
+    printf("  push rax\n");
+    break;
+  }
   default: {
     gen(node->lhs);
     gen(node->rhs);
@@ -709,8 +724,9 @@ void gen(Node* node) {
         printf("  imul rax, rdi\n");
         break;
       case ND_DIV:
-        printf("  cqo\n");
-        printf("  idiv rdi\n");
+        printf("  cdqe\n"); // 64ビットの割り算ができなくなるが、一旦これでいく
+        printf("  cdq\n");
+        printf("  idiv edi\n");
         break;
       case ND_MOD:
         printf("  cqo\n");

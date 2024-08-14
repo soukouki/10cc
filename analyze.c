@@ -128,6 +128,7 @@ enum NodeKind {
   ND_GDECL_EXTERN, // グローバル変数宣言(外部参照), name, typeを持つ
   ND_TYPE,         // 型, typeを持つ
   ND_IDENT,        // 識別子(意味解析時に置き換える), nameを持つ
+  ND_CONVERT,  // 符号拡張, lhs, old_type, new_typeを持つ
 
   // その他
   ND_PROGRAM, // プログラム全体, funcs, stringsを持つ
@@ -143,6 +144,7 @@ struct Node {
   Node*  then;           // ifで使う
   Node*  els;            // ifで使う
   Node*  body;           // while, for, switchで使う
+  // Map<char*, int>
   Map*   case_map;       // switchで使う ラベルをキーにして、caseの値を値にもつ
   bool   has_default;    // switchで使う
   Node** stmts;          // ブロックで使う
@@ -156,9 +158,11 @@ struct Node {
   int    int_val;        // 数値リテラル, caseで使う
   char*  str_val;        // 文字列リテラルの場合に使う
   int    str_key;        // 文字列リテラルの場合に使う
-  char*  name;           // 関数の定義, 関数呼び出し, 変数の参照, caseで使う
+  char*  name;           // 関数の定義, 関数呼び出し, 変数の参照, case, offsetofで使う
   Var*   var;            // ND_LVARの場合に使う
   Type*  type;           // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECLで使う
+  Type*  old_type;       // ND_CONVERTで使う
+  Type*  new_type;       // ND_CONVERTで使う
   Node** args_node;      // 関数の定義で使う(パース->意味解析)
   Var**  args_var;       // 関数の定義で使う(意味解析->コード生成)
   int    offset;         // 関数の定義で使う(意味解析->コード生成)
@@ -319,6 +323,14 @@ Type* struct_type(char* name) {
   type->kind = TY_STRUCT;
   type->struct_name = name;
   return type;
+}
+
+Node* sign_extend(Node* node, Type* new_type) {
+  Node* sign_extend = new_node(ND_CONVERT, node->loc);
+  sign_extend->lhs = node;
+  sign_extend->old_type = node->type;
+  sign_extend->new_type = new_type;
+  return sign_extend;
 }
 
 // もし数値以外の型が来た場合はNULLを返す
@@ -609,7 +621,14 @@ static NodeAndType* analyze(Node* node) {
       rkind = TY_PTR;
     }
     Type* max = max_type(lhs->type, rhs->type);
+    if(max) max = max_type(max, int_type());
     if(max) {
+      if(max->kind != lkind) {
+        node->lhs = sign_extend(lhs->node, max);
+      }
+      if(max->kind != rkind) {
+        node->rhs = sign_extend(rhs->node, max);
+      }
       return return_expression(node, max);
     }
     if(lkind == TY_PTR && rkind == TY_PTR) {
@@ -642,7 +661,14 @@ static NodeAndType* analyze(Node* node) {
       rkind = TY_PTR;
     }
     Type* max = max_type(lhs->type, rhs->type);
+    if(max) max = max_type(max, int_type());
     if(max) {
+      if(max->kind != lkind) {
+        node->lhs = sign_extend(lhs->node, max);
+      }
+      if(max->kind != rkind) {
+        node->rhs = sign_extend(rhs->node, max);
+      }
       return return_expression(node, max);
     }
     if((lkind == TY_PTR || lkind == TY_ARRAY) && (rkind == TY_PTR || rkind == TY_ARRAY)) {
@@ -676,7 +702,14 @@ static NodeAndType* analyze(Node* node) {
     node->rhs = rhs->node;
 
     Type* max = max_type(lhs->type, rhs->type);
+    if(max) max = max_type(max, int_type());
     if(max) {
+      if(max->kind != lkind) {
+        node->lhs = sign_extend(lhs->node, max);
+      }
+      if(max->kind != rkind) {
+        node->rhs = sign_extend(rhs->node, max);
+      }
       return return_expression(node, max);
     }
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの乗除算はできません", type_kinds[lkind], type_kinds[rkind]);
@@ -690,7 +723,14 @@ static NodeAndType* analyze(Node* node) {
     node->rhs = rhs->node;
 
     Type* max = max_type(lhs->type, rhs->type);
+    if(max) max = max_type(max, int_type());
     if(max) {
+      if(max->kind != lkind) {
+        node->lhs = sign_extend(lhs->node, max);
+      }
+      if(max->kind != rkind) {
+        node->rhs = sign_extend(rhs->node, max);
+      }
       return return_expression(node, max);
     }
     error_at2(__FILE__, __LINE__, node->loc, "%sと%sの剰余算はできません", type_kinds[lkind], type_kinds[rkind]);
@@ -707,8 +747,15 @@ static NodeAndType* analyze(Node* node) {
     node->rhs = rhs->node;
 
     Type* max = max_type(lhs->type, rhs->type);
+    if(max) max = max_type(max, int_type());
     if(max) {
-      return return_expression(node, int_type());
+      if(max->kind != lkind) {
+        node->lhs = sign_extend(lhs->node, max);
+      }
+      if(max->kind != rkind) {
+        node->rhs = sign_extend(rhs->node, max);
+      }
+      return return_expression(node, max);
     }
     if(lkind == TY_PTR && rkind == TY_PTR) {
       return return_expression(node, int_type());
@@ -731,7 +778,14 @@ static NodeAndType* analyze(Node* node) {
     node->rhs = rhs->node;
 
     Type* max = max_type(lhs->type, rhs->type);
+    if(max) max = max_type(max, int_type());
     if(max) {
+      if(max->kind != lkind) {
+        node->lhs = sign_extend(lhs->node, max);
+      }
+      if(max->kind != rkind) {
+        node->rhs = sign_extend(rhs->node, max);
+      }
       return return_expression(node, max);
     }
 
@@ -747,7 +801,14 @@ static NodeAndType* analyze(Node* node) {
     node->rhs = rhs->node;
 
     Type* max = max_type(lhs->type, rhs->type);
+    if(max) max = max_type(max, int_type());
     if(max) {
+      if(max->kind != lkind) {
+        node->lhs = sign_extend(lhs->node, max);
+      }
+      if(max->kind != rkind) {
+        node->rhs = sign_extend(rhs->node, max);
+      }
       return return_expression(node, max);
     }
     
@@ -774,7 +835,14 @@ static NodeAndType* analyze(Node* node) {
     node->rhs = rhs->node;
 
     Type* max = max_type(lhs->type, rhs->type);
+    if(max) max = max_type(max, int_type());
     if(max) {
+      if(max->kind != lkind) {
+        node->lhs = sign_extend(lhs->node, max);
+      }
+      if(max->kind != rkind) {
+        node->rhs = sign_extend(rhs->node, max);
+      }
       return return_expression(node, max);
     }
     if(lkind == TY_PTR && rkind == TY_INT && (node->kind == ND_ASSIGN_ADD || node->kind == ND_ASSIGN_SUB)) {
@@ -825,6 +893,14 @@ static NodeAndType* analyze(Node* node) {
     NodeAndType* lhs = analyze(node->lhs);
     TypeKind lkind = lhs->type->kind;
     node->lhs = lhs->node;
+    Type* max = max_type(lhs->type, int_type());
+    if(max) max = max_type(max, int_type());
+    if(max) {
+      if(max->kind != lkind) {
+        node->lhs = sign_extend(lhs->node, max);
+      }
+      return return_expression(node, max);
+    }
     return return_expression(node, int_type());
   }
   case ND_DOT: {

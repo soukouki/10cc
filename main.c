@@ -197,6 +197,7 @@ int main(int argc, char **argv) {
   node_kinds[i++] = "ND_GDECL_EXTERN";
   node_kinds[i++] = "ND_TYPE";
   node_kinds[i++] = "ND_IDENT";
+  node_kinds[i++] = "ND_CONVERT";
 
   node_kinds[i++] = "ND_PROGRAM";
 

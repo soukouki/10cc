@@ -152,6 +152,7 @@ enum NodeKind {
   ND_GDECL_EXTERN, // グローバル変数宣言(外部参照), name, typeを持つ
   ND_TYPE,         // 型, typeを持つ
   ND_IDENT,        // 識別子(意味解析時に置き換える), nameを持つ
+  ND_CONVERT,  // 符号拡張, lhs, old_type, new_typeを持つ
 
   // その他
   ND_PROGRAM, // プログラム全体, funcs, stringsを持つ
@@ -167,6 +168,7 @@ struct Node {
   Node*  then;           // ifで使う
   Node*  els;            // ifで使う
   Node*  body;           // while, for, switchで使う
+  // Map<char*, int>
   Map*   case_map;       // switchで使う ラベルをキーにして、caseの値を値にもつ
   bool   has_default;    // switchで使う
   Node** stmts;          // ブロックで使う
@@ -180,9 +182,11 @@ struct Node {
   int    int_val;        // 数値リテラル, caseで使う
   char*  str_val;        // 文字列リテラルの場合に使う
   int    str_key;        // 文字列リテラルの場合に使う
-  char*  name;           // 関数の定義, 関数呼び出し, 変数の参照, caseで使う
+  char*  name;           // 関数の定義, 関数呼び出し, 変数の参照, case, offsetofで使う
   Var*   var;            // ND_LVARの場合に使う
   Type*  type;           // ND_TYPE, ND_FUNCDEF, ND_FUNCPROT(戻り値), ND_DECLで使う
+  Type*  old_type;       // ND_CONVERTで使う
+  Type*  new_type;       // ND_CONVERTで使う
   Node** args_node;      // 関数の定義で使う(パース->意味解析)
   Var**  args_var;       // 関数の定義で使う(意味解析->コード生成)
   int    offset;         // 関数の定義で使う(意味解析->コード生成)
@@ -962,7 +966,7 @@ static Node* mul() {
 
 static Node* unary() {
   if(consume("+")) {
-    return unary();
+    return new_node_2branches(ND_ADD, token->str, new_node_num(token->str, 0), unary());
   }
   if(consume("-")) {
     return new_node_2branches(ND_SUB, token->str, new_node_num(token->str, 0), unary());

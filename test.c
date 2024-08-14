@@ -1491,6 +1491,39 @@ void global_variable_initialize() {
   assert(78, global_variable_initialize_d, "global_variable_initialize_d");
 }
 
+void negative_division() {
+  section("負の数の除算");
+  int a = -200;
+  assert(-100, a / 2, "a / 2");
+  assert(100, a / -2, "a / -2");
+  assert(-5, 500 / -100, "500 / -100");
+  assert(5, -500 / -100, "-500 / -100");
+  assert(8, 8 * a / 100, "8 * a / 100");
+  assert(8, (1000 + a) / 100, "(1000 + a) / 100");
+}
+
+void sign_extension() {
+  section("整数拡張");
+  char a = 30;
+  char b = (a * a) / 25; // a*aは整数拡張によってint型に変換される
+  assert(36, b, "(a * a) / 25");
+  char c = a * a;
+  char d = b / 25; // char型に変換されるため、切り捨てられる
+  assert(-4, d, "b / 25");
+  assert(1, sizeof(a), "sizeof(a)");
+  assert(4, sizeof(+a), "sizeof(+a)");
+  assert(4, sizeof(-a), "sizeof(-a)");
+}
+
+char return_small_value_test() {
+  return 257;
+}
+
+void return_large_value() {
+  section("return文で値を返すときにキャストされる");
+  assert(1, return_small_value_test(), "return_small_value_test");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1556,6 +1589,9 @@ int main() {
   struct_offsetof();
   sub_pointer();
   global_variable_initialize();
+  negative_division();
+  sign_extension();
+  return_large_value();
 
   if(is_fall) {
     printf("FAILED\n");

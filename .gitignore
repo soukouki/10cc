@@ -3,10 +3,9 @@
 *.s
 tmp*
 !tmp.c
+!tmp2.c
 a.out
 10cc
 10cc-*
-test.s
-test_mock.s
 .vscode
 .metals
