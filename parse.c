@@ -10,7 +10,6 @@ int printf();
 int strncmp();
 void* calloc();
 int strncpy();
-int memcmp();
 int strlen();
 
 typedef struct Map Map;
@@ -230,7 +229,7 @@ static bool consume(char* op) {
   if(
     token->kind != TK_SYMBOL ||
     strlen(op) != token->len ||
-    memcmp(token->str, op, token->len) != 0
+    strncmp(token->str, op, token->len) != 0
   ) return false;
 
   token = token->next;
@@ -253,7 +252,7 @@ static void expect(char* op) {
   if(
     token->kind != TK_SYMBOL ||
     strlen(op) != token->len ||
-    memcmp(token->str, op, token->len) != 0
+    strncmp(token->str, op, token->len) != 0
   ) error_at1(__FILE__, __LINE__, token->str, "'%s'ではありません", op);
 
   token = token->next;
@@ -276,7 +275,7 @@ static bool is_next(char* op) {
   if(
     token->kind != TK_SYMBOL ||
     strlen(op) != token->len ||
-    memcmp(token->str, op, token->len) != 0
+    strncmp(token->str, op, token->len) != 0
   ) return false;
   return true;
 }

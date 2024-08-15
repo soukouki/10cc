@@ -7,7 +7,6 @@ void* calloc();
 int isspace();
 int isdigit();
 int strncmp();
-int memcmp();
 int strlen();
 long strtol();
 
@@ -204,91 +203,91 @@ Token* tokenize(char *p, char* file) {
       while(('a' <= *p && *p <= 'z') || ('A' <= *p && *p <= 'Z') || *p == '_' || ('0' <= *p && *p <= '9')) {
         p++;
       }
-      if(p - start == 6 && !memcmp(start, "return", 6)) {
+      if(p - start == 6 && !strncmp(start, "return", 6)) {
         cur = new_token(TK_SYMBOL, cur, start, 6, file, line);
         continue;
       }
-      if(p - start == 2 && !memcmp(start, "if", 2)) {
+      if(p - start == 2 && !strncmp(start, "if", 2)) {
         cur = new_token(TK_SYMBOL, cur, start, 2, file, line);
         continue;
       }
-      if(p - start == 4 && !memcmp(start, "else", 4)) {
+      if(p - start == 4 && !strncmp(start, "else", 4)) {
         cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
         continue;
       }
-      if(p - start == 5 && !memcmp(start, "while", 5)) {
+      if(p - start == 5 && !strncmp(start, "while", 5)) {
         cur = new_token(TK_SYMBOL, cur, start, 5, file, line);
         continue;
       }
-      if(p - start == 3 && !memcmp(start, "for", 3)) {
+      if(p - start == 3 && !strncmp(start, "for", 3)) {
         cur = new_token(TK_SYMBOL, cur, start, 3, file, line);
         continue;
       }
-      if(p - start == 6 && !memcmp(start, "sizeof", 6)) {
+      if(p - start == 6 && !strncmp(start, "sizeof", 6)) {
         cur = new_token(TK_SYMBOL, cur, start, 6, file, line);
         continue;
       }
-      if(p - start == 3 && !memcmp(start, "int", 3)) {
+      if(p - start == 3 && !strncmp(start, "int", 3)) {
         cur = new_token(TK_SYMBOL, cur, start, 3, file, line);
         continue;
       }
-      if(p - start == 4 && !memcmp(start, "char", 4)) {
+      if(p - start == 4 && !strncmp(start, "char", 4)) {
         cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
         continue;
       }
-      if(p - start == 4 && !memcmp(start, "void", 4)) {
+      if(p - start == 4 && !strncmp(start, "void", 4)) {
         cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
         continue;
       }
-      if(p - start == 6 && !memcmp(start, "struct", 6)) {
+      if(p - start == 6 && !strncmp(start, "struct", 6)) {
         cur = new_token(TK_SYMBOL, cur, start, 6, file, line);
         continue;
       }
-      if(p - start == 4 && !memcmp(start, "enum", 4)) {
+      if(p - start == 4 && !strncmp(start, "enum", 4)) {
         cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
         continue;
       }
-      if(p - start == 7 && !memcmp(start, "typedef", 7)) {
+      if(p - start == 7 && !strncmp(start, "typedef", 7)) {
         cur = new_token(TK_SYMBOL, cur, start, 7, file, line);
         continue;
       }
-      if(p - start == 6 && !memcmp(start, "extern", 6)) {
+      if(p - start == 6 && !strncmp(start, "extern", 6)) {
         cur = new_token(TK_SYMBOL, cur, start, 6, file, line);
         continue;
       }
-      if(p - start == 5 && !memcmp(start, "break", 5)) {
+      if(p - start == 5 && !strncmp(start, "break", 5)) {
         cur = new_token(TK_SYMBOL, cur, start, 5, file, line);
         continue;
       }
-      if(p - start == 8 && !memcmp(start, "continue", 8)) {
+      if(p - start == 8 && !strncmp(start, "continue", 8)) {
         cur = new_token(TK_SYMBOL, cur, start, 8, file, line);
         continue;
       }
-      if(p - start == 6 && !memcmp(start, "switch", 6)) {
+      if(p - start == 6 && !strncmp(start, "switch", 6)) {
         cur = new_token(TK_SYMBOL, cur, start, 6, file, line);
         continue;
       }
-      if(p - start == 4 && !memcmp(start, "case", 4)) {
+      if(p - start == 4 && !strncmp(start, "case", 4)) {
         cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
         continue;
       }
-      if(p - start == 7 && !memcmp(start, "default", 7)) {
+      if(p - start == 7 && !strncmp(start, "default", 7)) {
         cur = new_token(TK_SYMBOL, cur, start, 7, file, line);
         continue;
       }
-      if(p - start == 4 && !memcmp(start, "long", 4)) {
+      if(p - start == 4 && !strncmp(start, "long", 4)) {
         cur = new_token(TK_SYMBOL, cur, start, 4, file, line);
         continue;
       }
       // constは無視
-      if(p - start == 5 && !memcmp(start, "const", 5)) {
+      if(p - start == 5 && !strncmp(start, "const", 5)) {
         continue;
       }
       // staticは無視
-      if(p - start == 6 && !memcmp(start, "static", 6)) {
+      if(p - start == 6 && !strncmp(start, "static", 6)) {
         continue;
       }
-      if(p - start == 18 && !memcmp(start, "__builtin_offsetof", 18)) {
+      if(p - start == 18 && !strncmp(start, "__builtin_offsetof", 18)) {
         cur = new_token(TK_SYMBOL, cur, start, 18, file, line);
         continue;
       }
