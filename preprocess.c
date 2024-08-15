@@ -1,45 +1,10 @@
 
-// ここから#includeの代わりに展開した部分
-
-typedef long size_t;
-extern void* NULL;
-
-void* calloc();
-void free();
-
-struct _IO_FILE {};
-typedef struct _IO_FILE FILE;
-int SEEK_SET = 0;
-int SEEK_CUR = 1;
-int SEEK_END = 2;
-
-int fseek();
-size_t ftell();
-size_t fread();
-int fclose();
-FILE* fopen();
-
-int strncmp();
-int strlen();
-void strcpy();
-void memcpy();
-void printf();
-void sprintf();
-
-void error0(char* file, int line, char* fmt);
-void error1(char* file, int line, char* fmt, char* arg1);
-void error2(char* file, int line, char* fmt, char* arg1, char* arg2);
-void error3(char* file, int line, char* fmt, char* arg1, char* arg2, char* arg3);
-void error_at0(char* file, int line, char* loc, char* fmt);
-void error_at1(char* file, int line, char* loc, char* fmt, char* arg1);
-void error_at2(char* file, int line, char* loc, char* fmt, char* arg1, char* arg2);
-
-// ここまで#includeの代わりに展開した部分
+#include "10cc.h"
 
 /*
 解析できる構文
 
-改行 `#include "` 文字列 `"`
+改行 `#include<空白>"<文字列>"`
 */
 
 // ファイルを読み込み、バッファに挿入する

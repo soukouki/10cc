@@ -1,12 +1,7 @@
 
-#include <stdbool.h>
+#include "std.h"
 
 #include "map.h"
-
-#define MAX_FUNCS 1000
-#define MAX_BLOCK_STMTS 100
-#define MAX_STRUCT_MEMBERS 100
-#define MAX_ENUM_MEMBERS 100
 
 typedef enum TokenKind TokenKind;
 enum TokenKind {
@@ -207,6 +202,7 @@ Type* ptr_type(Type* ptr_to);
 Type* arr_type(Type* ptr_to, int array_size);
 Type* struct_type(char* name);
 
+char* read_file(char* path);
 Token* tokenize(char *p);
 Node* parse();
 Node* analyze_semantics(Node* node);

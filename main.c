@@ -1,38 +1,11 @@
 
-// ここから#includeの代わりに展開した部分
+#include "10cc.h"
 
-typedef long size_t;
-
-void exit();
-void* calloc();
-char* strerror();
-
-// stdio.h
-struct _IO_FILE {};
-typedef struct _IO_FILE FILE;
-extern FILE *stdin;
-extern FILE *stdout;
-extern FILE *stderr;
-int fprintf();
-int printf();
-
-typedef struct Token Token;
-typedef struct Node Node;
-char* read_file(char *path);
-Token* tokenize(char *p);
-Node* parse();
-Node* analyze_semantics(Node* node);
-void gen(Node* node);
-
-char true = 1;
-char false = 0;
-
-// ここまで#includeの代わりに展開した部分
-
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include <string.h>
-// #include "10cc.h"
+bool true = 1;
+bool false = 0;
+int SEEK_SET = 0;
+int SEEK_CUR = 1;
+int SEEK_END = 2;
 
 // 現在着目しているトークン
 Token* token;

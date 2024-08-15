@@ -1,54 +1,5 @@
 
-// ここから#includeの代わりに展開した部分
-
-extern void* NULL;
-int MAX_STRING_LENGTH = 1000;
-void* calloc();
-int isspace();
-int isdigit();
-int strncmp();
-int strlen();
-long strtol();
-void memcpy();
-
-typedef char bool;
-extern char true;
-extern char false;
-
-typedef enum TokenKind TokenKind;
-enum TokenKind {
-  TK_SYMBOL,
-  TK_IDENT,
-  TK_NUM,
-  TK_STR,
-  TK_CHAR,
-  TK_EOF,
-};
-typedef struct Token Token;
-struct Token {
-  TokenKind kind;
-  Token* next;
-  int val;
-  char* str;
-  int len;
-  char* file;
-  int line;
-};
-void error0(char* file, int line, char* fmt);
-void error1(char* file, int line, char* fmt, char* arg1);
-void error2(char* file, int line, char* fmt, char* arg1, char* arg2);
-void error3(char* file, int line, char* fmt, char* arg1, char* arg2, char* arg3);
-void error_at0(char* file, int line, char* loc, char* fmt);
-void error_at1(char* file, int line, char* loc, char* fmt, char* arg1);
-void error_at2(char* file, int line, char* loc, char* fmt, char* arg1, char* arg2);
-
-// ここまで#includeの代わりに展開した部分
-
-// #include <ctype.h>
-// #include <stdlib.h>
-// #include <string.h>
-// #include <stdio.h>
-// #include "10cc.h"
+#include "10cc.h"
 
 // 新しいトークンを作成してcurにつなげる·
 static Token* new_token(TokenKind kind, Token *cur, char *str, int len, char* file, int line) {
@@ -79,7 +30,7 @@ Token* tokenize(char *p) {
     // `// <file>:<line><改行>`という形式のコメントの場合、fileとlineを更新する
     if(strncmp(p, "// ", 3) == 0) {
       bool is_end_of_line = false;
-      for(int j = 1; j <= 100; j++) {
+      for(int j = 1; j <= 20; j++) {
         if(p[j] == '\n') {
           is_end_of_line = true;
           break;
@@ -161,7 +112,7 @@ Token* tokenize(char *p) {
 
     if(*p == '"') {
       p++;
-      char* str = calloc(1, MAX_STRING_LENGTH);
+      char* str = calloc(1, 1000);
       int len = 0;
       while(*p != '"') {
         if(*p == '\0') {
