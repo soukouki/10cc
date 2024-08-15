@@ -494,6 +494,7 @@ void gen(Node* node) {
   case ND_BLOCK: {
     for(int i = 0; node->stmts[i]; i++) {
       gen(node->stmts[i]);
+      printf("  pop rax\n");
     }
     break;
   }

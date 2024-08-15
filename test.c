@@ -1504,14 +1504,11 @@ void negative_division() {
   assert(8, (1000 + a) / 100, "(1000 + a) / 100");
 }
 
-void backtrace(){}
-
 void sign_extension() {
   section("整数拡張");
   char a = 30;
   char b = (a * a) / 25; // a*aは整数拡張によってint型に変換される
   assert(36, b, "(a * a) / 25");
-  backtrace();
   char c = a * a;
   char d = c / 25; // char型に変換されるため、切り捨てられる
   assert(-4, d, "c / 25");
