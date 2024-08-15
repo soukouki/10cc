@@ -13,6 +13,40 @@ static Token* new_token(TokenKind kind, Token *cur, char *str, int len, char* fi
   return tok;
 }
 
+static char* get_file_and_line(char* p, char** file, int* line) {
+  char* start = p;
+  if(strncmp(p, "//", 2) != 0) {
+    return NULL;
+  }
+  p += 3;
+  char* file_start = p;
+  bool is_appearance_of_newline = false;
+  while(('a' <= *p && *p <= 'z') || ('A' <= *p && *p <= 'Z') || ('0' <= *p && *p <= '9') || *p == '_' || *p == '.' || *p == '-') {
+    p++;
+  }
+  char* file_end = p;
+  if(*p != ':') {
+    return NULL;
+  }
+  p++;
+  char* line_start = p;
+  while(isdigit(*p)) {
+    p++;
+  }
+  if(*p != '\n') {
+    return NULL;
+  }
+  p++;
+  *file = calloc(100, 1);
+  memcpy(*file, file_start, file_end - file_start);
+  char* line_str = calloc(10, 1);
+  memcpy(line_str, line_start, p - line_start);
+  *line = strtol(line_str, NULL, 10) + 1;
+  free(line_str);
+  printf("# file: %s, line: %d\n", *file, *line);
+  return p;
+}
+
 Token* tokenize(char *p) {
   Token head;
   head.next = NULL;
@@ -21,40 +55,18 @@ Token* tokenize(char *p) {
   char* file = "unknown";
 
   while(*p) {
-    // 空白文字をスキップ
     if(isspace(*p)) {
       p++;
       continue;
     }
 
     // `// <file>:<line><改行>`という形式のコメントの場合、fileとlineを更新する
-    if(strncmp(p, "// ", 3) == 0) {
-      bool is_end_of_line = false;
-      for(int j = 1; j <= 20; j++) {
-        if(p[j] == '\n') {
-          is_end_of_line = true;
-          break;
-        }
-      }
-      if(is_end_of_line) {
-        p += 3;
-        char* start = p;
-        while(*p != ':') {
-          p++;
-        }
-        file = calloc(100, 1);
-        memcpy(file, start, p - start);
-        p++;
-        start = p;
-        while(isdigit(*p)) {
-          p++;
-        }
-        char* line_str = calloc(100, 1);
-        memcpy(line_str, start, p - start);
-        line = strtol(line_str, NULL, 10) + 1;
-        continue;
-      }
+    char* new_p = get_file_and_line(p, &file, &line);
+    if(new_p != NULL) {
+      p = new_p;
+      continue;
     }
+
     // コメントをスキップ
     if(strncmp(p, "//", 2) == 0) {
       p += 2;

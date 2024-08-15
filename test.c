@@ -1035,13 +1035,13 @@ int increment_and_decrement() {
 int file_and_line() {
   section("__FILE__, __LINE__");
   assert(1037, __LINE__, "__LINE__");
-  assert('t', __FILE__[0], "__FILE__");
-  assert('e', __FILE__[1], "__FILE__");
-  assert('s', __FILE__[2], "__FILE__");
-  assert('t', __FILE__[3], "__FILE__");
-  assert('.', __FILE__[4], "__FILE__");
-  assert('c', __FILE__[5], "__FILE__");
-  assert(0  , __FILE__[6], "__FILE__");
+  assert('t', __FILE__[0], "__FILE__[0]");
+  assert('e', __FILE__[1], "__FILE__[1]");
+  assert('s', __FILE__[2], "__FILE__[2]");
+  assert('t', __FILE__[3], "__FILE__[3]");
+  assert('.', __FILE__[4], "__FILE__[4]");
+  assert('c', __FILE__[5], "__FILE__[5]");
+  assert(0  , __FILE__[6], "__FILE__[6]");
 }
 
 int break_and_continue() {
