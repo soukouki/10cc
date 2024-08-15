@@ -37,7 +37,6 @@ void error_at0(char* file, int line, char* loc, char* fmt);
 void error_at1(char* file, int line, char* loc, char* fmt, char* arg1);
 void error_at2(char* file, int line, char* loc, char* fmt, char* arg1, char* arg2);
 
-
 // ここまで#includeの代わりに展開した部分
 
 // #include <ctype.h>

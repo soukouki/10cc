@@ -1535,6 +1535,40 @@ void return_large_value() {
   assert(1, return_small_value_test(), "return_small_value_test");
 }
 
+#include "test_include.h"
+
+void include() {
+  section("include");
+  assert(3, include_function(1, 2), "include_test");
+  // char* file = include_file();
+  // assert('t', file[0], "include_file[0]");
+  // assert('e', file[1], "include_file[1]");
+  // assert('s', file[2], "include_file[2]");
+  // assert('t', file[3], "include_file[3]");
+  // assert('_', file[4], "include_file[4]");
+  // assert('i', file[5], "include_file[5]");
+  // assert('n', file[6], "include_file[6]");
+  // assert('c', file[7], "include_file[7]");
+  // assert('l', file[8], "include_file[8]");
+  // assert('u', file[9], "include_file[9]");
+  // assert('d', file[10], "include_file[10]");
+  // assert('e', file[11], "include_file[11]");
+  // assert('.', file[12], "include_file[12]");
+  // assert('h', file[13], "include_file[13]");
+  // assert('\0',  file[14], "include_file[14]");
+  // assert(11, include_line(), "include_line");
+  // // #includeの後も正しくファイル名や行数を取得できることの確認
+  // file = __FILE__;
+  // assert('t', file[0], "__FILE__[0]");
+  // assert('e', file[1], "__FILE__[1]");
+  // assert('s', file[2], "__FILE__[2]");
+  // assert('t', file[3], "__FILE__[3]");
+  // assert('.', file[4], "__FILE__[4]");
+  // assert('c', file[5], "__FILE__[5]");
+  // assert('\0' , file[6], "__FILE__[6]");
+  // assert(1569, __LINE__, "__LINE__");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1603,6 +1637,7 @@ int main() {
   negative_division();
   sign_extension();
   return_large_value();
+  include();
 
   if(is_fall) {
     printf("FAILED\n");

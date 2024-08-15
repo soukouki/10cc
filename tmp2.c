@@ -1,5 +1,4 @@
 
-// int printf();
-int main() {
-  10 % 3;
+int func() {
+  return 42;
 }

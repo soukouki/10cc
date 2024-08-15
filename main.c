@@ -1,7 +1,7 @@
 
 // ここから#includeの代わりに展開した部分
 
-typedef long size_t; // 多分intじゃサイズが足りないので、どこかしらでバグる気がする
+typedef long size_t;
 
 void exit();
 void* calloc();
@@ -13,19 +13,12 @@ typedef struct _IO_FILE FILE;
 extern FILE *stdin;
 extern FILE *stdout;
 extern FILE *stderr;
-int SEEK_SET = 0;
-int SEEK_CUR = 1;
-int SEEK_END = 2;
 int fprintf();
 int printf();
-FILE* fopen();
-int fseek();
-size_t ftell();
-size_t fread();
-int fclose();
 
 typedef struct Token Token;
 typedef struct Node Node;
+char* read_file(char *path);
 Token* tokenize(char *p, char* file);
 Node* parse();
 Node* analyze_semantics(Node* node);
@@ -110,32 +103,6 @@ void error_at0(char* file_name, int file_line, char *loc, char* fmt) {
 }
 void error_at1(char* file_name, int file_line, char *loc, char* fmt, char* arg1) {
   error_at2(file_name, file_line, loc, fmt, arg1, "");
-}
-
-// 指定されたファイルの内容を返す
-char *read_file(char *path) {
-  // ファイルを開く
-  FILE *fp = fopen(path, "r");
-  if (!fp)
-    error1(__FILE__, __LINE__, "cannot open %s", path);
-
-  // ファイルの長さを調べる
-  if (fseek(fp, 0, SEEK_END) == -1)
-    error1(__FILE__, __LINE__, "%s: fseek", path);
-  size_t size = ftell(fp);
-  if (fseek(fp, 0, SEEK_SET) == -1)
-    error1(__FILE__, __LINE__, "%s: fseek", path);
-
-  // ファイル内容を読み込む
-  char *buf = calloc(1, size + 2);
-  fread(buf, size, 1, fp);
-
-  // ファイルが必ず"\n\0"で終わっているようにする
-  if (size == 0 || buf[size - 1] != '\n')
-    buf[size++] = '\n';
-  buf[size] = '\0';
-  fclose(fp);
-  return buf;
 }
 
 int main(int argc, char **argv) {
