@@ -434,14 +434,18 @@ void gen(Node* node) {
     if(node->els) {
       printf("  je  .Lelse%d\n", if_label);
       gen(node->then);
+      printf("  pop rax\n");
       printf("  jmp .Lend%d\n", if_label);
       printf(".Lelse%d:\n", if_label);
       gen(node->els);
+      printf("  pop rax\n");
     } else {
       printf("  je  .Lend%d\n", if_label);
       gen(node->then);
+      printf("  pop rax\n");
     }
     printf(".Lend%d:\n", if_label);
+    printf("  push 0\n"); // ifも文なので、必ずpushしておく
     break;
   }
   case ND_WHILE: {
@@ -452,8 +456,10 @@ void gen(Node* node) {
     printf("  cmp rax, 0\n");
     printf("  je  .Lend%d\n", while_label);
     gen(node->body);
+    printf("  pop rax\n");
     printf("  jmp .Lbegin%d\n", while_label);
     printf(".Lend%d:\n", while_label);
+    printf("  push 0\n"); // whileも文なので、必ずpushしておく
     break;
   }
   case ND_FOR: {
@@ -467,9 +473,14 @@ void gen(Node* node) {
       printf("  je  .Lend%d\n", for_label);
     }
     gen(node->body);
-    if(node->inc) gen(node->inc);
+    printf("  pop rax\n");
+    if(node->inc) {
+      gen(node->inc);
+      printf("  pop rax\n");
+    }
     printf("  jmp .Lbegin%d\n", for_label);
     printf(".Lend%d:\n", for_label);
+    printf("  push 0\n"); // forも文なので、必ずpushしておく
     break;
   }
   case ND_SWITCH: {
@@ -488,7 +499,9 @@ void gen(Node* node) {
       printf("  jmp .Lend%d\n", switch_label);
     }
     gen(node->body);
+    printf("  pop rax\n");
     printf(".Lend%d:\n", switch_label);
+    printf("  push 0\n"); // switchも文なので、必ずpushしておく
     break;
   }
   case ND_BLOCK: {
@@ -496,6 +509,7 @@ void gen(Node* node) {
       gen(node->stmts[i]);
       printf("  pop rax\n");
     }
+    printf("  push 0\n"); // BLOCKも文なので、必ずpushしておく
     break;
   }
   case ND_CALL: {
@@ -636,7 +650,10 @@ void gen(Node* node) {
     break;
   }
   case ND_DECL: {
-    if(!node->rhs) break;
+    if(!node->rhs) {
+      printf("  push 0\n"); // 文は必ず1つpushする
+      break;
+    }
     gen_assign(node->lhs, node->rhs);
     break;
   }
@@ -707,6 +724,8 @@ void gen(Node* node) {
     } else if (node->old_type->kind == TY_INT && node->new_type->kind == TY_LONG) {
       printf("# 問題の箇所\n");
       printf("  movsxd rax, eax\n");
+    } else if (node->old_type->kind == TY_LONG && node->new_type->kind == TY_INT) {
+      printf("  mov eax, eax\n");
     } else if(node->old_type->kind == TY_INT && node->new_type->kind == TY_VOID) {
       // return文では仮に42を入れるようにしているので、とりあえず無視する
     } else {

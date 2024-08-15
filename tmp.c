@@ -14,31 +14,19 @@ FloatTimes10000 mul(FloatTimes10000 a, FloatTimes10000 b) {
 
 int k;
 
-void breakpoint() {}
-int count = 0;
-
 void update2(FloatTimes10000 *cos, FloatTimes10000 *sin, FloatTimes10000 cos_delta, FloatTimes10000 sin_delta) {
-  count++;
-  if(count == 77452) {
-    printf("%d %p %p %d %d\n", count, cos, sin, cos_delta, sin_delta);
-    breakpoint();
-  }
   FloatTimes10000 new_cos = mul(*cos, cos_delta) - mul(*sin, sin_delta);
   FloatTimes10000 new_sin = mul(*sin, cos_delta) + mul(*cos, sin_delta);
   *cos = new_cos;
   *sin = new_sin;
 }
 
-// int main() {
-//   FloatTimes10000 cos = 9662;
-//   FloatTimes10000 sin = 2574;
-//   update2(&cos, &sin, 9998, 200);
-// }
+void breakpoint() {}
 
 int main() {
   FloatTimes10000 zTimes10000[1760];
   char b[1760];
-  // printf("%c[2J", 32);
+  printf("%c[2J", 27);
   FloatTimes10000 cosATimes10000 = 10000; FloatTimes10000 sinATimes10000 = 0;
   FloatTimes10000 cosBTimes10000 = 10000; FloatTimes10000 sinBTimes10000 = 0;
   for (;;) {
@@ -79,12 +67,12 @@ int main() {
       theta_times_14++;
       update2(&costhetaTimes10000, &sinthetaTimes10000, 9974 + theta_times_14 % 2, 714);
     }
-    // printf("%c[H", 32);
+    printf("%c[H", 27);
     for (k = 0; 1761 > k; k++) {
       if (k % 80) {
-        // putchar(b[k]);
+        putchar(b[k]);
       } else {
-        // putchar(10);
+        putchar(10);
       }
     }
     update2(&cosATimes10000, &sinATimes10000, 9992, 400);
