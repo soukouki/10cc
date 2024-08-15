@@ -24,6 +24,7 @@ int strlen();
 void strcpy();
 void memcpy();
 void printf();
+void sprintf();
 
 void error0(char* file, int line, char* fmt);
 void error1(char* file, int line, char* fmt, char* arg1);
@@ -53,6 +54,7 @@ void read_file_to_buffer(char* path, char* buf) {
 char* check_preprocess(char* path, char* buf) {
   read_file_to_buffer(path, buf);
   int i = 0;
+  int line = 1;
   while(buf[i]) {
     int include_path_start = 0;
     int include_sharp = i;
@@ -69,11 +71,27 @@ char* check_preprocess(char* path, char* buf) {
       char* after_buf = calloc(100000, 1);
       strcpy(after_buf, &buf[i]);
       char* content_buf = calloc(100000, 1);
-      read_file_to_buffer(include_path, content_buf);
+      check_preprocess(include_path, content_buf);
       int content_buf_len = strlen(content_buf);
       strcpy(&buf[include_sharp], content_buf);
       strcpy(&buf[include_sharp + content_buf_len], after_buf);
-      i = include_sharp; // iをcontentの先頭にすることで、再帰的に#includeを処理する
+      free(include_path);
+      free(after_buf);
+      free(content_buf);
+      i = include_sharp + content_buf_len;
+    } else if (buf[i] == '\n') { // もし改行文字が来たら、`// ファイル名:行数` を挿入する
+      char* file_and_line = calloc(100, 1);
+      sprintf(file_and_line, " // %s:%d", path, line);
+      int file_and_line_len = strlen(file_and_line);
+      char* after_buf = calloc(100000, 1);
+      strcpy(after_buf, &buf[i]);
+      strcpy(&buf[i], file_and_line);
+      strcpy(&buf[i + file_and_line_len], after_buf);
+      free(file_and_line);
+      free(after_buf);
+      i += file_and_line_len;
+      line++;
+      i++;
     } else {
       i++;
     }

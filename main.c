@@ -19,7 +19,7 @@ int printf();
 typedef struct Token Token;
 typedef struct Node Node;
 char* read_file(char *path);
-Token* tokenize(char *p, char* file);
+Token* tokenize(char *p);
 Node* parse();
 Node* analyze_semantics(Node* node);
 void gen(Node* node);
@@ -183,7 +183,7 @@ int main(int argc, char **argv) {
   filename = argv[1];
   
   printf("# tokenize\n");
-  token = tokenize(user_input, filename);
+  token = tokenize(user_input);
   printf("# parse\n");
   Node* code = parse();
   printf("# analyze semantics\n");

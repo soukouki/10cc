@@ -9,6 +9,11 @@ int isdigit();
 int strncmp();
 int strlen();
 long strtol();
+void memcpy();
+
+typedef char bool;
+extern char true;
+extern char false;
 
 typedef enum TokenKind TokenKind;
 enum TokenKind {
@@ -57,24 +62,48 @@ static Token* new_token(TokenKind kind, Token *cur, char *str, int len, char* fi
   return tok;
 }
 
-Token* tokenize(char *p, char* file) {
+Token* tokenize(char *p) {
   Token head;
   head.next = NULL;
   Token *cur = &head;
   int line = 1;
+  char* file = "unknown";
 
   while(*p) {
     // 空白文字をスキップ
-    if(*p == '\n') {
-      p++;
-      line++;
-      continue;
-    }
     if(isspace(*p)) {
       p++;
       continue;
     }
 
+    // `// <file>:<line><改行>`という形式のコメントの場合、fileとlineを更新する
+    if(strncmp(p, "// ", 3) == 0) {
+      bool is_end_of_line = false;
+      for(int j = 1; j <= 100; j++) {
+        if(p[j] == '\n') {
+          is_end_of_line = true;
+          break;
+        }
+      }
+      if(is_end_of_line) {
+        p += 3;
+        char* start = p;
+        while(*p != ':') {
+          p++;
+        }
+        file = calloc(100, 1);
+        memcpy(file, start, p - start);
+        p++;
+        start = p;
+        while(isdigit(*p)) {
+          p++;
+        }
+        char* line_str = calloc(100, 1);
+        memcpy(line_str, start, p - start);
+        line = strtol(line_str, NULL, 10) + 1;
+        continue;
+      }
+    }
     // コメントをスキップ
     if(strncmp(p, "//", 2) == 0) {
       p += 2;
@@ -288,6 +317,15 @@ Token* tokenize(char *p, char* file) {
       }
       if(p - start == 18 && !strncmp(start, "__builtin_offsetof", 18)) {
         cur = new_token(TK_SYMBOL, cur, start, 18, file, line);
+        continue;
+      }
+      if(p - start == 8 && !strncmp(start, "__FILE__", 8)) {
+        cur = new_token(TK_STR, cur, file, strlen(file), file, line);
+        continue;
+      }
+      if(p - start == 8 && !strncmp(start, "__LINE__", 8)) {
+        cur = new_token(TK_NUM, cur, start, 0, file, line);
+        cur->val = line;
         continue;
       }
       cur = new_token(TK_IDENT, cur, start, p - start, file, line);
