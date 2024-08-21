@@ -1569,6 +1569,20 @@ void include() {
   assert(1569, __LINE__, "__LINE__");
 }
 
+void increment_decrement_with_int_char() {
+  section("intとcharのデクリメント");
+  int a = 1;
+  int b = 0;
+  b--;
+  assert(1, a, "a");
+  assert(-1, b, "b");
+  char c = 1;
+  char d = 0;
+  d--;
+  assert(1, c, "c");
+  assert(-1, d, "d");
+}
+
 int main() {
   return_value();
   four_arithmetic();
@@ -1638,6 +1652,7 @@ int main() {
   sign_extension();
   return_large_value();
   include();
+  increment_decrement_with_int_char();
 
   if(is_fall) {
     printf("FAILED\n");
